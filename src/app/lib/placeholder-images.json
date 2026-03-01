@@ -1,0 +1,41 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "brand-logo",
+      "description": "Logo officiel 100% Pass' Déc'",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/firebasin-production.appspot.com/o/images%2F67be25875630653f3e6a4b11%2F1740514931899-image.png?alt=media&token=c32c286e-9860-4b47-b864-16e75a6437d0",
+      "imageHint": "football logo"
+    },
+    {
+      "id": "football-hero",
+      "description": "Action de football dynamique avec ballon",
+      "imageUrl": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmb290YmFsbCUyMGFjdGlvbnxlbnwwfHx8fDE3NzIzNjA0MDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "football action"
+    },
+    {
+      "id": "profile-fc-etoile",
+      "description": "Football club logo placeholder",
+      "imageUrl": "https://images.unsplash.com/photo-1673305413427-042aad93ceda?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmb290YmFsbHxlbnwwfHx8fDE3NzIzMTk0ODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "football logo"
+    },
+    {
+      "id": "item-maillot",
+      "description": "Football jersey offer",
+      "imageUrl": "https://images.unsplash.com/photo-1551854386-b42759a60dd0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxmb290YmFsbCUyMGplcnNleXxlbnwwfHx8fDE3NzIzNTUxNjh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "football jersey"
+    },
+    {
+      "id": "item-crampons",
+      "description": "Football boots offer",
+      "imageUrl": "https://images.unsplash.com/photo-1684355414454-ed132f6c41cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmb290YmFsbCUyMGJvb3RzfGVufDB8fHx8MTc3MjM1NTE2OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "football boots"
+    },
+    {
+      "id": "stadium-bg",
+      "description": "Stadium background",
+      "imageUrl": "https://images.unsplash.com/photo-1508100134119-f93388e60d95?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxmb290YmFsbCUyMHN0YWRpdW18ZW58MHx8fHwxNzcyMjk4NTA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "football stadium"
+    }
+  ]
+}

@@ -10,6 +10,7 @@ import { Search, MapPin, X, Circle, Triangle, Square, Trophy } from 'lucide-reac
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { PlaceHolderImages } from '@/lib/placeholder-images'
 
 export const allOffers = [
   {
@@ -70,6 +71,8 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
+  const heroImage = PlaceHolderImages.find(img => img.id === 'football-hero')
+
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
     if (saved) {
@@ -121,13 +124,13 @@ export default function HomePage() {
         {/* Image de football dynamique avec ballon visible */}
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
-            src="https://picsum.photos/seed/football-stadium-match/1200/675" 
+            src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=1200"} 
             alt="Football Action" 
             fill
             className="object-cover"
             priority
             unoptimized
-            data-ai-hint="football match"
+            data-ai-hint="football action"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         </div>
