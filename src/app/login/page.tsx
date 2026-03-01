@@ -1,9 +1,10 @@
+
 "use client"
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth, useUser } from '@/firebase'
-import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const auth = useAuth()
   const { user, isUserLoading } = useUser()
   const router = useRouter()
@@ -27,7 +29,7 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) {
       toast({
@@ -38,10 +40,23 @@ export default function LoginPage() {
       return
     }
 
-    if (isLogin) {
-      initiateEmailSignIn(auth, email, password)
-    } else {
-      initiateEmailSignUp(auth, email, password)
+    setIsLoading(true)
+
+    try {
+      if (isLogin) {
+        await signInWithEmailAndPassword(auth, email, password)
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password)
+      }
+    } catch (error: any) {
+      console.error("Auth error:", error)
+      toast({
+        variant: "destructive",
+        title: "Carton rouge !",
+        description: "L'adresse mail ou le mot de passe n'existe pas ou est incorrect."
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -90,6 +105,7 @@ export default function LoginPage() {
                   placeholder="foot@passion.fr" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
                   className="bg-background/50 border-none ring-1 ring-white/10 focus-visible:ring-primary rounded-xl h-12"
                 />
               </div>
@@ -100,11 +116,16 @@ export default function LoginPage() {
                   placeholder="••••••••" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
                   className="bg-background/50 border-none ring-1 ring-white/10 focus-visible:ring-primary rounded-xl h-12"
                 />
               </div>
-              <Button type="submit" className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg shadow-xl shadow-primary/20 mt-4">
-                {isLogin ? 'Entrer sur le terrain' : 'Signer au club'}
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg shadow-xl shadow-primary/20 mt-4"
+              >
+                {isLoading ? 'Action en cours...' : (isLogin ? 'Entrer sur le terrain' : 'Signer au club')}
               </Button>
             </form>
           </CardContent>
@@ -119,7 +140,8 @@ export default function LoginPage() {
             </div>
             <button 
               onClick={() => setIsLogin(!isLogin)}
-              className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
+              disabled={isLoading}
+              className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
             >
               {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
             </button>
