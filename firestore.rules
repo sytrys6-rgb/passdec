@@ -4,11 +4,10 @@ service cloud.firestore {
 
     /**
      * CORE PHILOSOPHY
-     * This ruleset implements a robust, identity-centric security model designed for a marketplace and 
-     * social interaction platform.
+     * Marketplace social robuste : lecture publique des offres, isolation des profils et conversations privées.
      */
 
-    // --- Global Helper Functions ---
+    // --- Fonctions Globales ---
 
     function isSignedIn() {
       return request.auth != null;
@@ -26,11 +25,11 @@ service cloud.firestore {
       return isSignedIn() && (request.auth.uid in participants);
     }
 
-    // --- Collection Rules ---
+    // --- Règles des Collections ---
 
     /**
-     * @description Les utilisateurs ne peuvent gérer que leur propre profil.
-     * Simplification pour éviter les erreurs de validation de champ 'id' lors des mises à jour partielles.
+     * @description Les utilisateurs gèrent leur propre profil.
+     * Lecture autorisée pour tous les connectés pour voir les pseudos des vendeurs.
      */
     match /users/{userId} {
       allow get: if isSignedIn();
@@ -39,10 +38,11 @@ service cloud.firestore {
     }
 
     /**
-     * @description Offres publiques lisibles par tous, modifiables uniquement par le créateur.
+     * @description Offres publiques lisibles par tous (connectés ou non).
+     * Création et modification restreintes au propriétaire.
      */
     match /offres/{offreId} {
-      allow get, list: if true;
+      allow read: if true;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(resource.data.userId);

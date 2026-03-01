@@ -45,12 +45,11 @@ export default function HomePage() {
       image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
       date: 'Publié récemment'
     }))
-    // On garde les offres statiques comme base pour la démo
     return [...dynamic, ...allOffers]
   }, [firestoreOffers])
 
-  // Image héro de football spectaculaire
-  const heroImage = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
+  // Image d'action de football immersive avec ballon visible
+  const heroImage = "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1200&auto=format&fit=crop"
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -101,12 +100,12 @@ export default function HomePage() {
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
             src={heroImage} 
-            alt="Football Action Hero" 
+            alt="Action Football Pro" 
             fill
             className="object-cover"
             priority
             unoptimized
-            data-ai-hint="football stadium"
+            data-ai-hint="football action"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
         </div>
