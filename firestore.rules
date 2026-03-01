@@ -1,24 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // OFFRES
-    match /offres/{offerId} {
-      // 🔹 Tous les utilisateurs connectés peuvent lire, créer et modifier les offres
-      // Note: On simplifie ici selon votre demande pour débloquer la situation
-      allow read, create, update, delete: if request.auth != null;
-    }
-
-    // USERS (PROFIL)
-    match /users/{userId} {
-      // L'utilisateur peut gérer uniquement son propre profil
-      allow read, create, update, delete: if request.auth != null 
-                  && request.auth.uid == userId;
-    }
-
-    // CONVERSATIONS
-    match /conversations/{conversationId} {
-      allow read, write: if request.auth != null && (request.auth.uid in resource.data.participants);
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
