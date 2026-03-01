@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react'
@@ -48,8 +47,8 @@ export default function HomePage() {
     return [...dynamic, ...allOffers]
   }, [firestoreOffers])
 
-  // Image d'action de football immersive avec ballon visible
-  const heroImage = "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1200&auto=format&fit=crop"
+  // Photo de football authentique avec stade et action
+  const heroImage = "https://images.unsplash.com/photo-1543351611-58f69d7c1781?q=80&w=1200&auto=format&fit=crop"
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -100,7 +99,7 @@ export default function HomePage() {
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
             src={heroImage} 
-            alt="Action Football Pro" 
+            alt="Action Football Professionnel" 
             fill
             className="object-cover"
             priority

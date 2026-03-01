@@ -5,6 +5,7 @@ service cloud.firestore {
     /**
      * CORE PHILOSOPHY
      * Marketplace social robuste : lecture publique des offres, isolation des profils et conversations privées.
+     * Mise à jour v1.0.2 : Permissions de liste explicites.
      */
 
     // --- Fonctions Globales ---
@@ -34,7 +35,9 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isOwner(userId);
-      allow create, update, delete: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
     }
 
     /**
@@ -42,7 +45,7 @@ service cloud.firestore {
      * Création et modification restreintes au propriétaire.
      */
     match /offres/{offreId} {
-      allow read: if true;
+      allow get, list: if true;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(resource.data.userId);
