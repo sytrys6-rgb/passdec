@@ -121,7 +121,7 @@ export default function HomePage() {
         {/* Image de football dynamique avec un ballon visible */}
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
-            src="https://picsum.photos/seed/football-action-ball/1200/675" 
+            src="https://picsum.photos/seed/football-play-action-ball/1200/675" 
             alt="Football Action with Ball" 
             fill
             className="object-cover"
