@@ -123,9 +123,10 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 flex flex-col gap-6">
-        <div className="flex justify-center w-full mb-2">
+        {/* Logo and Brand Identity Section */}
+        <div className="flex flex-col items-center text-center gap-3">
           {brandLogo && (
-            <div className="relative w-full max-w-[280px] aspect-[2/1]">
+            <div className="relative w-32 h-32">
               <Image 
                 src={brandLogo.imageUrl} 
                 alt="100% Pass' Déc'" 
@@ -136,8 +137,17 @@ export default function HomePage() {
               />
             </div>
           )}
+          <div className="flex flex-col items-center">
+            <h1 className="text-3xl font-black italic uppercase tracking-tighter text-primary">
+              100% Pass' Déc'
+            </h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-1">
+              Le réseau social qui fait marquer
+            </p>
+          </div>
         </div>
 
+        {/* Search Bar */}
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
