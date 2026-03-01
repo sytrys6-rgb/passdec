@@ -8,9 +8,11 @@ import { Badge } from '@/components/ui/badge'
 import { Search, MapPin, X, Circle, Triangle, Square } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
+  const [activeLocation, setActiveLocation] = useState<string | null>(null)
 
   const controllerFilters = [
     { id: 'vendre', label: 'Vendre', icon: X, color: 'bg-blue-500', iconColor: '#3b82f6', description: 'Équipements & Goodies' },
@@ -18,6 +20,8 @@ export default function HomePage() {
     { id: 'echanger', label: 'Échanger', icon: Triangle, color: 'bg-green-500', iconColor: '#22c55e', description: 'Troc & Dons' },
     { id: 'matcher', label: 'Matcher', icon: Square, color: 'bg-purple-500', iconColor: '#a855f7', description: 'Recrutement & Jobs' },
   ]
+
+  const cities = ['Lyon', 'Paris', 'Marseille', 'Lille', 'Bordeaux']
 
   const allOffers = [
     {
@@ -36,7 +40,7 @@ export default function HomePage() {
       titre: 'Recherche Joueur U17',
       description: 'Poste de gardien pour tournoi régional.',
       prix: 0,
-      ville: 'Villeurbanne',
+      ville: 'Villeurbanne', // Considéré proche de Lyon
       typeOffre: 'matcher',
       image: 'https://picsum.photos/seed/foot-match/600/400',
       userNom: 'FC Villeurbanne',
@@ -47,10 +51,10 @@ export default function HomePage() {
       titre: 'Échange Crampons T42',
       description: 'Contre paire de gants de gardien.',
       prix: 0,
-      ville: 'Bron',
+      ville: 'Marseille',
       typeOffre: 'echanger',
       image: 'https://picsum.photos/seed/boots/600/400',
-      userNom: 'FootLover69',
+      userNom: 'OMFan13',
       userType: 'particulier'
     },
     {
@@ -58,21 +62,45 @@ export default function HomePage() {
       titre: 'Tournoi Futsal Solidaire',
       description: 'Inscription ouverte pour les équipes U13.',
       prix: 20,
-      ville: 'Lyon 8',
+      ville: 'Paris',
       typeOffre: 'evenement',
       image: 'https://picsum.photos/seed/stadium/600/400',
-      userNom: 'AS Lyon 8',
+      userNom: 'PSG Academy',
       userType: 'club_foot'
+    },
+    {
+      id: '5',
+      titre: 'Veste de survêtement vintage',
+      description: 'Années 90, très bon état.',
+      prix: 40,
+      ville: 'Lyon',
+      typeOffre: 'vendre',
+      image: 'https://picsum.photos/seed/vintage/600/400',
+      userNom: 'VintageFoot',
+      userType: 'particulier'
     }
   ]
 
   const filteredOffers = useMemo(() => {
-    if (!activeFilter) return allOffers
-    return allOffers.filter(offer => offer.typeOffre === activeFilter)
-  }, [activeFilter])
+    return allOffers.filter(offer => {
+      const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
+      
+      // Simulation du filtre 150km : On filtre par ville exacte ou villes limitrophes pour le prototype
+      // Dans une version réelle, on utiliserait les coordonnées GPS.
+      const matchesLocation = !activeLocation || 
+        offer.ville === activeLocation || 
+        (activeLocation === 'Lyon' && offer.ville === 'Villeurbanne')
+
+      return matchesCategory && matchesLocation
+    })
+  }, [activeFilter, activeLocation])
 
   const handleFilterToggle = (filterId: string) => {
     setActiveFilter(prev => prev === filterId ? null : filterId)
+  }
+
+  const handleLocationToggle = (city: string) => {
+    setActiveLocation(prev => prev === city ? null : city)
   }
 
   return (
@@ -104,9 +132,12 @@ export default function HomePage() {
             <button
               key={filter.id}
               onClick={() => handleFilterToggle(filter.id)}
-              className={`controller-btn group ${activeFilter === filter.id ? 'ring-2 ring-primary scale-105 bg-white/10' : 'bg-card'}`}
+              className={cn(
+                "controller-btn group",
+                activeFilter === filter.id ? 'ring-2 ring-primary scale-105 bg-white/10' : 'bg-card'
+              )}
             >
-              <div className={`p-3 rounded-full mb-2 ${filter.color} bg-opacity-20`}>
+              <div className={cn("p-3 rounded-full mb-2 bg-opacity-20", filter.color)}>
                 <filter.icon className="w-8 h-8" style={{ color: filter.iconColor }} />
               </div>
               <span className="font-bold text-sm uppercase tracking-widest">{filter.label}</span>
@@ -121,19 +152,40 @@ export default function HomePage() {
 
       {/* Location Bar */}
       <div className="px-6 py-4 flex items-center gap-2 text-muted-foreground overflow-x-auto no-scrollbar">
-        <MapPin className="w-4 h-4 flex-shrink-0" />
-        <span className="text-xs whitespace-nowrap uppercase font-bold tracking-tighter">Proche de :</span>
-        <Badge variant="secondary" className="rounded-full px-3 py-1 cursor-pointer hover:bg-primary hover:text-black transition-colors font-bold">Lyon</Badge>
-        <Badge variant="outline" className="rounded-full px-3 py-1 cursor-pointer font-bold border-white/10">Paris</Badge>
-        <Badge variant="outline" className="rounded-full px-3 py-1 cursor-pointer font-bold border-white/10">Marseille</Badge>
+        <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation ? "text-primary" : "text-muted-foreground")} />
+        <span className="text-xs whitespace-nowrap uppercase font-bold tracking-tighter mr-1">Proche de (150km) :</span>
+        <div className="flex gap-2">
+          {cities.map((city) => (
+            <Badge 
+              key={city}
+              variant={activeLocation === city ? "default" : "outline"}
+              onClick={() => handleLocationToggle(city)}
+              className={cn(
+                "rounded-full px-4 py-1.5 cursor-pointer transition-all font-black uppercase tracking-tighter text-[10px]",
+                activeLocation === city 
+                  ? "bg-primary text-black border-primary scale-105" 
+                  : "border-white/10 hover:border-primary/50 text-muted-foreground"
+              )}
+            >
+              {city}
+            </Badge>
+          ))}
+        </div>
       </div>
 
       {/* Feed */}
       <section className="px-6 py-4 flex flex-col gap-6">
         <div className="flex justify-between items-end">
-          <h2 className="text-xl font-black italic uppercase tracking-tighter">
-            {activeFilter ? `Passes : ${activeFilter}` : 'Dernières passes'}
-          </h2>
+          <div className="flex flex-col gap-1">
+            <h2 className="text-xl font-black italic uppercase tracking-tighter">
+              {activeFilter ? `Passes : ${activeFilter}` : 'Dernières passes'}
+            </h2>
+            {activeLocation && (
+              <span className="text-[10px] font-bold text-primary uppercase tracking-widest italic">
+                Secteur : {activeLocation} (+150km)
+              </span>
+            )}
+          </div>
           <Link href="/explore" className="text-primary text-xs font-bold uppercase tracking-widest hover:underline">Voir tout</Link>
         </div>
 
@@ -188,10 +240,13 @@ export default function HomePage() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-3">
               <Search className="w-10 h-10 opacity-20" />
-              <p className="text-sm font-bold uppercase italic tracking-widest">Aucun résultat trouvé</p>
+              <p className="text-sm font-bold uppercase italic tracking-widest">Aucun résultat trouvé dans cette zone</p>
               <Button 
                 variant="link" 
-                onClick={() => setActiveFilter(null)}
+                onClick={() => {
+                  setActiveFilter(null)
+                  setActiveLocation(null)
+                }}
                 className="text-primary font-black uppercase italic tracking-widest text-[10px]"
               >
                 Réinitialiser les filtres
