@@ -30,11 +30,11 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // Modification : on ne crée la query QUE si l'utilisateur est connecté
+  // Modification : on ne crée la query QUE si l'utilisateur est connecté et chargé
   const offersQuery = useMemoFirebase(() => {
-    if (!db || !user) return null
+    if (!db || !user || isUserLoading) return null
     return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
-  }, [db, user])
+  }, [db, user, isUserLoading])
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 

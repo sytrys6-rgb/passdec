@@ -34,15 +34,15 @@ export default function ProfilePage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(userRef)
 
-  // Récupération des annonces de l'utilisateur
+  // Récupération des annonces de l'utilisateur - uniquement si chargé et authentifié
   const myOffersQuery = useMemoFirebase(() => {
-    if (!db || !user) return null
+    if (!db || !user || isUserLoading) return null
     return query(
       collection(db, 'offres'), 
       where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     )
-  }, [db, user])
+  }, [db, user, isUserLoading])
 
   const { data: myOffers, isLoading: isMyOffersLoading } = useCollection(myOffersQuery)
 
