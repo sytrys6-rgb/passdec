@@ -30,7 +30,7 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // Modification : on ne crée la query QUE si l'utilisateur est connecté et chargé
+  // Sécurité : On ne lance la requête que si l'utilisateur est authentifié
   const offersQuery = useMemoFirebase(() => {
     if (!db || !user || isUserLoading) return null
     return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
@@ -44,6 +44,7 @@ export default function HomePage() {
       image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
       date: 'Publié récemment'
     }))
+    // On mélange les offres statiques de démo avec les offres réelles de Firestore
     return [...allOffers, ...dynamic]
   }, [firestoreOffers])
 

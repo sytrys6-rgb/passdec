@@ -34,7 +34,7 @@ export default function ProfilePage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(userRef)
 
-  // Récupération des annonces de l'utilisateur - uniquement si chargé et authentifié
+  // Sécurité : On ne lance la requête que si l'utilisateur est authentifié
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || !user || isUserLoading) return null
     return query(
