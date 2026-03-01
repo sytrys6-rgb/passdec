@@ -1,21 +1,29 @@
 
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Trophy, MapPin } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 import { allOffers } from '@/app/lib/offers'
-import { useUser } from '@/firebase'
+import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase'
 import { useRouter } from 'next/navigation'
+import { doc } from 'firebase/firestore'
 
 export default function FavoritesPage() {
   const { user, isUserLoading } = useUser()
+  const db = useFirestore()
   const router = useRouter()
-  const [favorites, setFavorites] = useState<string[]>([])
+
+  const userRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, 'users', user.uid)
+  }, [db, user])
+
+  const { data: profile } = useDoc(userRef)
+  const favorites = profile?.favoris || []
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -23,24 +31,13 @@ export default function FavoritesPage() {
     }
   }, [user, isUserLoading, router])
 
-  useEffect(() => {
-    const saved = localStorage.getItem('pass-dec-favorites')
-    if (saved) {
-      try {
-        setFavorites(JSON.parse(saved))
-      } catch (e) {
-        console.error("Failed to parse favorites", e)
-      }
-    }
-  }, [])
-
   const favoriteOffers = allOffers.filter(offer => favorites.includes(offer.id))
 
   const toggleFavorite = (e: React.MouseEvent, id: string) => {
     e.preventDefault()
-    const newFavs = favorites.filter(favId => favId !== id)
-    setFavorites(newFavs)
-    localStorage.setItem('pass-dec-favorites', JSON.stringify(newFavs))
+    if (!userRef) return
+    const newFavs = favorites.filter((favId: string) => favId !== id)
+    updateDocumentNonBlocking(userRef, { favoris: newFavs })
   }
 
   if (isUserLoading || !user) return null

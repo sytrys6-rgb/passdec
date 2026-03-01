@@ -10,14 +10,24 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowLeft, Check, Camera } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@/firebase'
+import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
+import { doc, serverTimestamp } from 'firebase/firestore'
 
 export default function EditProfilePage() {
   const router = useRouter()
   const { user, isUserLoading } = useUser()
+  const db = useFirestore()
+  
+  const userRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, 'users', user.uid)
+  }, [db, user])
+
+  const { data: profile } = useDoc(userRef)
+
   const [formData, setFormData] = useState({
     nom: '',
-    typeProfil: '',
+    typeProfil: 'particulier',
     ville: '',
     description: ''
   })
@@ -29,28 +39,28 @@ export default function EditProfilePage() {
   }, [user, isUserLoading, router])
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('pass-dec-user')
-    const initialUser = {
-      nom: 'FC Etoile',
-      typeProfil: 'club_foot',
-      ville: 'Lyon',
-      description: 'Club amateur historique de la région lyonnaise. On cherche toujours des nouveaux talents !'
+    if (profile) {
+      setFormData({
+        nom: profile.nom || '',
+        typeProfil: profile.typeProfil || 'particulier',
+        ville: profile.ville || '',
+        description: profile.description || ''
+      })
     }
-    
-    if (savedUser) {
-      try {
-        setFormData(JSON.parse(savedUser))
-      } catch (e) {
-        setFormData(initialUser)
-      }
-    } else {
-      setFormData(initialUser)
-    }
-  }, [])
+  }, [profile])
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
-    localStorage.setItem('pass-dec-user', JSON.stringify(formData))
+    if (!userRef) return
+
+    setDocumentNonBlocking(userRef, {
+      ...formData,
+      id: user?.uid,
+      updatedAt: serverTimestamp(),
+      isActive: true,
+      createdAt: profile?.createdAt || serverTimestamp()
+    }, { merge: true })
+
     router.push('/profile')
   }
 

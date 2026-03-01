@@ -1,16 +1,17 @@
 
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Settings, LogOut, ShieldCheck, MapPin, Star } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useAuth, useUser } from '@/firebase'
+import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase'
 import { signOut } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
+import { doc } from 'firebase/firestore'
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -21,21 +22,16 @@ const profileTypes = {
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser()
+  const db = useFirestore()
   const auth = useAuth()
   const router = useRouter()
   
-  const [profileData, setProfileData] = useState({
-    nom: 'FC Etoile',
-    typeProfil: 'club_foot',
-    ville: 'Lyon',
-    description: 'Club amateur historique de la région lyonnaise. On cherche toujours des nouveaux talents !',
-    stats: {
-      offres: 12,
-      avis: 48,
-      rating: 4.8
-    },
-    avatar: 'https://picsum.photos/seed/club-logo/200/200'
-  })
+  const userRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, 'users', user.uid)
+  }, [db, user])
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(userRef)
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -43,23 +39,25 @@ export default function ProfilePage() {
     }
   }, [user, isUserLoading, router])
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('pass-dec-user')
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser)
-        setProfileData(prev => ({ ...prev, ...parsed }))
-      } catch (e) {
-        console.error("Failed to parse user data", e)
-      }
-    }
-  }, [])
-
   const handleLogout = () => {
     signOut(auth)
   }
 
-  if (isUserLoading || !user) return null
+  if (isUserLoading || isProfileLoading || !user) return null
+
+  // Données par défaut si le profil Firestore n'existe pas encore
+  const profileData = {
+    nom: profile?.nom || 'Nouvelle Recrue',
+    typeProfil: profile?.typeProfil || 'particulier',
+    ville: profile?.ville || 'Inconnue',
+    description: profile?.description || 'Passionné de football sur 100% Pass\' Déc\'.',
+    stats: {
+      offres: 0,
+      avis: 0,
+      rating: 5.0
+    },
+    avatar: profile?.photoUrl || `https://picsum.photos/seed/${user.uid}/200/200`
+  }
 
   const currentType = profileTypes[profileData.typeProfil as keyof typeof profileTypes] || profileTypes.particulier
 

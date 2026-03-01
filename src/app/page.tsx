@@ -4,7 +4,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Search, MapPin, X, Circle, Triangle, Square, Trophy } from 'lucide-react'
@@ -12,16 +11,25 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { PlaceHolderImages } from '@/lib/placeholder-images'
-import { useUser } from '@/firebase'
+import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase'
 import { allOffers } from '@/app/lib/offers'
+import { doc } from 'firebase/firestore'
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
+  const db = useFirestore()
   const router = useRouter()
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [favorites, setFavorites] = useState<string[]>([])
+
+  const userRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, 'users', user.uid)
+  }, [db, user])
+
+  const { data: profile } = useDoc(userRef)
+  const favorites = profile?.favoris || []
 
   const heroImage = PlaceHolderImages.find(img => img.id === 'football-hero')
 
@@ -30,22 +38,6 @@ export default function HomePage() {
       router.push('/login')
     }
   }, [user, isUserLoading, router])
-
-  useEffect(() => {
-    const saved = localStorage.getItem('pass-dec-favorites')
-    if (saved) {
-      try {
-        setFavorites(JSON.parse(saved))
-      } catch (e) {
-        console.error("Failed to parse favorites", e)
-      }
-    }
-  }, [])
-
-  const updateFavorites = (newFavs: string[]) => {
-    setFavorites(newFavs)
-    localStorage.setItem('pass-dec-favorites', JSON.stringify(newFavs))
-  }
 
   const controllerFilters = [
     { id: 'vendre', label: 'Vendre', icon: X, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
@@ -68,12 +60,15 @@ export default function HomePage() {
     })
   }, [activeFilter, activeLocation, searchQuery])
 
-  const toggleFavorite = (e: React.MouseEvent, id: string) => {
+  const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
     e.preventDefault()
-    const newFavs = favorites.includes(id) 
-      ? favorites.filter(favId => favId !== id) 
-      : [...favorites, id]
-    updateFavorites(newFavs)
+    if (!userRef) return
+
+    const newFavorites = favorites.includes(offerId)
+      ? favorites.filter((id: string) => id !== offerId)
+      : [...favorites, offerId]
+
+    updateDocumentNonBlocking(userRef, { favoris: newFavorites })
   }
 
   if (isUserLoading || !user) return null
