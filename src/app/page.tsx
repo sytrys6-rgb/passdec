@@ -71,7 +71,8 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
-  const footballHeroImg = PlaceHolderImages.find(img => img.id === 'stadium-bg')?.imageUrl || "https://picsum.photos/seed/football-stadium/800/400"
+  // Nouvelle image de foot pour l'accueil
+  const footballHeroImg = "https://picsum.photos/seed/football-action-2/800/400"
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -125,19 +126,19 @@ export default function HomePage() {
         <div className="w-full flex justify-center pt-2">
           <Image 
             src={footballHeroImg} 
-            alt="Football Stadium" 
+            alt="Football Action" 
             width={800}
             height={400}
             className="object-cover rounded-3xl shadow-2xl border border-white/10 ring-1 ring-primary/20 aspect-video"
             priority
-            data-ai-hint="football stadium"
+            data-ai-hint="football action"
           />
         </div>
 
-        {/* Titre stylisé avec 100% en italique et Pass' Déc' en rouge éclatant */}
+        {/* Titre avec 100% en italique vert et Pass' Déc' en rouge éclatant */}
         <div className="text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
-            <span className="italic">100%</span>{" "}
+            <span className="italic text-primary">100%</span>{" "}
             <span className="text-destructive">Pass' Déc'</span>
           </h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
