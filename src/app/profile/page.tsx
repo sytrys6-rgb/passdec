@@ -9,10 +9,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 const profileTypes = {
-  particulier: { label: 'Footeux', emoji: '⚽' },
-  club_foot: { label: 'Team', emoji: '🏟️' },
-  club_supporter: { label: 'Ultras', emoji: '🎺' },
-  professionnel: { label: 'Pro', emoji: '🏢' },
+  particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
+  club_foot: { label: 'Team', complement: 'Club de foot', emoji: '🏟️' },
+  club_supporter: { label: 'Ultras', complement: 'Club de supporters', emoji: '🎺' },
+  professionnel: { label: 'Pro', complement: 'Professionnel / Entreprise', emoji: '🏢' },
 }
 
 export default function ProfilePage() {
@@ -70,10 +70,13 @@ export default function ProfilePage() {
             <MapPin className="w-3 h-3 text-primary" />
             <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{user.ville}</span>
           </div>
-          <Badge className="mt-3 bg-primary text-black border-none font-black uppercase tracking-tighter italic px-4 gap-2">
-            <span>{currentType.emoji}</span>
-            <span>{currentType.label}</span>
-          </Badge>
+          <div className="flex flex-col items-center gap-1 mt-3">
+            <Badge className="bg-primary text-black border-none font-black uppercase tracking-tighter italic px-4 gap-2">
+              <span>{currentType.emoji}</span>
+              <span>{currentType.label}</span>
+            </Badge>
+            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mt-1">{currentType.complement}</span>
+          </div>
         </div>
 
         <p className="mt-5 text-sm text-muted-foreground leading-relaxed max-w-sm px-4">

@@ -97,10 +97,10 @@ export default function EditProfilePage() {
               <SelectValue placeholder="Catégorie" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="particulier">Footeux ⚽</SelectItem>
-              <SelectItem value="club_foot">Team 🏟️</SelectItem>
-              <SelectItem value="club_supporter">Ultras 🎺</SelectItem>
-              <SelectItem value="professionnel">Pro 🏢</SelectItem>
+              <SelectItem value="particulier">Particulier - Footeux ⚽</SelectItem>
+              <SelectItem value="club_foot">Club de foot - Team 🏟️</SelectItem>
+              <SelectItem value="club_supporter">Club de supporters - Ultras 🎺</SelectItem>
+              <SelectItem value="professionnel">Professionnel / Entreprise - Pro 🏢</SelectItem>
             </SelectContent>
           </Select>
         </div>
