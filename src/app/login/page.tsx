@@ -49,7 +49,10 @@ export default function LoginPage() {
         await createUserWithEmailAndPassword(auth, email, password)
       }
     } catch (error: any) {
-      console.error("Auth error:", error)
+      // Diagnostic demandé par l'utilisateur
+      console.log("CODE ERREUR :", error.code)
+      console.log("MESSAGE :", error.message)
+
       toast({
         variant: "destructive",
         title: "Carton rouge !",
@@ -73,6 +76,7 @@ export default function LoginPage() {
             alt="Background" 
             fill
             className="object-cover"
+            priority
           />
       </div>
 
@@ -82,7 +86,7 @@ export default function LoginPage() {
             <span className="italic text-primary">100%</span>{" "}
             <span className="text-destructive">Pass' Déc'</span>
           </h1>
-          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground">
+          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
             Le réseau qui fait marquer
           </p>
         </div>
