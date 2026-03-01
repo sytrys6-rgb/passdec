@@ -1,7 +1,7 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { PlaceHolderImages } from '@/lib/placeholder-images'
+import { useUser } from '@/firebase'
 
 export const allOffers = [
   {
@@ -66,12 +67,20 @@ export const allOffers = [
 ]
 
 export default function HomePage() {
+  const { user, isUserLoading } = useUser()
+  const router = useRouter()
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
   const heroImage = PlaceHolderImages.find(img => img.id === 'football-hero')
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isUserLoading, router])
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -118,13 +127,15 @@ export default function HomePage() {
     updateFavorites(newFavs)
   }
 
+  if (isUserLoading || !user) return null
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
         {/* Image de football dynamique avec ballon visible */}
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
-            src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=1200"} 
+            src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018"} 
             alt="Football Action" 
             fill
             className="object-cover"
