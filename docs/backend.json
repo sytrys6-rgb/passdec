@@ -1,0 +1,353 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user profile within the application, which can be an individual, a football club, or a supporter club. Authentication data is managed by an external system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "nom": {
+          "type": "string",
+          "description": "The name of the user or club."
+        },
+        "typeProfil": {
+          "type": "string",
+          "description": "The type of user profile, indicating their role or affiliation (e.g., 'particulier' for individual, 'club_foot' for football club, 'club_supporter' for supporter club)."
+        },
+        "ville": {
+          "type": "string",
+          "description": "The city where the user or club is located."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description or bio of the user or club."
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "URL to the user's profile picture, typically stored in a cloud storage service.",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was created.",
+          "format": "date-time"
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "A flag indicating if the user account is currently active."
+        }
+      },
+      "required": [
+        "id",
+        "nom",
+        "typeProfil",
+        "ville",
+        "description",
+        "createdAt",
+        "isActive"
+      ]
+    },
+    "Offer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Offer",
+      "type": "object",
+      "description": "Represents an item, service, event, or matching request posted by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Offer entity."
+        },
+        "typeOffre": {
+          "type": "string",
+          "description": "The type of offer (e.g., 'vendre' for selling, 'echanger' for swapping, 'evenement' for an event, 'matcher' for a matching request)."
+        },
+        "categorieMatcher": {
+          "type": "string",
+          "description": "Specific category for 'matcher' type offers (e.g., 'emploi' for job, 'match_amical' for friendly match, 'arbitre' for referee, 'joueur' for player). This field is optional and may be null for other offer types."
+        },
+        "titre": {
+          "type": "string",
+          "description": "The title or short summary of the offer."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the offer."
+        },
+        "ville": {
+          "type": "string",
+          "description": "The city associated with the offer's location."
+        },
+        "commune": {
+          "type": "string",
+          "description": "The commune (sub-locality) associated with the offer, if applicable."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "The geographical latitude coordinate of the offer's location."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "The geographical longitude coordinate of the offer's location."
+        },
+        "prix": {
+          "type": "number",
+          "description": "The price of the item or service, if applicable for 'vendre' or 'echanger' offers."
+        },
+        "dateEvenement": {
+          "type": "string",
+          "description": "The specific date and time for 'evenement' type offers, if applicable.",
+          "format": "date-time"
+        },
+        "photos": {
+          "type": "array",
+          "description": "An array of URLs to photos associated with the offer (maximum 2 per application logic). Each item is expected to be a URI string.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who created this offer. (Relationship: User 1:N Offer)"
+        },
+        "userNom": {
+          "type": "string",
+          "description": "Denormalized name of the user who created the offer, for quick display purposes."
+        },
+        "userType": {
+          "type": "string",
+          "description": "Denormalized type of the user who created the offer, for quick display purposes."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the offer was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the offer was last updated.",
+          "format": "date-time"
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "A flag indicating if the offer is currently active and visible to others."
+        }
+      },
+      "required": [
+        "id",
+        "typeOffre",
+        "titre",
+        "description",
+        "ville",
+        "latitude",
+        "longitude",
+        "photos",
+        "userId",
+        "userNom",
+        "userType",
+        "createdAt",
+        "updatedAt",
+        "isActive"
+      ]
+    },
+    "Conversation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Conversation",
+      "type": "object",
+      "description": "Represents a private chat conversation between users regarding a specific offer.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Conversation entity."
+        },
+        "participants": {
+          "type": "array",
+          "description": "An array of User IDs participating in this conversation. (Relationship: User N:N Conversation)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "offreId": {
+          "type": "string",
+          "description": "Reference to the Offer that this conversation is about. (Relationship: Offer 1:N Conversation)"
+        },
+        "offreTitre": {
+          "type": "string",
+          "description": "Denormalized title of the associated offer, used for quick display in the conversation list."
+        },
+        "lastMessage": {
+          "type": "string",
+          "description": "The text content of the last message sent in this conversation."
+        },
+        "lastSenderId": {
+          "type": "string",
+          "description": "Reference to the User who sent the last message in this conversation. (Relationship: User 1:N Conversation_LastSender)"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the conversation was last updated (e.g., when a new message was sent).",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "participants",
+        "offreId",
+        "offreTitre",
+        "updatedAt"
+      ]
+    },
+    "Message": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Message",
+      "type": "object",
+      "description": "Represents a single message sent within a conversation.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Message entity."
+        },
+        "conversationId": {
+          "type": "string",
+          "description": "Reference to the parent Conversation this message belongs to. (Relationship: Conversation 1:N Message)"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Reference to the User who sent this message. (Relationship: User 1:N Message)"
+        },
+        "text": {
+          "type": "string",
+          "description": "The actual text content of the message."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the message was sent.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "conversationId",
+        "senderId",
+        "text",
+        "createdAt"
+      ]
+    },
+    "City": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "City",
+      "type": "object",
+      "description": "Represents geographical city data used for offer filtering and location-based searches.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the City entity (e.g., a standardized city name or a generated ID)."
+        },
+        "nom": {
+          "type": "string",
+          "description": "The official name of the city."
+        },
+        "codePostal": {
+          "type": "string",
+          "description": "The postal code of the city."
+        },
+        "departement": {
+          "type": "string",
+          "description": "The department (administrative region) the city belongs to."
+        }
+      },
+      "required": [
+        "id",
+        "nom",
+        "codePostal",
+        "departement"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Each document ID corresponds to the Firebase Authentication UID. Ownership is path-based, ensuring direct authorization against `request.auth.uid`."
+        }
+      },
+      {
+        "path": "/offres/{offreId}",
+        "definition": {
+          "entityName": "Offer",
+          "schema": {
+            "$ref": "#/backend/entities/Offer"
+          },
+          "description": "Contains publicly discoverable offers posted by users. Includes denormalized `userId`, `userNom`, and `userType` for authorization independence and efficient display. While the schema uses `latitude` and `longitude`, a Firestore `GeoPoint` field (combining these) is often preferred for efficient geospatial queries, which could be an extension."
+        }
+      },
+      {
+        "path": "/conversations/{conversationId}",
+        "definition": {
+          "entityName": "Conversation",
+          "schema": {
+            "$ref": "#/backend/entities/Conversation"
+          },
+          "description": "Represents private chat threads between users concerning a specific offer. Includes a `participants` array for direct authorization checks and denormalized `offreTitre` for quick display, ensuring Authorization Independence.",
+          "params": [
+            {
+              "name": "conversationId",
+              "description": "Unique identifier for the conversation."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/conversations/{conversationId}/messages/{messageId}",
+        "definition": {
+          "entityName": "Message",
+          "schema": {
+            "$ref": "#/backend/entities/Message"
+          },
+          "description": "Stores individual messages within a conversation. For authorization independence, this collection will include a denormalized `participants` array (copied from its parent conversation) to enable direct access checks without requiring a `get()` call to the parent conversation document.",
+          "params": [
+            {
+              "name": "conversationId",
+              "description": "The ID of the parent conversation."
+            },
+            {
+              "name": "messageId",
+              "description": "Unique identifier for the message."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/villes/{villeId}",
+        "definition": {
+          "entityName": "City",
+          "schema": {
+            "$ref": "#/backend/entities/City"
+          },
+          "description": "Provides a static, read-only list of cities for filtering and location-based features. This collection has a public read security posture.",
+          "params": [
+            {
+              "name": "villeId",
+              "description": "Unique identifier for the city."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The proposed Firestore data structure prioritizes security, scalability, and debuggability by adhering strictly to the core design principles and mandates. The design ensures Authorization Independence, Homogeneous Security Posture, and consistent Access Modeling.\n\n**Authorization Independence & Denormalization:**\n\n1.  **User Profiles (`/users/{userId}`):** User profiles are structured with path-based ownership. Access control relies directly on `request.auth.uid` matching `{userId}`. This makes rules simple and atomic, avoiding `get()` calls to other collections for user-specific data.\n2.  **Offers (`/offres/{offreId}`):** Offers are stored in a top-level collection, making them globally discoverable and publicly readable, which directly supports the QAP (Query as Policy) principle for listing. Each offer document explicitly includes `userId` (owner), `userNom`, and `userType`. This denormalization allows rules to check `request.auth.uid == resource.data.userId` without performing `get()` operations to the `users` collection, ensuring authorization independence for ownership checks.\n3.  **Conversations (`/conversations/{conversationId}`):** Conversations are secured using a `participants` array within each document. This denormalized list of User IDs allows direct checking (`request.auth.uid in resource.data.participants`) to determine access, eliminating any need for `get()` calls to linked entities for authorization.\n4.  **Messages (`/conversations/{conversationId}/messages/{messageId}`):** To achieve Authorization Independence for messages, the `participants` array from the parent `Conversation` MUST be denormalized into each `Message` document. This is a critical modification from the user's proposed rules, which incorrectly use a `get()` call to the parent conversation. By embedding `participants` in each message, access rules can be evaluated directly on the `message` document (`request.auth.uid in resource.data.participants`), enabling atomic message operations and avoiding problematic cross-document reads in security rules. This makes message creation and retrieval both secure and efficient.\n\n**QAPs (Query as Policy) Support:**\n\n*   **Offers:** The `/offres` collection is designed for public reads, supporting global discovery. Users can query for offers filtered by `typeOffre`, `ville`, and `createdAt` without security rules restricting document visibility, as all documents are intended to be visible. The rules ensure that only the `userId` owner can modify or delete their offer, but any authenticated user can read it. This aligns perfectly with the 'QAP' principle where security rules allow broad reads, and client-side queries perform specific filtering.\n*   **Conversations & Messages:** Access to `/conversations` and its `/messages` subcollection is strictly controlled by the denormalized `participants` array. Only users listed in this array can read or write to the conversation or its messages. This structure allows queries to return only the conversations a user is part of, without the rules themselves acting as filters, thereby upholding QAPs.\n\n**Structural Segregation:**\n\n*   Each collection (`users`, `offres`, `conversations`, `villes`) and the `messages` subcollection has a distinct, homogeneous security posture, simplifying rule definitions. For example, all offers are public read; all conversations are participant-restricted. There is no mixing of public and private data within the same collection.\n\n**Data Clarity and Predictability:**\n\n*   `isActive` fields explicitly manage the state of users and offers. The use of consistent naming conventions (`userId`, `offreId`, `conversationId`) and descriptive wildcards (`{userId}`, `{offreId}`) enhances maintainability and debuggability."
+  }
+}
