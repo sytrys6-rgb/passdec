@@ -10,7 +10,6 @@ import { Search, MapPin, X, Circle, Triangle, Square, Trophy } from 'lucide-reac
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { PlaceHolderImages } from '@/lib/placeholder-images'
 
 export const allOffers = [
   {
@@ -71,8 +70,6 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
-  const brandLogo = PlaceHolderImages.find(img => img.id === 'brand-logo')?.imageUrl || ""
-
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
     if (saved) {
@@ -121,17 +118,18 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
-        {/* Affichage du logo officiel */}
-        <div className="w-full flex justify-center py-4">
+        {/* Image de football dynamique à la place du logo */}
+        <div className="w-full relative aspect-[21/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
-            src={brandLogo} 
-            alt="Logo Pass' Déc'" 
-            width={300}
-            height={168}
-            className="object-contain"
+            src="https://picsum.photos/seed/football-action-match/1200/500" 
+            alt="Football Action" 
+            fill
+            className="object-cover"
             priority
             unoptimized
+            data-ai-hint="football action"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         </div>
 
         {/* Titre reproduit exactement selon la demande */}
