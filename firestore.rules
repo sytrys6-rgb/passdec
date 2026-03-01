@@ -29,18 +29,18 @@ service cloud.firestore {
 
     /**
      * @description Offres de la marketplace.
-     * Correction demandée par l'utilisateur pour autoriser le 'list'.
+     * Applique exactement la logique demandée pour autoriser 'list'.
      */
     match /offres/{offreId} {
-      // Tous les utilisateurs connectés peuvent lire toutes les offres (get et list)
-      allow list, get: if isSignedIn();
+      // 🔹 Tous les utilisateurs connectés peuvent lire toutes les offres (get et list)
+      allow list, get: if request.auth != null;
 
-      // Création autorisée seulement si l'utilisateur est propriétaire (champ userId)
-      allow create: if isSignedIn() 
+      // 🔹 Création autorisée seulement si l'utilisateur est propriétaire (champ userId)
+      allow create: if request.auth != null 
                     && request.resource.data.userId == request.auth.uid;
 
-      // Modification / suppression uniquement par le propriétaire
-      allow update, delete: if isSignedIn() 
+      // 🔹 Modification / suppression uniquement par le propriétaire
+      allow update, delete: if request.auth != null 
                             && resource.data.userId == request.auth.uid;
     }
 
