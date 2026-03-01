@@ -70,7 +70,7 @@ export default function LoginPage() {
     }
   }
 
-  const heroImage = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
+  const heroImage = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1200&auto=format&fit=crop"
 
   if (isUserLoading) return null
 

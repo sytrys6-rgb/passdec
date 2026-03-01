@@ -5,7 +5,7 @@ service cloud.firestore {
     // OFFRES
     match /offres/{offerId} {
       // 🔹 Tous les utilisateurs connectés peuvent lire toutes les offres (get et list)
-      allow read: if request.auth != null;
+      allow list, get: if request.auth != null;
 
       // 🔹 Création autorisée seulement si l'utilisateur est le propriétaire (userId correspond)
       allow create: if request.auth != null 
