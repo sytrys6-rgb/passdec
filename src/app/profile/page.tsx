@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState, useMemo } from 'react'
@@ -34,7 +33,7 @@ export default function ProfilePage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(userRef)
 
-  // Sécurité : On ne lance la requête que si l'utilisateur est authentifié
+  // Sécurité renforcée : On ne lance la requête que si l'utilisateur est authentifié
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || !user || isUserLoading) return null
     return query(

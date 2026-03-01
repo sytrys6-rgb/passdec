@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react'
@@ -10,7 +9,7 @@ import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2 } from 'lu
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking, useCollection } from '@/firebase'
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase'
 import { allOffers } from '@/app/lib/offers'
 import { doc, collection, query, orderBy } from 'firebase/firestore'
 
@@ -30,7 +29,7 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // Sécurité : On ne lance la requête que si l'utilisateur est authentifié
+  // Sécurité renforcée : On passe null si l'utilisateur n'est pas connecté ou en cours de chargement
   const offersQuery = useMemoFirebase(() => {
     if (!db || !user || isUserLoading) return null
     return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
@@ -44,7 +43,6 @@ export default function HomePage() {
       image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
       date: 'Publié récemment'
     }))
-    // On mélange les offres statiques de démo avec les offres réelles de Firestore
     return [...allOffers, ...dynamic]
   }, [firestoreOffers])
 
@@ -85,10 +83,12 @@ export default function HomePage() {
       ? favorites.filter((id: string) => id !== offerId)
       : [...favorites, offerId]
 
-    setDocumentNonBlocking(userRef, { 
-      id: user.uid,
-      favoris: newFavorites 
-    }, { merge: true })
+    import('@/firebase').then(({ setDocumentNonBlocking }) => {
+      setDocumentNonBlocking(userRef, { 
+        id: user.uid,
+        favoris: newFavorites 
+      }, { merge: true })
+    })
   }
 
   if (isUserLoading || !user) return null
