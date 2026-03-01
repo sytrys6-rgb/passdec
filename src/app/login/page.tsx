@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import Image from 'next/image'
-import { PlaceHolderImages } from '@/lib/placeholder-images'
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -48,7 +47,6 @@ export default function LoginPage() {
         await signInWithEmailAndPassword(auth, email, password)
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-        // Initialisation immédiate du profil utilisateur dans Firestore
         const userRef = doc(db, 'users', userCredential.user.uid)
         await setDoc(userRef, {
           id: userCredential.user.uid,
@@ -68,14 +66,14 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Carton rouge !",
-        description: "L'adresse mail ou le mot de passe n'existe pas ou est incorrect."
+        description: "L'adresse mail ou le mot de passe n'existe pas ou est incorrect. Veuillez redemander l'adresse mail et le mot de passe."
       })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const heroImage = PlaceHolderImages.find(img => img.id === 'football-hero')
+  const heroImage = "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1200&auto=format&fit=crop"
 
   if (isUserLoading) return null
 
@@ -83,11 +81,12 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
          <Image 
-            src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018"} 
-            alt="Background" 
+            src={heroImage} 
+            alt="Action Football Pro" 
             fill
             className="object-cover"
             priority
+            unoptimized
           />
       </div>
 

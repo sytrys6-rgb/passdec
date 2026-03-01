@@ -29,7 +29,6 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // Récupération des offres depuis Firestore (Autorisé par allow list dans rules)
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
@@ -37,7 +36,6 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  // Fusion des offres statiques et dynamiques
   const combinedOffers = useMemo(() => {
     const dynamic = (firestoreOffers || []).map(o => ({
       ...o,
@@ -47,7 +45,6 @@ export default function HomePage() {
     return [...dynamic, ...allOffers]
   }, [firestoreOffers])
 
-  // Image HD action football avec ballon bien visible au premier plan
   const heroImage = "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1200&auto=format&fit=crop"
 
   useEffect(() => {

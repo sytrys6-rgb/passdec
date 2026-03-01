@@ -7,7 +7,7 @@ service cloud.firestore {
       // 🔹 Tous les utilisateurs connectés peuvent lire toutes les offres (get et list)
       allow list, get: if request.auth != null;
 
-      // 🔹 Création autorisée seulement si l'utilisateur est propriétaire (champ userId)
+      // 🔹 Création autorisée seulement si l'utilisateur est propriétaire
       allow create: if request.auth != null 
                     && request.auth.uid == request.resource.data.userId;
 
@@ -28,7 +28,7 @@ service cloud.firestore {
 
       // 🔹 L'utilisateur peut modifier son propre profil
       allow update, delete: if request.auth != null 
-                            && request.auth.uid == userId;
+                    && request.auth.uid == userId;
     }
 
     /**
