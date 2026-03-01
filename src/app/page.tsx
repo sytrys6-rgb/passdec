@@ -10,7 +10,6 @@ import { Search, MapPin, X, Circle, Triangle, Square, Trophy } from 'lucide-reac
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { PlaceHolderImages } from '@/lib/placeholder-images'
 
 export const allOffers = [
   {
@@ -71,8 +70,8 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
-  // Utilisation du logo officiel comme image principale
-  const brandLogo = PlaceHolderImages.find(img => img.id === 'brand-logo')?.imageUrl || "https://picsum.photos/seed/football-hero/800/400"
+  // Image de football haute définition pour le header
+  const footballHero = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1200"
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -122,14 +121,14 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-6">
-        {/* Image de football principale (le logo fourni) */}
+        {/* Image de football principale */}
         <div className="w-full flex justify-center pt-2">
           <Image 
-            src={brandLogo} 
+            src={footballHero} 
             alt="100% Pass' Déc' Football" 
             width={800}
-            height={400}
-            className="object-contain rounded-3xl shadow-2xl border border-white/10 ring-1 ring-primary/20 aspect-video"
+            height={450}
+            className="object-cover rounded-3xl shadow-2xl border border-white/10 ring-1 ring-primary/20 aspect-video"
             priority
             unoptimized
           />
