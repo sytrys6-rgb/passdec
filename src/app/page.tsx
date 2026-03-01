@@ -120,13 +120,13 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="p-6 pb-2 flex flex-col items-center gap-2">
-        {/* Brand Logo Official Image */}
+      <header className="p-6 pb-2 flex flex-col items-center gap-4">
+        {/* Brand Logo Official Image - Increased size for readability */}
         {logoImage && (
-          <div className="relative w-48 h-24 mb-1">
+          <div className="relative w-64 h-32">
             <Image 
               src={logoImage.imageUrl} 
-              alt="Logo Officiel 100% Pass' Déc'" 
+              alt="Logo Officiel" 
               fill 
               className="object-contain"
               priority
@@ -145,7 +145,7 @@ export default function HomePage() {
         </div>
 
         {/* Search Bar */}
-        <div className="relative group w-full max-w-md mt-6">
+        <div className="relative group w-full max-w-md mt-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
             value={searchQuery}
