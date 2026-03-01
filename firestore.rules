@@ -4,14 +4,14 @@ service cloud.firestore {
 
     // OFFRES
     match /offres/{offerId} {
-      // Autorise explicitement la lecture individuelle (get) et la recherche (list) pour tous les utilisateurs connectés
-      allow get, list: if request.auth != null;
+      // 🔹 Tous les utilisateurs connectés peuvent lire toutes les offres (get et list)
+      allow read: if request.auth != null;
 
-      // Création autorisée seulement si l'utilisateur est le propriétaire
+      // 🔹 Création autorisée seulement si l'utilisateur est le propriétaire (userId correspond)
       allow create: if request.auth != null 
                     && request.auth.uid == request.resource.data.userId;
 
-      // Modification / suppression uniquement par le propriétaire
+      // 🔹 Modification / suppression uniquement par le propriétaire
       allow update, delete: if request.auth != null 
                             && request.auth.uid == resource.data.userId;
     }
