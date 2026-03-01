@@ -4,42 +4,38 @@ service cloud.firestore {
 
     // OFFRES
     match /offres/{offerId} {
-      // 🔹 Tous les utilisateurs connectés peuvent lire toutes les offres (get et list)
-      allow list, get: if request.auth != null;
+      // Autorise la lecture (get et list) pour tous les utilisateurs connectés
+      allow read: if request.auth != null;
 
-      // 🔹 Création autorisée seulement si l'utilisateur est propriétaire
+      // Création autorisée seulement si l'utilisateur est le propriétaire
       allow create: if request.auth != null 
                     && request.auth.uid == request.resource.data.userId;
 
-      // 🔹 Modification / suppression uniquement par le propriétaire
+      // Modification / suppression uniquement par le propriétaire
       allow update, delete: if request.auth != null 
                             && request.auth.uid == resource.data.userId;
     }
 
     // USERS (PROFIL)
     match /users/{userId} {
-      // 🔹 L'utilisateur peut lire uniquement SON propre profil
+      // L'utilisateur peut lire uniquement son propre profil
       allow read: if request.auth != null 
                   && request.auth.uid == userId;
 
-      // 🔹 L'utilisateur peut créer son propre profil
+      // L'utilisateur peut créer son propre profil
       allow create: if request.auth != null 
                     && request.auth.uid == userId;
 
-      // 🔹 L'utilisateur peut modifier son propre profil
+      // L'utilisateur peut modifier son propre profil
       allow update, delete: if request.auth != null 
                     && request.auth.uid == userId;
     }
 
     /**
-     * @description Conversations privées restreintes aux participants.
+     * @description Conversations privées (optionnel pour l'instant)
      */
     match /conversations/{conversationId} {
       allow read, write: if request.auth != null && (request.auth.uid in resource.data.participants);
-      
-      match /messages/{messageId} {
-        allow read, write: if request.auth != null && (request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants);
-      }
     }
   }
 }
