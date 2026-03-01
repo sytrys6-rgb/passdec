@@ -4,10 +4,10 @@ service cloud.firestore {
 
     // OFFRES
     match /offres/{offerId} {
-      // 🔹 Tous les utilisateurs connectés peuvent lire toutes les offres (get et list)
-      allow list, get: if request.auth != null;
+      // 🔹 Autorise la lecture (get et list) pour tous les utilisateurs connectés
+      allow read: if request.auth != null;
 
-      // 🔹 Création autorisée seulement si l'utilisateur est le propriétaire (userId correspond)
+      // 🔹 Création autorisée seulement si l'utilisateur est le propriétaire
       allow create: if request.auth != null 
                     && request.auth.uid == request.resource.data.userId;
 
@@ -24,7 +24,7 @@ service cloud.firestore {
 
       // L'utilisateur peut créer son propre profil
       allow create: if request.auth != null 
-                    && request.auth.uid == userId;
+                  && request.auth.uid == userId;
 
       // L'utilisateur peut modifier son propre profil
       allow update, delete: if request.auth != null 
