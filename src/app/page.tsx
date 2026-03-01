@@ -71,7 +71,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
-  const footballHeroImg = "https://picsum.photos/seed/football-action/800/400"
+  const footballHeroImg = "https://picsum.photos/seed/football-stadium-hd/800/400"
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -121,13 +121,13 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-6">
-        {/* Image de foot à la place du logo */}
+        {/* Image de foot unique et centrale */}
         <div className="w-full flex justify-center pt-2">
           <Image 
             src={footballHeroImg} 
-            alt="Passion Football" 
-            width={600}
-            height={300}
+            alt="Football Stadium" 
+            width={800}
+            height={400}
             className="object-cover rounded-3xl shadow-2xl border border-white/10 ring-1 ring-primary/20"
             priority
             data-ai-hint="football stadium"
