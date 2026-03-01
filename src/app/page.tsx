@@ -10,7 +10,6 @@ import { Search, MapPin, X, Circle, Triangle, Square, Trophy } from 'lucide-reac
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { PlaceHolderImages } from '@/lib/placeholder-images'
 
 export const allOffers = [
   {
@@ -71,8 +70,8 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
-  // Nouvelle image de foot pour l'accueil
-  const footballHeroImg = "https://picsum.photos/seed/football-action-2/800/400"
+  // Nouvelle image de foot dynamique et unique
+  const footballHeroImg = "https://picsum.photos/seed/football-action-high/800/400"
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -122,11 +121,11 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-6">
-        {/* Image de foot unique et centrale */}
+        {/* Une seule image de foot centrale et impactante */}
         <div className="w-full flex justify-center pt-2">
           <Image 
             src={footballHeroImg} 
-            alt="Football Action" 
+            alt="Football Action Hero" 
             width={800}
             height={400}
             className="object-cover rounded-3xl shadow-2xl border border-white/10 ring-1 ring-primary/20 aspect-video"
@@ -135,7 +134,7 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Titre avec 100% en italique vert et Pass' Déc' en rouge éclatant */}
+        {/* Titre : 100% en vert italique et Pass' Déc' en rouge éclatant */}
         <div className="text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
             <span className="italic text-primary">100%</span>{" "}
