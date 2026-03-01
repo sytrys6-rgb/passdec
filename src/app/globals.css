@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 285 12% 17%;
+    --background: 240 10% 4%;
     --foreground: 0 0% 98%;
-    --card: 285 12% 20%;
+    --card: 240 10% 7%;
     --card-foreground: 0 0% 98%;
-    --popover: 285 12% 17%;
+    --popover: 240 10% 4%;
     --popover-foreground: 0 0% 98%;
-    --primary: 291 90% 62%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 253 99% 81%;
-    --secondary-foreground: 285 12% 17%;
-    --muted: 285 12% 25%;
-    --muted-foreground: 285 5% 70%;
-    --accent: 253 99% 81%;
-    --accent-foreground: 285 12% 17%;
-    --destructive: 0 84.2% 60.2%;
+    --primary: 82 85% 55%;
+    --primary-foreground: 240 10% 4%;
+    --secondary: 0 84% 60%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 0 84% 60%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 285 12% 25%;
-    --input: 285 12% 25%;
-    --ring: 291 90% 62%;
-    --radius: 1rem;
+    --border: 240 5% 20%;
+    --input: 240 5% 15%;
+    --ring: 82 85% 55%;
+    --radius: 0.75rem;
   }
 }
 
@@ -33,7 +33,7 @@
   }
   body {
     @apply bg-background text-foreground font-body antialiased;
-    background-image: radial-gradient(circle at 50% 0%, hsla(291, 90%, 62%, 0.05) 0%, transparent 50%);
+    background-image: radial-gradient(circle at 50% 0%, hsla(82, 85%, 55%, 0.03) 0%, transparent 50%);
   }
 }
 
@@ -48,4 +48,8 @@
 
 .glass-morphism {
   @apply bg-white/5 backdrop-blur-md border border-white/10;
+}
+
+.text-brand-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
 }

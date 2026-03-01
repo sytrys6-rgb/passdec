@@ -47,14 +47,14 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
-      <header className="p-6 flex flex-col gap-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-extrabold tracking-tighter italic text-primary">
-            PASS'DÉC<span className="text-foreground">.</span>
+      <header className="p-6 flex flex-col gap-5">
+        <div className="flex flex-col">
+          <h1 className="text-4xl font-black italic tracking-tighter leading-none uppercase">
+            <span className="text-primary italic">100%</span> <span className="text-accent italic">Pass' Déc'</span>
           </h1>
-          <Badge variant="outline" className="border-primary/50 text-primary animate-pulse">
-            100% FOOTBALL
-          </Badge>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mt-1.5 border-l-2 border-primary pl-2">
+            Le réseau social qui fait marquer
+          </p>
         </div>
 
         <div className="relative group">
@@ -67,7 +67,7 @@ export default function HomePage() {
       </header>
 
       {/* Main Filter Section */}
-      <section className="px-6 py-4">
+      <section className="px-6 py-2">
         <div className="grid grid-cols-2 gap-4">
           {controllerFilters.map((filter) => (
             <button
@@ -88,17 +88,17 @@ export default function HomePage() {
       {/* Location Bar */}
       <div className="px-6 py-4 flex items-center gap-2 text-muted-foreground overflow-x-auto no-scrollbar">
         <MapPin className="w-4 h-4 flex-shrink-0" />
-        <span className="text-xs whitespace-nowrap">Proche de :</span>
-        <Badge variant="secondary" className="rounded-full px-3 py-1 cursor-pointer hover:bg-primary hover:text-white transition-colors">Lyon</Badge>
-        <Badge variant="outline" className="rounded-full px-3 py-1 cursor-pointer">Paris</Badge>
-        <Badge variant="outline" className="rounded-full px-3 py-1 cursor-pointer">Marseille</Badge>
+        <span className="text-xs whitespace-nowrap uppercase font-bold tracking-tighter">Proche de :</span>
+        <Badge variant="secondary" className="rounded-full px-3 py-1 cursor-pointer hover:bg-primary hover:text-black transition-colors font-bold">Lyon</Badge>
+        <Badge variant="outline" className="rounded-full px-3 py-1 cursor-pointer font-bold border-white/10">Paris</Badge>
+        <Badge variant="outline" className="rounded-full px-3 py-1 cursor-pointer font-bold border-white/10">Marseille</Badge>
       </div>
 
       {/* Feed */}
       <section className="px-6 py-4 flex flex-col gap-6">
         <div className="flex justify-between items-end">
-          <h2 className="text-xl font-bold">Dernières passes</h2>
-          <Link href="/explore" className="text-primary text-xs font-semibold uppercase tracking-widest hover:underline">Voir tout</Link>
+          <h2 className="text-xl font-black italic uppercase tracking-tighter">Dernières passes</h2>
+          <Link href="/explore" className="text-primary text-xs font-bold uppercase tracking-widest hover:underline">Voir tout</Link>
         </div>
 
         <div className="grid gap-6">
@@ -116,12 +116,12 @@ export default function HomePage() {
                   data-ai-hint="football product"
                 />
                 <div className="absolute top-3 left-3 flex gap-2">
-                  <Badge className="bg-primary/90 text-[10px] uppercase font-bold tracking-wider">
+                  <Badge className="bg-primary text-black text-[10px] uppercase font-black tracking-wider px-2 py-0.5">
                     {offer.typeOffre}
                   </Badge>
                 </div>
                 {offer.prix > 0 && (
-                  <div className="absolute bottom-3 right-3 glass-morphism px-3 py-1 rounded-full font-bold text-primary">
+                  <div className="absolute bottom-3 right-3 glass-morphism px-3 py-1 rounded-full font-black text-primary italic border-primary/20">
                     {offer.prix}€
                   </div>
                 )}
@@ -129,20 +129,20 @@ export default function HomePage() {
               
               <div className="p-4 flex flex-col gap-2">
                 <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors">{offer.titre}</h3>
+                  <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors italic uppercase tracking-tighter">{offer.titre}</h3>
                 </div>
-                <p className="text-muted-foreground text-sm line-clamp-2">{offer.description}</p>
+                <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">{offer.description}</p>
                 
                 <div className="pt-2 flex items-center justify-between border-t border-white/5 mt-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold">
+                    <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-black">
                       {offer.userNom[0]}
                     </div>
-                    <span className="text-xs font-medium">{offer.userNom}</span>
+                    <span className="text-xs font-bold uppercase tracking-tighter">{offer.userNom}</span>
                   </div>
                   <div className="flex items-center gap-1 text-muted-foreground">
-                    <MapPin className="w-3 h-3" />
-                    <span className="text-xs">{offer.ville}</span>
+                    <MapPin className="w-3 h-3 text-primary" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">{offer.ville}</span>
                   </div>
                 </div>
               </div>

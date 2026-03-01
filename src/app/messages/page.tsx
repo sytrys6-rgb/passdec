@@ -31,19 +31,20 @@ export default function MessagesPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6">
-        <h1 className="text-2xl font-bold italic uppercase tracking-tighter">Vestiaires</h1>
+        <h1 className="text-3xl font-black italic uppercase tracking-tighter">Vestiaires</h1>
+        <div className="h-1 w-12 bg-primary mt-1 rounded-full" />
       </header>
 
-      <div className="flex-grow flex flex-col px-6 gap-2">
+      <div className="flex-grow flex flex-col px-6 gap-3">
         {mockConversations.length > 0 ? (
           mockConversations.map((conv) => (
             <Link 
               key={conv.id}
               href={`/messages/${conv.id}`}
-              className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-white/5 hover:border-primary/20 transition-all group"
+              className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-white/5 hover:border-primary/20 transition-all group shadow-lg"
             >
               <div className="relative">
-                <div className="w-14 h-14 rounded-full overflow-hidden bg-muted">
+                <div className="w-14 h-14 rounded-full overflow-hidden bg-muted border-2 border-transparent group-hover:border-primary/50 transition-colors">
                   <Image src={conv.avatar} alt={conv.userNom} width={56} height={56} className="object-cover" />
                 </div>
                 {conv.unread && (
@@ -53,11 +54,11 @@ export default function MessagesPage() {
               
               <div className="flex-grow flex flex-col gap-0.5">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-sm">{conv.userNom}</span>
-                  <span className="text-[10px] text-muted-foreground">{conv.time}</span>
+                  <span className="font-black uppercase italic tracking-tighter text-sm">{conv.userNom}</span>
+                  <span className="text-[10px] text-muted-foreground font-bold">{conv.time}</span>
                 </div>
-                <span className="text-xs font-semibold text-primary/80 line-clamp-1 italic">{conv.offreTitre}</span>
-                <p className={`text-xs line-clamp-1 ${conv.unread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                <span className="text-xs font-bold text-primary italic uppercase tracking-tighter line-clamp-1">{conv.offreTitre}</span>
+                <p className={`text-xs line-clamp-1 mt-0.5 ${conv.unread ? 'text-foreground font-semibold' : 'text-muted-foreground'}`}>
                   {conv.lastMessage}
                 </p>
               </div>
@@ -65,8 +66,8 @@ export default function MessagesPage() {
           ))
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-4">
-            <MessageCircle className="w-12 h-12 opacity-20" />
-            <p className="text-sm font-medium">Aucune conversation en cours</p>
+            <MessageCircle className="w-12 h-12 text-primary/20" />
+            <p className="text-sm font-black uppercase tracking-widest italic">Aucune conversation</p>
           </div>
         )}
       </div>
