@@ -1,13 +1,15 @@
 "use client"
 
+import { useState, useEffect } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Trophy, Star } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default function ProfilePage() {
-  const user = {
+  const [user, setUser] = useState({
     nom: 'FC Etoile',
     typeProfil: 'club_foot',
     ville: 'Lyon',
@@ -18,7 +20,19 @@ export default function ProfilePage() {
       rating: 4.8
     },
     avatar: 'https://picsum.photos/seed/club-logo/200/200'
-  }
+  })
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('pass-dec-user')
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser)
+        setUser(prev => ({ ...prev, ...parsed }))
+      } catch (e) {
+        console.error("Failed to parse user data", e)
+      }
+    }
+  }, [])
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -26,9 +40,11 @@ export default function ProfilePage() {
       <div className="relative h-48 w-full bg-gradient-to-b from-primary/20 to-transparent overflow-hidden border-b border-white/5">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
         <div className="absolute top-6 right-6 flex gap-2">
-          <Button variant="ghost" size="icon" className="glass-morphism rounded-full border-white/10">
-            <Settings className="w-5 h-5 text-primary" />
-          </Button>
+          <Link href="/profile/edit">
+            <Button variant="ghost" size="icon" className="glass-morphism rounded-full border-white/10">
+              <Settings className="w-5 h-5 text-primary" />
+            </Button>
+          </Link>
         </div>
       </div>
 
