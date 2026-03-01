@@ -6,11 +6,10 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Home, Trophy, PlusCircle, MessageSquare, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { PlaceHolderImages } from '@/lib/placeholder-images'
 
 export function Navigation() {
   const pathname = usePathname()
-  const logoUrl = PlaceHolderImages.find(img => img.id === 'brand-logo')?.imageUrl || ''
+  const footIconImg = "https://picsum.photos/seed/foot-ball/100/100"
 
   const navItems = [
     { href: '/', icon: Home, label: 'Accueil' },
@@ -22,21 +21,19 @@ export function Navigation() {
 
   return (
     <>
-      {/* Logo en haut à gauche */}
+      {/* Image de foot en haut à gauche */}
       <div className="fixed top-4 left-4 z-[60] pointer-events-none">
-        {logoUrl && (
-          <div className="w-12 h-12 relative pointer-events-auto">
-            <Link href="/">
-              <Image 
-                src={logoUrl} 
-                alt="Logo Pass' Déc'" 
-                fill
-                className="object-contain"
-                unoptimized
-              />
-            </Link>
-          </div>
-        )}
+        <div className="w-12 h-12 relative pointer-events-auto">
+          <Link href="/">
+            <Image 
+              src={footIconImg} 
+              alt="Foot Icon" 
+              fill
+              className="object-cover rounded-xl border border-white/10 shadow-lg"
+              data-ai-hint="football"
+            />
+          </Link>
+        </div>
       </div>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t border-white/10 px-4 py-2 flex justify-around items-center h-20">

@@ -71,7 +71,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
-  const logoUrl = PlaceHolderImages.find(img => img.id === 'brand-logo')?.imageUrl || ''
+  const footballHeroImg = "https://picsum.photos/seed/football-action/800/400"
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -120,20 +120,18 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="p-6 pb-2 flex flex-col items-center gap-4">
-        {/* Logo Officiel récupéré depuis la config */}
+      <header className="p-6 pb-2 flex flex-col items-center gap-6">
+        {/* Image de foot à la place du logo */}
         <div className="w-full flex justify-center pt-2">
-          {logoUrl && (
-            <Image 
-              src={logoUrl} 
-              alt="Logo Pass' Déc'" 
-              width={300}
-              height={150}
-              className="object-contain"
-              priority
-              unoptimized
-            />
-          )}
+          <Image 
+            src={footballHeroImg} 
+            alt="Passion Football" 
+            width={600}
+            height={300}
+            className="object-cover rounded-3xl shadow-2xl border border-white/10 ring-1 ring-primary/20"
+            priority
+            data-ai-hint="football stadium"
+          />
         </div>
 
         {/* Titre stylisé avec 100% en italique et Pass' Déc' en rouge éclatant */}
@@ -148,7 +146,7 @@ export default function HomePage() {
         </div>
 
         {/* Barre de recherche */}
-        <div className="relative group w-full max-w-md mt-4">
+        <div className="relative group w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
             value={searchQuery}
