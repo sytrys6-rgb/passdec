@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Search, PlusCircle, MessageSquare, User } from 'lucide-react'
+import { Home, Trophy, PlusCircle, MessageSquare, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function Navigation() {
@@ -10,7 +10,7 @@ export function Navigation() {
 
   const navItems = [
     { href: '/', icon: Home, label: 'Accueil' },
-    { href: '/explore', icon: Search, label: 'Explorer' },
+    { href: '/favoris', icon: Trophy, label: 'Favoris' },
     { href: '/offres/new', icon: PlusCircle, label: 'Publier' },
     { href: '/messages', icon: MessageSquare, label: 'Messages' },
     { href: '/profile', icon: User, label: 'Profil' },
