@@ -123,12 +123,12 @@ export default function HomePage() {
       <header className="p-6 flex flex-col items-center gap-4">
         {/* Brand Logo Image */}
         {logoImage && (
-          <div className="relative w-32 h-20 mb-2">
+          <div className="relative w-40 h-24 mb-1">
             <Image 
               src={logoImage.imageUrl} 
               alt="100% Pass' Déc' Logo" 
               fill 
-              className="object-contain"
+              className="object-cover rounded-xl"
               priority
               data-ai-hint={logoImage.imageHint}
             />
@@ -137,8 +137,8 @@ export default function HomePage() {
 
         {/* Brand Title and Slogan */}
         <div className="text-center">
-          <h1 className="text-4xl font-black uppercase tracking-tighter">
-            <span className="text-primary italic">100%</span> <span className="text-destructive italic">Pass' Déc'</span>
+          <h1 className="text-4xl font-black uppercase tracking-tighter italic">
+            <span className="text-primary">100%</span> <span className="text-destructive">Pass' Déc'</span>
           </h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
             Le réseau social qui fait marquer
@@ -216,7 +216,7 @@ export default function HomePage() {
       </div>
 
       {/* Feed Section */}
-      <section className="px-6 py-4 flex flex-col gap-6">
+      <section className="px-6 py-4 flex flex-col gap-6 pb-24">
         <div className="flex justify-between items-end">
           <h2 className="text-xl font-black italic uppercase tracking-tighter">
             {activeFilter ? `Passes : ${activeFilter}` : 'Dernières passes'}
