@@ -1,17 +1,17 @@
 
 "use client"
 
-import { useEffect } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Package, Loader2, Trophy, MapPin as MapPinIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase'
+import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase'
 import { signOut } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
-import { doc } from 'firebase/firestore'
+import { doc, collection, query, where, orderBy } from 'firebase/firestore'
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -25,6 +25,7 @@ export default function ProfilePage() {
   const db = useFirestore()
   const auth = useAuth()
   const router = useRouter()
+  const [showMyOffers, setShowMyOffers] = useState(false)
   
   const userRef = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -32,6 +33,18 @@ export default function ProfilePage() {
   }, [db, user])
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(userRef)
+
+  // Récupération des annonces de l'utilisateur
+  const myOffersQuery = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return query(
+      collection(db, 'offres'), 
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    )
+  }, [db, user])
+
+  const { data: myOffers, isLoading: isMyOffersLoading } = useCollection(myOffersQuery)
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -45,14 +58,13 @@ export default function ProfilePage() {
 
   if (isUserLoading || isProfileLoading || !user) return null
 
-  // Données par défaut si le profil Firestore n'existe pas encore
   const profileData = {
     nom: profile?.nom || 'Nouvelle Recrue',
     typeProfil: profile?.typeProfil || 'particulier',
     ville: profile?.ville || 'Inconnue',
     description: profile?.description || 'Passionné de football sur 100% Pass\' Déc\'.',
     stats: {
-      offres: 0,
+      offres: myOffers?.length || 0,
       avis: 0,
       rating: 5.0
     },
@@ -120,17 +132,58 @@ export default function ProfilePage() {
         </div>
 
         <div className="w-full flex flex-col gap-3 mt-8 pb-10">
-          <Button className="w-full rounded-xl py-6 bg-primary text-black hover:bg-primary/90 font-black uppercase tracking-widest text-xs h-12 italic">
-            Mes annonces
-          </Button>
           <Button 
-            variant="ghost" 
-            onClick={handleLogout}
-            className="w-full text-accent hover:text-accent hover:bg-accent/10 rounded-xl h-12 font-black uppercase tracking-widest text-xs"
+            onClick={() => setShowMyOffers(!showMyOffers)}
+            className={`w-full rounded-xl py-6 transition-all font-black uppercase tracking-widest text-xs h-12 italic ${showMyOffers ? 'bg-secondary text-white' : 'bg-primary text-black hover:bg-primary/90'}`}
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Déconnexion
+            {showMyOffers ? "Voir mon profil" : "Mes annonces"}
           </Button>
+
+          {showMyOffers && (
+            <div className="w-full mt-4 space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+              <h3 className="text-left text-sm font-black uppercase italic tracking-widest text-primary border-b border-primary/20 pb-1">Mes Passes en cours</h3>
+              {isMyOffersLoading ? (
+                <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+              ) : myOffers && myOffers.length > 0 ? (
+                <div className="grid gap-4">
+                  {myOffers.map((offer) => (
+                    <Link 
+                      key={offer.id} 
+                      href={`/offres/${offer.id}`}
+                      className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center group hover:border-primary/30 transition-all"
+                    >
+                      <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                        <Image src={offer.photos?.[0] || 'https://picsum.photos/seed/foot/100/100'} alt={offer.titre} fill className="object-cover" />
+                      </div>
+                      <div className="flex flex-col text-left overflow-hidden">
+                        <span className="text-[9px] font-black uppercase text-primary italic">{offer.typeOffre}</span>
+                        <h4 className="font-bold text-sm truncate uppercase tracking-tighter">{offer.titre}</h4>
+                        <div className="flex items-center gap-1 text-[9px] text-muted-foreground font-bold">
+                          <MapPinIcon className="w-2.5 h-2.5" />
+                          <span>{offer.ville}</span>
+                          <span className="mx-1">•</span>
+                          <span>{offer.prix > 0 ? `${offer.prix}€` : 'Gratuit'}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-10 text-muted-foreground italic text-xs">Vous n'avez pas encore fait de passes décisives.</div>
+              )}
+            </div>
+          )}
+
+          {!showMyOffers && (
+            <Button 
+              variant="ghost" 
+              onClick={handleLogout}
+              className="w-full text-accent hover:text-accent hover:bg-accent/10 rounded-xl h-12 font-black uppercase tracking-widest text-xs"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Déconnexion
+            </Button>
+          )}
         </div>
       </div>
 

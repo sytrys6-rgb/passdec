@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react'
@@ -5,14 +6,13 @@ import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Search, MapPin, X, Circle, Triangle, Square, Trophy } from 'lucide-react'
+import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { PlaceHolderImages } from '@/lib/placeholder-images'
-import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
+import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking, useCollection } from '@/firebase'
 import { allOffers } from '@/app/lib/offers'
-import { doc } from 'firebase/firestore'
+import { doc, collection, query, orderBy } from 'firebase/firestore'
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
@@ -29,6 +29,25 @@ export default function HomePage() {
 
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
+
+  // Récupération des offres depuis Firestore
+  const offersQuery = useMemoFirebase(() => {
+    if (!db) return null
+    return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
+  }, [db])
+
+  const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
+
+  // Fusion des offres statiques et dynamiques
+  const combinedOffers = useMemo(() => {
+    const dynamic = (firestoreOffers || []).map(o => ({
+      ...o,
+      image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
+      date: 'Publié récemment'
+    }))
+    // On garde les offres statiques comme base pour la démo
+    return [...dynamic, ...allOffers]
+  }, [firestoreOffers])
 
   // Image héro de football spectaculaire
   const heroImage = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
@@ -49,7 +68,7 @@ export default function HomePage() {
   const cities = ['Lyon', 'Paris', 'Marseille', 'Lille', 'Bordeaux']
 
   const filteredOffers = useMemo(() => {
-    return allOffers.filter(offer => {
+    return combinedOffers.filter(offer => {
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
       const matchesLocation = !activeLocation || 
         offer.ville === activeLocation || 
@@ -58,7 +77,7 @@ export default function HomePage() {
       
       return matchesCategory && matchesLocation && matchesSearch
     })
-  }, [activeFilter, activeLocation, searchQuery])
+  }, [activeFilter, activeLocation, searchQuery, combinedOffers])
 
   const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
     e.preventDefault()
@@ -68,7 +87,6 @@ export default function HomePage() {
       ? favorites.filter((id: string) => id !== offerId)
       : [...favorites, offerId]
 
-    // Mise à jour sécurisée : on inclut l'id pour garantir la validation des règles Firestore
     setDocumentNonBlocking(userRef, { 
       id: user.uid,
       favoris: newFavorites 
@@ -175,11 +193,7 @@ export default function HomePage() {
           <h2 className="text-xl font-black italic uppercase tracking-tighter">
             {activeFilter ? `Passes : ${activeFilter}` : 'Dernières passes'}
           </h2>
-          {activeLocation && (
-            <span className="text-[10px] font-bold text-primary uppercase tracking-widest italic">
-              Secteur {activeLocation}
-            </span>
-          )}
+          {isOffersLoading && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
         </div>
 
         <div className="grid gap-6">
