@@ -71,7 +71,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
-  const logoImage = PlaceHolderImages.find(img => img.id === 'brand-logo')
+  const logoPlaceholder = PlaceHolderImages.find(img => img.id === 'brand-logo')
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -121,24 +121,26 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
-        {/* Logo Officiel avec affichage haute fidélité */}
-        {logoImage && (
+        {/* Logo de remplacement haute qualité */}
+        {logoPlaceholder && (
           <div className="w-full flex justify-center pt-2">
-            <Image 
-              src={logoImage.imageUrl} 
-              alt="Logo Officiel 100% Pass' Déc'" 
-              width={380}
-              height={190}
-              className="object-contain h-auto w-auto max-w-full"
-              priority
-            />
+            <div className="relative w-48 h-24 overflow-hidden rounded-2xl border border-white/10 shadow-lg">
+              <Image 
+                src={logoPlaceholder.imageUrl} 
+                alt="Logo Officiel" 
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
           </div>
         )}
 
-        {/* Titre et Slogan avec styles corrigés */}
-        <div className="text-center -mt-4">
+        {/* Titre et Slogan avec corrections demandées */}
+        <div className="text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
-            <span className="text-primary italic">100%</span> <span className="text-destructive italic">Pass' Déc'</span>
+            <span className="text-primary italic">100%</span>{" "}
+            <span className="text-destructive italic">Pass' Déc'</span>
           </h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
             Le réseau social qui fait marquer
