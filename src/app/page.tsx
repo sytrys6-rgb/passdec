@@ -66,6 +66,7 @@ export const allOffers = [
 export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
   // Load favorites from localStorage on mount
@@ -101,9 +102,11 @@ export default function HomePage() {
       const matchesLocation = !activeLocation || 
         offer.ville === activeLocation || 
         (activeLocation === 'Lyon' && offer.ville === 'Villeurbanne')
-      return matchesCategory && matchesLocation
+      const matchesSearch = !searchQuery || offer.titre.toLowerCase().includes(searchQuery.toLowerCase())
+      
+      return matchesCategory && matchesLocation && matchesSearch
     })
-  }, [activeFilter, activeLocation])
+  }, [activeFilter, activeLocation, searchQuery])
 
   const toggleFavorite = (e: React.MouseEvent, id: string) => {
     e.preventDefault()
@@ -128,9 +131,19 @@ export default function HomePage() {
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher un maillot, un club, un match..." 
             className="pl-10 h-12 bg-card border-none ring-1 ring-white/10 focus-visible:ring-primary/50 rounded-xl"
           />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-primary transition-colors"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
         </div>
       </header>
 
