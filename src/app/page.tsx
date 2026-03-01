@@ -121,24 +121,24 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 flex flex-col items-center gap-4">
-        {/* Brand Logo Image */}
+        {/* Brand Logo Official Image */}
         {logoImage && (
-          <div className="relative w-40 h-24 mb-1">
+          <div className="relative w-full max-w-[280px] aspect-[16/9] mb-2">
             <Image 
               src={logoImage.imageUrl} 
-              alt="100% Pass' Déc' Logo" 
+              alt="100% Pass' Déc' Logo Officiel" 
               fill 
-              className="object-cover rounded-xl"
+              className="object-contain"
               priority
-              data-ai-hint={logoImage.imageHint}
+              data-ai-hint="football logo brand"
             />
           </div>
         )}
 
         {/* Brand Title and Slogan */}
         <div className="text-center">
-          <h1 className="text-4xl font-black uppercase tracking-tighter italic">
-            <span className="text-primary">100%</span> <span className="text-destructive">Pass' Déc'</span>
+          <h1 className="text-4xl font-black uppercase tracking-tighter">
+            <span className="text-primary italic">100%</span> <span className="text-destructive">Pass' Déc'</span>
           </h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
             Le réseau social qui fait marquer
