@@ -4,8 +4,8 @@ service cloud.firestore {
 
     // OFFRES
     match /offres/{offerId} {
-      // Autorise la lecture (get et list) pour tous les utilisateurs connectés
-      allow read: if request.auth != null;
+      // Autorise explicitement la lecture individuelle (get) et la recherche (list) pour tous les utilisateurs connectés
+      allow get, list: if request.auth != null;
 
       // Création autorisée seulement si l'utilisateur est le propriétaire
       allow create: if request.auth != null 
@@ -32,7 +32,7 @@ service cloud.firestore {
     }
 
     /**
-     * @description Conversations privées (optionnel pour l'instant)
+     * @description Conversations privées
      */
     match /conversations/{conversationId} {
       allow read, write: if request.auth != null && (request.auth.uid in resource.data.participants);

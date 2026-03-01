@@ -60,9 +60,6 @@ export default function LoginPage() {
         })
       }
     } catch (error: any) {
-      console.log("CODE ERREUR :", error.code)
-      console.log("MESSAGE :", error.message)
-
       toast({
         variant: "destructive",
         title: "Carton rouge !",
@@ -73,7 +70,7 @@ export default function LoginPage() {
     }
   }
 
-  const heroImage = "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1200&auto=format&fit=crop"
+  const heroImage = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
   if (isUserLoading) return null
 
