@@ -15,10 +15,10 @@ export default function HomePage() {
   const [activeLocation, setActiveLocation] = useState<string | null>(null)
 
   const controllerFilters = [
-    { id: 'vendre', label: 'Vendre', icon: X, color: 'text-blue-500', bgColor: 'bg-blue-500/10', iconColor: '#3b82f6', description: 'Équipements' },
-    { id: 'evenement', label: 'Événement', icon: Circle, color: 'text-red-500', bgColor: 'bg-red-500/10', iconColor: '#ef4444', description: 'Tournois' },
-    { id: 'echanger', label: 'Échanger', icon: Triangle, color: 'text-green-500', bgColor: 'bg-green-500/10', iconColor: '#22c55e', description: 'Troc & Dons' },
-    { id: 'matcher', label: 'Matcher', icon: Square, color: 'text-pink-500', bgColor: 'bg-pink-500/10', iconColor: '#ec4899', description: 'Recrutement' },
+    { id: 'vendre', label: 'Vendre', icon: X, color: 'text-blue-500', bgColor: 'bg-blue-500/10', description: 'Équipements' },
+    { id: 'evenement', label: 'Événement', icon: Circle, color: 'text-red-500', bgColor: 'bg-red-500/10', description: 'Tournois' },
+    { id: 'echanger', label: 'Échanger', icon: Triangle, color: 'text-green-500', bgColor: 'bg-green-500/10', description: 'Troc & Dons' },
+    { id: 'matcher', label: 'Matcher', icon: Square, color: 'text-pink-500', bgColor: 'bg-pink-500/10', description: 'Recrutement' },
   ]
 
   const cities = ['Lyon', 'Paris', 'Marseille', 'Lille', 'Bordeaux']
@@ -27,7 +27,7 @@ export default function HomePage() {
     {
       id: '1',
       titre: 'Maillot OL 2024 Domicile',
-      description: 'Neuf, jamais porté, taille L.',
+      description: 'Neuf, jamais porté, taille L. Édition collector avec patch Ligue 1.',
       prix: 65,
       ville: 'Lyon',
       typeOffre: 'vendre',
@@ -38,7 +38,7 @@ export default function HomePage() {
     {
       id: '2',
       titre: 'Recherche Joueur U17',
-      description: 'Poste de gardien pour tournoi régional.',
+      description: 'Le club recherche un gardien de but motivé pour son équipe U17 régionale. Entraînements 3 fois par semaine.',
       prix: 0,
       ville: 'Villeurbanne',
       typeOffre: 'matcher',
@@ -49,7 +49,7 @@ export default function HomePage() {
     {
       id: '3',
       titre: 'Échange Crampons T42',
-      description: 'Contre paire de gants de gardien.',
+      description: 'Paire d\'Adidas Predator Portée 2 fois. Échange contre gants de gardien Reusch ou Uhlsport.',
       prix: 0,
       ville: 'Marseille',
       typeOffre: 'echanger',
@@ -60,7 +60,7 @@ export default function HomePage() {
     {
       id: '4',
       titre: 'Tournoi Futsal Solidaire',
-      description: 'Inscription ouverte pour les équipes U13.',
+      description: 'Inscrivez votre équipe pour le tournoi de charité au Five de Paris. Lots à gagner et buvette sur place.',
       prix: 20,
       ville: 'Paris',
       typeOffre: 'evenement',
@@ -71,7 +71,7 @@ export default function HomePage() {
     {
       id: '5',
       titre: 'Veste de survêtement vintage',
-      description: 'Années 90, très bon état.',
+      description: 'Pièce rare des années 90, logo brodé. Très bon état général, taille M.',
       prix: 40,
       ville: 'Lyon',
       typeOffre: 'vendre',
@@ -101,7 +101,6 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Header */}
       <header className="p-6 flex flex-col gap-5">
         <div className="flex flex-col">
           <h1 className="text-4xl font-black italic tracking-tighter leading-none uppercase">
@@ -121,7 +120,6 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Main Filter Section - More Discreet Style */}
       <section className="px-6 py-2">
         <div className="grid grid-cols-4 gap-3">
           {controllerFilters.map((filter) => (
@@ -149,7 +147,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Location Bar */}
       <div className="px-6 py-4 flex items-center gap-2 text-muted-foreground overflow-x-auto no-scrollbar">
         <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation ? "text-primary" : "text-muted-foreground")} />
         <span className="text-xs whitespace-nowrap uppercase font-bold tracking-tighter mr-1">Secteur :</span>
@@ -172,7 +169,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Feed */}
       <section className="px-6 py-4 flex flex-col gap-6">
         <div className="flex justify-between items-end">
           <div className="flex flex-col gap-1">
@@ -185,13 +181,14 @@ export default function HomePage() {
               </span>
             )}
           </div>
-          <Link href="/explore" className="text-primary text-xs font-bold uppercase tracking-widest hover:underline">Voir tout</Link>
+          <Link href="/" className="text-primary text-xs font-bold uppercase tracking-widest hover:underline">Voir tout</Link>
         </div>
 
         <div className="grid gap-6">
           {filteredOffers.length > 0 ? (
             filteredOffers.map((offer) => (
-              <div 
+              <Link 
+                href={`/offres/${offer.id}`}
                 key={offer.id} 
                 className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all duration-300 animate-slide-up"
               >
@@ -201,7 +198,7 @@ export default function HomePage() {
                     alt={offer.titre} 
                     fill 
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    data-ai-hint="football product"
+                    data-ai-hint="football item"
                   />
                   <div className="absolute top-3 left-3 flex gap-2">
                     <Badge className="bg-primary text-black text-[10px] uppercase font-black tracking-wider px-2 py-0.5">
@@ -234,7 +231,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-3">
