@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react'
@@ -121,26 +120,26 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
-        {/* Logo de remplacement haute qualité */}
+        {/* Logo officiel en haute qualité */}
         {logoPlaceholder && (
           <div className="w-full flex justify-center pt-2">
-            <div className="relative w-48 h-24 overflow-hidden rounded-2xl border border-white/10 shadow-lg">
+            <div className="relative w-64 h-32">
               <Image 
                 src={logoPlaceholder.imageUrl} 
                 alt="Logo Officiel" 
                 fill
-                className="object-cover"
+                className="object-contain"
                 priority
               />
             </div>
           </div>
         )}
 
-        {/* Titre et Slogan avec corrections demandées */}
+        {/* Titre et Slogan avec le style exact demandé */}
         <div className="text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
             <span className="text-primary italic">100%</span>{" "}
-            <span className="text-destructive italic">Pass' Déc'</span>
+            <span className="text-destructive">Pass' Déc'</span>
           </h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
             Le réseau social qui fait marquer
