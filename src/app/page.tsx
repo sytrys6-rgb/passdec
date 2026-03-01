@@ -71,7 +71,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
-  const logoPlaceholder = PlaceHolderImages.find(img => img.id === 'brand-logo')
+  const logoUrl = PlaceHolderImages.find(img => img.id === 'brand-logo')?.imageUrl || ''
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -121,22 +121,22 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
-        {/* Logo Officiel Uploadé avec unoptimized pour éviter le carré vert */}
-        {logoPlaceholder && (
-          <div className="w-full flex justify-center pt-2">
+        {/* Logo Officiel récupéré depuis la config */}
+        <div className="w-full flex justify-center pt-2">
+          {logoUrl && (
             <Image 
-              src={logoPlaceholder.imageUrl} 
+              src={logoUrl} 
               alt="Logo Pass' Déc'" 
-              width={280}
-              height={140}
+              width={300}
+              height={150}
               className="object-contain"
               priority
               unoptimized
             />
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Titre stylisé exactement selon les consignes */}
+        {/* Titre stylisé avec 100% en italique et Pass' Déc' en rouge éclatant */}
         <div className="text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
             <span className="text-primary italic">100%</span>{" "}
