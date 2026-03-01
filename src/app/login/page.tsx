@@ -60,6 +60,7 @@ export default function LoginPage() {
         })
       }
     } catch (error: any) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Carton rouge !",
