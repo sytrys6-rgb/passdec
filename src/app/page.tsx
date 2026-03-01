@@ -21,6 +21,13 @@ export default function HomePage() {
   const [activeLocation, setActiveLocation] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Redirection si non connecté
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isUserLoading, router])
+
   const userRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, 'users', user.uid)
@@ -29,30 +36,28 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // Sécurité renforcée : On passe null si l'utilisateur n'est pas connecté ou en cours de chargement
+  // Chargement conditionnel : on ne charge les offres que si l'utilisateur est authentifié
   const offersQuery = useMemoFirebase(() => {
-    if (!db || !user || isUserLoading) return null
+    if (!db || isUserLoading || !user) return null
     return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
-  }, [db, user, isUserLoading])
+  }, [db, isUserLoading, user])
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  const combinedOffers = useMemo(() => {
-    const dynamic = (firestoreOffers || []).map(o => ({
+  // On attend que l'utilisateur soit chargé avant d'afficher quoi que ce soit
+  if (isUserLoading) return null
+  if (!user) return null
+
+  const combinedOffers = [
+    ...allOffers,
+    ...(firestoreOffers || []).map(o => ({
       ...o,
       image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
       date: 'Publié récemment'
     }))
-    return [...allOffers, ...dynamic]
-  }, [firestoreOffers])
+  ]
 
   const heroImage = "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1200&auto=format&fit=crop"
-
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login')
-    }
-  }, [user, isUserLoading, router])
 
   const controllerFilters = [
     { id: 'vendre', label: 'Vendre', icon: X, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
@@ -63,17 +68,15 @@ export default function HomePage() {
 
   const cities = ['Lyon', 'Paris', 'Marseille', 'Lille', 'Bordeaux']
 
-  const filteredOffers = useMemo(() => {
-    return combinedOffers.filter(offer => {
-      const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
-      const matchesLocation = !activeLocation || 
-        offer.ville === activeLocation || 
-        (activeLocation === 'Lyon' && offer.ville === 'Villeurbanne')
-      const matchesSearch = !searchQuery || offer.titre.toLowerCase().includes(searchQuery.toLowerCase())
-      
-      return matchesCategory && matchesLocation && matchesSearch
-    })
-  }, [activeFilter, activeLocation, searchQuery, combinedOffers])
+  const filteredOffers = combinedOffers.filter(offer => {
+    const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
+    const matchesLocation = !activeLocation || 
+      offer.ville === activeLocation || 
+      (activeLocation === 'Lyon' && offer.ville === 'Villeurbanne')
+    const matchesSearch = !searchQuery || offer.titre.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    return matchesCategory && matchesLocation && matchesSearch
+  })
 
   const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
     e.preventDefault()
@@ -90,8 +93,6 @@ export default function HomePage() {
       }, { merge: true })
     })
   }
-
-  if (isUserLoading || !user) return null
 
   return (
     <div className="flex flex-col min-h-screen bg-background">

@@ -25,6 +25,13 @@ export default function ProfilePage() {
   const auth = useAuth()
   const router = useRouter()
   const [showMyOffers, setShowMyOffers] = useState(false)
+
+  // Redirection si non connecté
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isUserLoading, router])
   
   const userRef = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -33,29 +40,25 @@ export default function ProfilePage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(userRef)
 
-  // Sécurité renforcée : On ne lance la requête que si l'utilisateur est authentifié
+  // Chargement conditionnel : on n'interroge Firestore que si l'utilisateur est authentifié
   const myOffersQuery = useMemoFirebase(() => {
-    if (!db || !user || isUserLoading) return null
+    if (!db || isUserLoading || !user) return null
     return query(
       collection(db, 'offres'), 
       where('userId', '==', user.uid),
       orderBy('createdAt', 'desc')
     )
-  }, [db, user, isUserLoading])
+  }, [db, isUserLoading, user])
 
   const { data: myOffers, isLoading: isMyOffersLoading } = useCollection(myOffersQuery)
-
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login')
-    }
-  }, [user, isUserLoading, router])
 
   const handleLogout = () => {
     signOut(auth)
   }
 
-  if (isUserLoading || isProfileLoading || !user) return null
+  // Early returns pour attendre que l'auth soit prête
+  if (isUserLoading) return null
+  if (!user) return null
 
   const profileData = {
     nom: profile?.nom || 'Nouvelle Recrue',
