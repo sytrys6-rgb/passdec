@@ -8,7 +8,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { allOffers } from '@/app/lib/offers'
-import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase'
+import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
 import { useRouter } from 'next/navigation'
 import { doc } from 'firebase/firestore'
 
@@ -35,9 +35,14 @@ export default function FavoritesPage() {
 
   const toggleFavorite = (e: React.MouseEvent, id: string) => {
     e.preventDefault()
-    if (!userRef) return
+    if (!userRef || !user) return
     const newFavs = favorites.filter((favId: string) => favId !== id)
-    updateDocumentNonBlocking(userRef, { favoris: newFavs })
+    
+    // On utilise setDocument avec merge: true pour garantir que les favoris sont liés au compte user
+    setDocumentNonBlocking(userRef, { 
+      id: user.uid,
+      favoris: newFavs 
+    }, { merge: true })
   }
 
   if (isUserLoading || !user) return null

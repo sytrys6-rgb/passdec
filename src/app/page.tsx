@@ -11,7 +11,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { PlaceHolderImages } from '@/lib/placeholder-images'
-import { useUser, useFirestore, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase'
+import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
 import { allOffers } from '@/app/lib/offers'
 import { doc } from 'firebase/firestore'
 
@@ -62,13 +62,17 @@ export default function HomePage() {
 
   const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
     e.preventDefault()
-    if (!userRef) return
+    if (!userRef || !user) return
 
     const newFavorites = favorites.includes(offerId)
       ? favorites.filter((id: string) => id !== offerId)
       : [...favorites, offerId]
 
-    updateDocumentNonBlocking(userRef, { favoris: newFavorites })
+    // On utilise setDocument avec merge: true pour s'assurer que le doc existe et est privé à l'utilisateur
+    setDocumentNonBlocking(userRef, { 
+      id: user.uid,
+      favoris: newFavorites 
+    }, { merge: true })
   }
 
   if (isUserLoading || !user) return null
@@ -78,13 +82,13 @@ export default function HomePage() {
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
-            src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018"} 
+            src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1551958219-acbc608c6377"} 
             alt="Football Action" 
             fill
             className="object-cover"
             priority
             unoptimized
-            data-ai-hint="football action"
+            data-ai-hint="football ball"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         </div>
