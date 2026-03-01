@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -9,15 +10,23 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowLeft, Check, Camera } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useUser } from '@/firebase'
 
 export default function EditProfilePage() {
   const router = useRouter()
+  const { user, isUserLoading } = useUser()
   const [formData, setFormData] = useState({
     nom: '',
     typeProfil: '',
     ville: '',
     description: ''
   })
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isUserLoading, router])
 
   useEffect(() => {
     const savedUser = localStorage.getItem('pass-dec-user')
@@ -44,6 +53,8 @@ export default function EditProfilePage() {
     localStorage.setItem('pass-dec-user', JSON.stringify(formData))
     router.push('/profile')
   }
+
+  if (isUserLoading || !user) return null
 
   return (
     <div className="flex flex-col min-h-screen bg-background p-6">

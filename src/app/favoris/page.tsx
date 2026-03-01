@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -8,9 +9,19 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { allOffers } from '@/app/page'
+import { useUser } from '@/firebase'
+import { useRouter } from 'next/navigation'
 
 export default function FavoritesPage() {
+  const { user, isUserLoading } = useUser()
+  const router = useRouter()
   const [favorites, setFavorites] = useState<string[]>([])
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isUserLoading, router])
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -31,6 +42,8 @@ export default function FavoritesPage() {
     setFavorites(newFavs)
     localStorage.setItem('pass-dec-favorites', JSON.stringify(newFavs))
   }
+
+  if (isUserLoading || !user) return null
 
   return (
     <div className="flex flex-col min-h-screen bg-background">

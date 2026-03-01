@@ -1,12 +1,25 @@
+
 "use client"
 
+import { useEffect } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Badge } from '@/components/ui/badge'
 import { MessageCircle } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useUser } from '@/firebase'
+import { useRouter } from 'next/navigation'
 
 export default function MessagesPage() {
+  const { user, isUserLoading } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isUserLoading, router])
+
   const mockConversations = [
     {
       id: '1',
@@ -27,6 +40,8 @@ export default function MessagesPage() {
       avatar: 'https://picsum.photos/seed/user2/100/100'
     }
   ]
+
+  if (isUserLoading || !user) return null
 
   return (
     <div className="flex flex-col min-h-screen bg-background">

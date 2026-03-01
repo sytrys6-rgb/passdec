@@ -1,5 +1,7 @@
+
 "use client"
 
+import { useEffect } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,9 +11,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Camera, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useUser } from '@/firebase'
 
 export default function NewOfferPage() {
   const router = useRouter()
+  const { user, isUserLoading } = useUser()
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isUserLoading, router])
+
+  if (isUserLoading || !user) return null
 
   return (
     <div className="flex flex-col min-h-screen bg-background p-6">
