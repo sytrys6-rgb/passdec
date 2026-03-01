@@ -47,8 +47,8 @@ export default function HomePage() {
     return [...dynamic, ...allOffers]
   }, [firestoreOffers])
 
-  // Photo de football authentique avec stade et action (Ballon bien visible)
-  const heroImage = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
+  // Image HD action football avec ballon bien visible
+  const heroImage = "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1200&auto=format&fit=crop"
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -99,7 +99,7 @@ export default function HomePage() {
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
             src={heroImage} 
-            alt="Action Football Professionnel" 
+            alt="Action Football Authentique" 
             fill
             className="object-cover"
             priority

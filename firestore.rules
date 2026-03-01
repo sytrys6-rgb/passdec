@@ -30,7 +30,7 @@ service cloud.firestore {
 
     /**
      * @description Offres publiques lisibles par tous (connectés ou non).
-     * Création et modification restreintes au propriétaire.
+     * Correction : Autorise explicitement get et list.
      */
     match /offres/{offreId} {
       allow read: if true;
