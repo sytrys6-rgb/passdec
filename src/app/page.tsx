@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react'
@@ -9,6 +10,7 @@ import { Search, MapPin, X, Circle, Triangle, Square, Trophy } from 'lucide-reac
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { PlaceHolderImages } from '@/lib/placeholder-images'
 
 export const allOffers = [
   {
@@ -69,6 +71,8 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
+  const brandLogo = PlaceHolderImages.find(img => img.id === 'brand-logo')
+
   // Load favorites from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -118,14 +122,20 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="p-6 flex flex-col gap-5">
-        <div className="flex flex-col">
-          <h1 className="text-4xl font-black italic tracking-tighter leading-none uppercase">
-            <span className="text-primary italic">100%</span> <span className="text-accent italic">Pass' Déc'</span>
-          </h1>
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mt-1.5 border-l-2 border-primary pl-2">
-            Le réseau social qui fait marquer
-          </p>
+      <header className="p-6 flex flex-col gap-6">
+        <div className="flex justify-center w-full mb-2">
+          {brandLogo && (
+            <div className="relative w-full max-w-[280px] aspect-[2/1]">
+              <Image 
+                src={brandLogo.imageUrl} 
+                alt="100% Pass' Déc'" 
+                fill 
+                className="object-contain"
+                priority
+                data-ai-hint={brandLogo.imageHint}
+              />
+            </div>
+          )}
         </div>
 
         <div className="relative group">
