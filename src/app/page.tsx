@@ -71,7 +71,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
-  const brandLogo = PlaceHolderImages.find(img => img.id === 'brand-logo')
+  const logoImage = PlaceHolderImages.find(img => img.id === 'brand-logo')
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -120,24 +120,25 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="p-6 flex flex-col gap-6 items-center">
-        {/* Logo and Brand Identity Section */}
-        {brandLogo && (
-          <div className="w-24 h-24 relative mb-2">
+      <header className="p-6 flex flex-col items-center gap-4">
+        {/* Brand Logo Image */}
+        {logoImage && (
+          <div className="relative w-32 h-20 mb-2">
             <Image 
-              src={brandLogo.imageUrl} 
-              alt="100% Pass' Déc'" 
-              fill
+              src={logoImage.imageUrl} 
+              alt="100% Pass' Déc' Logo" 
+              fill 
               className="object-contain"
               priority
-              data-ai-hint={brandLogo.imageHint}
+              data-ai-hint={logoImage.imageHint}
             />
           </div>
         )}
-        
-        <div className="flex flex-col items-center text-center">
-          <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-            <span className="text-primary italic">100%</span> <span className="text-destructive">Pass' Déc'</span>
+
+        {/* Brand Title and Slogan */}
+        <div className="text-center">
+          <h1 className="text-4xl font-black uppercase tracking-tighter">
+            <span className="text-primary italic">100%</span> <span className="text-destructive italic">Pass' Déc'</span>
           </h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
             Le réseau social qui fait marquer
@@ -145,12 +146,12 @@ export default function HomePage() {
         </div>
 
         {/* Search Bar */}
-        <div className="relative group w-full max-w-md">
+        <div className="relative group w-full max-w-md mt-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher un maillot, un club, un match..." 
+            placeholder="Rechercher une annonce..." 
             className="pl-10 h-12 bg-card border-none ring-1 ring-white/10 focus-visible:ring-primary/50 rounded-xl"
           />
           {searchQuery && (
@@ -164,6 +165,7 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* Controller Style Filters */}
       <section className="px-6 py-2">
         <div className="grid grid-cols-4 gap-3">
           {controllerFilters.map((filter) => (
@@ -191,6 +193,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Location Filter */}
       <div className="px-6 py-4 flex items-center gap-2 text-muted-foreground overflow-x-auto no-scrollbar">
         <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation ? "text-primary" : "text-muted-foreground")} />
         <div className="flex gap-2">
@@ -212,11 +215,17 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Feed Section */}
       <section className="px-6 py-4 flex flex-col gap-6">
         <div className="flex justify-between items-end">
           <h2 className="text-xl font-black italic uppercase tracking-tighter">
             {activeFilter ? `Passes : ${activeFilter}` : 'Dernières passes'}
           </h2>
+          {activeLocation && (
+            <span className="text-[10px] font-bold text-primary uppercase tracking-widest italic">
+              Secteur {activeLocation}
+            </span>
+          )}
         </div>
 
         <div className="grid gap-6">
