@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,10 +10,81 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
+export const allOffers = [
+  {
+    id: '1',
+    titre: 'Maillot OL 2024 Domicile',
+    description: 'Neuf, jamais porté, taille L. Édition collector avec patch Ligue 1.',
+    prix: 65,
+    ville: 'Lyon',
+    typeOffre: 'vendre',
+    image: 'https://picsum.photos/seed/foot-shirt/600/400',
+    userNom: 'GonesFC',
+  },
+  {
+    id: '2',
+    titre: 'Recherche Joueur U17',
+    description: 'Le club recherche un gardien de but motivé pour son équipe U17 régionale. Entraînements 3 fois par semaine.',
+    prix: 0,
+    ville: 'Villeurbanne',
+    typeOffre: 'matcher',
+    image: 'https://picsum.photos/seed/foot-match/600/400',
+    userNom: 'FC Villeurbanne',
+  },
+  {
+    id: '3',
+    titre: 'Échange Crampons T42',
+    description: 'Paire d\'Adidas Predator Portée 2 fois. Échange contre gants de gardien Reusch ou Uhlsport.',
+    prix: 0,
+    ville: 'Marseille',
+    typeOffre: 'echanger',
+    image: 'https://picsum.photos/seed/boots/600/400',
+    userNom: 'OMFan13',
+  },
+  {
+    id: '4',
+    titre: 'Tournoi Futsal Solidaire',
+    description: 'Inscrivez votre équipe pour le tournoi de charité au Five de Paris. Lots à gagner et buvette sur place.',
+    prix: 20,
+    ville: 'Paris',
+    typeOffre: 'evenement',
+    image: 'https://picsum.photos/seed/stadium/600/400',
+    userNom: 'PSG Academy',
+  },
+  {
+    id: '5',
+    titre: 'Veste de survêtement vintage',
+    description: 'Pièce rare des années 90, logo brodé. Très bon état général, taille M.',
+    prix: 40,
+    ville: 'Lyon',
+    typeOffre: 'vendre',
+    image: 'https://picsum.photos/seed/vintage/600/400',
+    userNom: 'VintageFoot',
+  }
+]
+
 export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
+
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('pass-dec-favorites')
+    if (saved) {
+      try {
+        setFavorites(JSON.parse(saved))
+      } catch (e) {
+        console.error("Failed to parse favorites", e)
+      }
+    }
+  }, [])
+
+  // Save favorites to localStorage whenever they change
+  const updateFavorites = (newFavs: string[]) => {
+    setFavorites(newFavs)
+    localStorage.setItem('pass-dec-favorites', JSON.stringify(newFavs))
+  }
 
   const controllerFilters = [
     { id: 'vendre', label: 'Vendre', icon: X, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
@@ -23,59 +94,6 @@ export default function HomePage() {
   ]
 
   const cities = ['Lyon', 'Paris', 'Marseille', 'Lille', 'Bordeaux']
-
-  const allOffers = [
-    {
-      id: '1',
-      titre: 'Maillot OL 2024 Domicile',
-      description: 'Neuf, jamais porté, taille L. Édition collector avec patch Ligue 1.',
-      prix: 65,
-      ville: 'Lyon',
-      typeOffre: 'vendre',
-      image: 'https://picsum.photos/seed/foot-shirt/600/400',
-      userNom: 'GonesFC',
-    },
-    {
-      id: '2',
-      titre: 'Recherche Joueur U17',
-      description: 'Le club recherche un gardien de but motivé pour son équipe U17 régionale. Entraînements 3 fois par semaine.',
-      prix: 0,
-      ville: 'Villeurbanne',
-      typeOffre: 'matcher',
-      image: 'https://picsum.photos/seed/foot-match/600/400',
-      userNom: 'FC Villeurbanne',
-    },
-    {
-      id: '3',
-      titre: 'Échange Crampons T42',
-      description: 'Paire d\'Adidas Predator Portée 2 fois. Échange contre gants de gardien Reusch ou Uhlsport.',
-      prix: 0,
-      ville: 'Marseille',
-      typeOffre: 'echanger',
-      image: 'https://picsum.photos/seed/boots/600/400',
-      userNom: 'OMFan13',
-    },
-    {
-      id: '4',
-      titre: 'Tournoi Futsal Solidaire',
-      description: 'Inscrivez votre équipe pour le tournoi de charité au Five de Paris. Lots à gagner et buvette sur place.',
-      prix: 20,
-      ville: 'Paris',
-      typeOffre: 'evenement',
-      image: 'https://picsum.photos/seed/stadium/600/400',
-      userNom: 'PSG Academy',
-    },
-    {
-      id: '5',
-      titre: 'Veste de survêtement vintage',
-      description: 'Pièce rare des années 90, logo brodé. Très bon état général, taille M.',
-      prix: 40,
-      ville: 'Lyon',
-      typeOffre: 'vendre',
-      image: 'https://picsum.photos/seed/vintage/600/400',
-      userNom: 'VintageFoot',
-    }
-  ]
 
   const filteredOffers = useMemo(() => {
     return allOffers.filter(offer => {
@@ -89,9 +107,10 @@ export default function HomePage() {
 
   const toggleFavorite = (e: React.MouseEvent, id: string) => {
     e.preventDefault()
-    setFavorites(prev => 
-      prev.includes(id) ? prev.filter(favId => favId !== id) : [...prev, id]
-    )
+    const newFavs = favorites.includes(id) 
+      ? favorites.filter(favId => favId !== id) 
+      : [...favorites, id]
+    updateFavorites(newFavs)
   }
 
   return (
@@ -191,7 +210,6 @@ export default function HomePage() {
                     </Badge>
                   </div>
                   
-                  {/* Favoris Button (Trophy) */}
                   <button 
                     onClick={(e) => toggleFavorite(e, offer.id)}
                     className={cn(
