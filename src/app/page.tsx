@@ -42,10 +42,10 @@ export default function HomePage() {
       image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
       date: 'Publié récemment'
     }))
-    return [...dynamic, ...allOffers]
+    return [...allOffers, ...dynamic]
   }, [firestoreOffers])
 
-  const heroImage = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
+  const heroImage = "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1200&auto=format&fit=crop"
 
   useEffect(() => {
     if (!isUserLoading && !user) {
