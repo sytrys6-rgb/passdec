@@ -1,10 +1,10 @@
-
 "use client"
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth, useUser } from '@/firebase'
+import { useAuth, useUser, useFirestore } from '@/firebase'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const auth = useAuth()
+  const db = useFirestore()
   const { user, isUserLoading } = useUser()
   const router = useRouter()
   const { toast } = useToast()
@@ -46,10 +47,21 @@ export default function LoginPage() {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password)
       } else {
-        await createUserWithEmailAndPassword(auth, email, password)
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+        // Initialisation immédiate du profil utilisateur dans Firestore
+        const userRef = doc(db, 'users', userCredential.user.uid)
+        await setDoc(userRef, {
+          id: userCredential.user.uid,
+          nom: email.split('@')[0],
+          typeProfil: 'particulier',
+          ville: 'Non renseignée',
+          description: 'Nouveau membre de la team Pass\' Déc\'.',
+          createdAt: serverTimestamp(),
+          isActive: true,
+          favoris: []
+        })
       }
     } catch (error: any) {
-      // Diagnostic demandé par l'utilisateur
       console.log("CODE ERREUR :", error.code)
       console.log("MESSAGE :", error.message)
 
@@ -69,8 +81,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
+      <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
          <Image 
             src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018"} 
             alt="Background" 

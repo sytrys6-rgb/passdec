@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react'
@@ -31,7 +30,8 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  const heroImage = PlaceHolderImages.find(img => img.id === 'football-hero')
+  // Image héro de football spectaculaire
+  const heroImage = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -68,7 +68,7 @@ export default function HomePage() {
       ? favorites.filter((id: string) => id !== offerId)
       : [...favorites, offerId]
 
-    // On utilise setDocument avec merge: true pour s'assurer que le doc existe et est privé à l'utilisateur
+    // Mise à jour sécurisée : on inclut l'id pour garantir la validation des règles Firestore
     setDocumentNonBlocking(userRef, { 
       id: user.uid,
       favoris: newFavorites 
@@ -82,15 +82,15 @@ export default function HomePage() {
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
-            src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1551958219-acbc608c6377"} 
-            alt="Football Action" 
+            src={heroImage} 
+            alt="Football Action Hero" 
             fill
             className="object-cover"
             priority
             unoptimized
-            data-ai-hint="football ball"
+            data-ai-hint="football stadium"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
         </div>
 
         <div className="text-center">

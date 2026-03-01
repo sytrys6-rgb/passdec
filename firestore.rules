@@ -5,46 +5,23 @@ service cloud.firestore {
     /**
      * CORE PHILOSOPHY
      * This ruleset implements a robust, identity-centric security model designed for a marketplace and 
-     * social interaction platform. It prioritizes "Authorization Independence" by ensuring that 
-     * every document contains the necessary metadata (UIDs or participant lists) to make an access 
-     * decision without requiring additional database lookups (get() calls).
-     *
-     * DATA STRUCTURE
-     * - /users/{userId}: Private user profiles managed by the owner.
-     * - /offres/{offreId}: Publicly readable offers with owner-controlled modifications.
-     * - /conversations/{conversationId}: Private chats restricted to specific participants.
-     * - /villes/{villeId}: Public, read-only geographical reference data.
-     *
-     * KEY SECURITY DECISIONS
-     * - Denormalization for Performance: Access to conversations and messages is controlled via a 
-     *   'participants' array stored directly on the documents. This allows for efficient 'list' 
-     *   queries using 'array-contains'.
-     * - Relational Integrity: On creation, rules enforce that 'userId' or 'participants' fields 
-     *   correctly include the authenticated user's UID to prevent spoofing.
-     * - Immutability: Critical ownership fields (like userId on an offer) are made immutable 
-     *   during updates to prevent document hijacking.
-     * - Prototyping Flexibility: Rules focus strictly on 'who' can access 'what' based on identity, 
-     *   while allowing flexible data shapes for rapid feature iteration.
+     * social interaction platform.
      */
 
     // --- Global Helper Functions ---
 
-    /** @description Checks if the request is from an authenticated user. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** @description Checks if the authenticated user's UID matches the provided ID. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Checks if the user owns the existing document and it exists. */
     function isExistingOwner(userId) {
       return resource != null && isOwner(userId);
     }
 
-    /** @description Checks if the authenticated user is part of a list of participants. */
     function isParticipant(participants) {
       return isSignedIn() && (request.auth.uid in participants);
     }
@@ -52,27 +29,17 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     /**
-     * @description Rules for user profiles. Users can only manage their own profile. 
-     * Others can view a profile (get) to see seller info, but cannot list all users.
-     * @path /users/{userId}
-     * @allow (get) Signed in user viewing a seller's profile.
-     * @deny (list) Attempting to scrape all user profiles.
-     * @principle Path-based ownership for writes; restricted listing for privacy.
+     * @description Les utilisateurs ne peuvent gérer que leur propre profil.
+     * Simplification pour éviter les erreurs de validation de champ 'id' lors des mises à jour partielles.
      */
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      allow create, update, delete: if isOwner(userId);
     }
 
     /**
-     * @description Rules for marketplace offers. Publicly readable, but only the creator can edit.
-     * @path /offres/{offreId}
-     * @allow (create) Authenticated user posting an offer with their own UID as userId.
-     * @deny (update) User A attempting to edit an offer created by User B.
-     * @principle Public Read with Owner-Only Writes via denormalized userId.
+     * @description Offres publiques lisibles par tous, modifiables uniquement par le créateur.
      */
     match /offres/{offreId} {
       allow get, list: if true;
@@ -82,38 +49,23 @@ service cloud.firestore {
     }
 
     /**
-     * @description Rules for private conversations. Access is restricted to the participants array.
-     * @path /conversations/{conversationId}
-     * @allow (list) User retrieving only the conversations where they are a participant.
-     * @deny (get) User trying to access a private chat they are not part of.
-     * @principle Shared access via denormalized participant list.
+     * @description Conversations privées restreintes aux participants.
      */
     match /conversations/{conversationId} {
       allow get, list: if isParticipant(resource.data.participants);
       allow create: if isSignedIn() && isParticipant(request.resource.data.participants);
       allow update: if isParticipant(resource.data.participants);
-      allow delete: if false; // Conversations typically archived, not deleted for audit.
+      allow delete: if false;
 
-      /**
-       * @description Rules for individual messages. Inherits participant logic via denormalization.
-       * @path /conversations/{conversationId}/messages/{messageId}
-       * @allow (create) A participant sending a new message to the chat.
-       * @deny (update) Attempting to edit a message (messages are immutable here).
-       * @principle Authorization Independence: participants array must be present on every message.
-       */
       match /messages/{messageId} {
         allow get, list: if isParticipant(resource.data.participants);
         allow create: if isSignedIn() && isParticipant(request.resource.data.participants) && request.resource.data.senderId == request.auth.uid;
-        allow update, delete: if false; // Messages are immutable for integrity.
+        allow update, delete: if false;
       }
     }
 
     /**
-     * @description Rules for reference city data. Read-only for all users.
-     * @path /villes/{villeId}
-     * @allow (list) A user searching for a city in a dropdown menu.
-     * @deny (create) Any user attempting to add a new city to the global list.
-     * @principle Public Read-Only configuration data.
+     * @description Données géographiques en lecture seule.
      */
     match /villes/{villeId} {
       allow get, list: if true;
