@@ -4,8 +4,7 @@ service cloud.firestore {
 
     /**
      * CORE PHILOSOPHY
-     * Marketplace social robuste : lecture publique des offres, isolation des profils et conversations privées.
-     * Mise à jour v1.0.2 : Permissions de liste explicites.
+     * Marketplace sociale football : lecture publique des offres, isolation des profils.
      */
 
     // --- Fonctions Globales ---
@@ -18,26 +17,15 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
-    }
-
-    function isParticipant(participants) {
-      return isSignedIn() && (request.auth.uid in participants);
-    }
-
     // --- Règles des Collections ---
 
     /**
      * @description Les utilisateurs gèrent leur propre profil.
-     * Lecture autorisée pour tous les connectés pour voir les pseudos des vendeurs.
+     * Lecture 'get' autorisée pour voir le nom des vendeurs.
      */
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow create, update, delete: if isOwner(userId);
     }
 
     /**
@@ -45,34 +33,20 @@ service cloud.firestore {
      * Création et modification restreintes au propriétaire.
      */
     match /offres/{offreId} {
-      allow get, list: if true;
+      allow read: if true;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(resource.data.userId);
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
     /**
      * @description Conversations privées restreintes aux participants.
      */
     match /conversations/{conversationId} {
-      allow get, list: if isParticipant(resource.data.participants);
-      allow create: if isSignedIn() && isParticipant(request.resource.data.participants);
-      allow update: if isParticipant(resource.data.participants);
-      allow delete: if false;
-
+      allow read, write: if isSignedIn() && (request.auth.uid in resource.data.participants);
+      
       match /messages/{messageId} {
-        allow get, list: if isParticipant(resource.data.participants);
-        allow create: if isSignedIn() && isParticipant(request.resource.data.participants) && request.resource.data.senderId == request.auth.uid;
-        allow update, delete: if false;
+        allow read, write: if isSignedIn() && (request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants);
       }
-    }
-
-    /**
-     * @description Données géographiques en lecture seule.
-     */
-    match /villes/{villeId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
     }
   }
 }

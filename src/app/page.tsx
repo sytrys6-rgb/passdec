@@ -47,8 +47,8 @@ export default function HomePage() {
     return [...dynamic, ...allOffers]
   }, [firestoreOffers])
 
-  // Photo de football authentique avec stade et action
-  const heroImage = "https://images.unsplash.com/photo-1543351611-58f69d7c1781?q=80&w=1200&auto=format&fit=crop"
+  // Photo de football authentique avec stade et action (Ballon bien visible)
+  const heroImage = "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
   useEffect(() => {
     if (!isUserLoading && !user) {
