@@ -121,30 +121,31 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
-        {/* Logo Officiel - Taille agrandie pour une lisibilité maximale */}
+        {/* Logo Officiel avec affichage haute fidélité */}
         {logoImage && (
-          <div className="relative w-full max-w-[380px] h-48">
+          <div className="w-full flex justify-center pt-2">
             <Image 
               src={logoImage.imageUrl} 
               alt="Logo Officiel 100% Pass' Déc'" 
-              fill 
-              className="object-contain"
+              width={380}
+              height={190}
+              className="object-contain h-auto w-auto max-w-full"
               priority
             />
           </div>
         )}
 
-        {/* Brand Title and Slogan - Ajusté pour ne pas chevaucher le logo */}
-        <div className="text-center -mt-6">
+        {/* Titre et Slogan avec styles corrigés */}
+        <div className="text-center -mt-4">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
-            <span className="text-primary italic">100%</span> <span className="text-destructive">Pass' Déc'</span>
+            <span className="text-primary italic">100%</span> <span className="text-destructive italic">Pass' Déc'</span>
           </h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
             Le réseau social qui fait marquer
           </p>
         </div>
 
-        {/* Search Bar */}
+        {/* Barre de recherche */}
         <div className="relative group w-full max-w-md mt-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
@@ -164,7 +165,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Controller Style Filters */}
+      {/* Filtres style manette */}
       <section className="px-6 py-2">
         <div className="grid grid-cols-4 gap-3">
           {controllerFilters.map((filter) => (
@@ -192,7 +193,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Location Filter */}
+      {/* Filtre Ville */}
       <div className="px-6 py-4 flex items-center gap-2 text-muted-foreground overflow-x-auto no-scrollbar">
         <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation ? "text-primary" : "text-muted-foreground")} />
         <div className="flex gap-2">
@@ -214,7 +215,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Feed Section */}
+      {/* Flux d'annonces */}
       <section className="px-6 py-4 flex flex-col gap-6 pb-24">
         <div className="flex justify-between items-end">
           <h2 className="text-xl font-black italic uppercase tracking-tighter">

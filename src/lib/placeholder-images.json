@@ -3,7 +3,7 @@
     {
       "id": "brand-logo",
       "description": "Logo officiel 100% Pass' Déc'",
-      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/firebasin-production.appspot.com/o/images%2F67be25875630653f3e6a4b11%2F1740514931899-image.png?alt=media&token=c32c286e-9860-4b47-b864-16e75a6437d0",
+      "imageUrl": "/logo.png",
       "imageHint": "football logo"
     },
     {
