@@ -118,21 +118,21 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
-        {/* Image de football dynamique avec un ballon visible */}
+        {/* Nouvelle image de football dynamique */}
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
-            src="https://picsum.photos/seed/football-play-action-ball/1200/675" 
-            alt="Football Action with Ball" 
+            src="https://picsum.photos/seed/football-stadium-match/1200/675" 
+            alt="Football Action" 
             fill
             className="object-cover"
             priority
             unoptimized
-            data-ai-hint="football ball"
+            data-ai-hint="football match"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         </div>
 
-        {/* Titre reproduit exactement selon la charte graphique */}
+        {/* Titre avec le style exact : 100% en vert/italique, Pass' Déc' en rouge */}
         <div className="text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
             <span className="italic text-primary">100%</span>{" "}
