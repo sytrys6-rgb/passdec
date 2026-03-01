@@ -10,6 +10,7 @@ import { Search, MapPin, X, Circle, Triangle, Square, Trophy } from 'lucide-reac
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { PlaceHolderImages } from '@/lib/placeholder-images'
 
 export const allOffers = [
   {
@@ -70,8 +71,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
-  // Image de football haute définition pour le header
-  const footballHero = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1200"
+  const brandLogo = PlaceHolderImages.find(img => img.id === 'brand-logo')?.imageUrl || ""
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -120,33 +120,33 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="p-6 pb-2 flex flex-col items-center gap-6">
-        {/* Image de football principale */}
-        <div className="w-full flex justify-center pt-2">
+      <header className="p-6 pb-2 flex flex-col items-center gap-4">
+        {/* Affichage du logo officiel */}
+        <div className="w-full flex justify-center py-4">
           <Image 
-            src={footballHero} 
-            alt="100% Pass' Déc' Football" 
-            width={800}
-            height={450}
-            className="object-cover rounded-3xl shadow-2xl border border-white/10 ring-1 ring-primary/20 aspect-video"
+            src={brandLogo} 
+            alt="Logo Pass' Déc'" 
+            width={300}
+            height={168}
+            className="object-contain"
             priority
             unoptimized
           />
         </div>
 
-        {/* Titre stylisé : 100% en vert italique et Pass' Déc' en rouge éclatant */}
+        {/* Titre reproduit exactement selon la demande */}
         <div className="text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
             <span className="italic text-primary">100%</span>{" "}
             <span className="text-destructive">Pass' Déc'</span>
           </h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
-            Le réseau social qui fait marquer
+            Le réseau qui fait marquer
           </p>
         </div>
 
         {/* Barre de recherche */}
-        <div className="relative group w-full max-w-md">
+        <div className="relative group w-full max-w-md mt-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
             value={searchQuery}
