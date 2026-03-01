@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react'
@@ -12,59 +13,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { PlaceHolderImages } from '@/lib/placeholder-images'
 import { useUser } from '@/firebase'
-
-export const allOffers = [
-  {
-    id: '1',
-    titre: 'Maillot OL 2024 Domicile',
-    description: 'Neuf, jamais porté, taille L. Édition collector avec patch Ligue 1.',
-    prix: 65,
-    ville: 'Lyon',
-    typeOffre: 'vendre',
-    image: 'https://picsum.photos/seed/foot-shirt/600/400',
-    userNom: 'GonesFC',
-  },
-  {
-    id: '2',
-    titre: 'Recherche Joueur U17',
-    description: 'Le club recherche un gardien de but motivé pour son équipe U17 régionale. Entraînements 3 fois par semaine.',
-    prix: 0,
-    ville: 'Villeurbanne',
-    typeOffre: 'matcher',
-    image: 'https://picsum.photos/seed/foot-match/600/400',
-    userNom: 'FC Villeurbanne',
-  },
-  {
-    id: '3',
-    titre: 'Échange Crampons T42',
-    description: 'Paire d\'Adidas Predator Portée 2 fois. Échange contre gants de gardien Reusch ou Uhlsport.',
-    prix: 0,
-    ville: 'Marseille',
-    typeOffre: 'echanger',
-    image: 'https://picsum.photos/seed/boots/600/400',
-    userNom: 'OMFan13',
-  },
-  {
-    id: '4',
-    titre: 'Tournoi Futsal Solidaire',
-    description: 'Inscrivez votre équipe pour le tournoi de charité au Five de Paris. Lots à gagner et buvette sur place.',
-    prix: 20,
-    ville: 'Paris',
-    typeOffre: 'evenement',
-    image: 'https://picsum.photos/seed/stadium/600/400',
-    userNom: 'PSG Academy',
-  },
-  {
-    id: '5',
-    titre: 'Veste de survêtement vintage',
-    description: 'Pièce rare des années 90, logo brodé. Très bon état général, taille M.',
-    prix: 40,
-    ville: 'Lyon',
-    typeOffre: 'vendre',
-    image: 'https://picsum.photos/seed/vintage/600/400',
-    userNom: 'VintageFoot',
-  }
-]
+import { allOffers } from '@/app/lib/offers'
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
@@ -132,7 +81,6 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
-        {/* Image de football dynamique avec ballon visible */}
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
             src={heroImage?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018"} 
@@ -146,7 +94,6 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         </div>
 
-        {/* Titre avec le style exact : 100% en vert/italique, Pass' Déc' en rouge */}
         <div className="text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
             <span className="italic text-primary">100%</span>{" "}
@@ -157,7 +104,6 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Barre de recherche */}
         <div className="relative group w-full max-w-md mt-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
@@ -177,7 +123,6 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Filtres style manette */}
       <section className="px-6 py-2">
         <div className="grid grid-cols-4 gap-3">
           {controllerFilters.map((filter) => (
@@ -205,7 +150,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Filtre Ville */}
       <div className="px-6 py-4 flex items-center gap-2 text-muted-foreground overflow-x-auto no-scrollbar">
         <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation ? "text-primary" : "text-muted-foreground")} />
         <div className="flex gap-2">
@@ -227,7 +171,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Flux d'annonces */}
       <section className="px-6 py-4 flex flex-col gap-6 pb-24">
         <div className="flex justify-between items-end">
           <h2 className="text-xl font-black italic uppercase tracking-tighter">

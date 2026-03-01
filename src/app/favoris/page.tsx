@@ -8,7 +8,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import { allOffers } from '@/app/page'
+import { allOffers } from '@/app/lib/offers'
 import { useUser } from '@/firebase'
 import { useRouter } from 'next/navigation'
 

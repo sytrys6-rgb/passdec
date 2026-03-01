@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useParams, useRouter } from 'next/navigation'
@@ -7,86 +8,17 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { allOffers } from '@/app/lib/offers'
 
 export default function OfferDetailPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id
 
-  // Simulating data fetching based on id
-  const allOffers = [
-    {
-      id: '1',
-      titre: 'Maillot OL 2024 Domicile',
-      description: 'Neuf, jamais porté, taille L. Édition collector avec patch Ligue 1. Le textile est ultra respirant, idéal pour les matchs ou le sport intensif. Remise en main propre possible sur Lyon.',
-      prix: 65,
-      ville: 'Lyon',
-      typeOffre: 'vendre',
-      image: 'https://picsum.photos/seed/foot-shirt/600/400',
-      userNom: 'GonesFC',
-      userType: 'club_supporter',
-      userRating: 4.9,
-      date: 'Publié il y a 2h'
-    },
-    {
-      id: '2',
-      titre: 'Recherche Joueur U17',
-      description: 'Le club recherche un gardien de but motivé pour son équipe U17 régionale. Entraînements 3 fois par semaine le soir. Nous offrons l\'équipement complet et le survêtement du club. Profil recherché : minimum 1m75, bonne lecture du jeu.',
-      prix: 0,
-      ville: 'Villeurbanne',
-      typeOffre: 'matcher',
-      image: 'https://picsum.photos/seed/foot-match/600/400',
-      userNom: 'FC Villeurbanne',
-      userType: 'club_foot',
-      userRating: 4.8,
-      date: 'Publié hier'
-    },
-    {
-      id: '3',
-      titre: 'Échange Crampons T42',
-      description: 'Paire d\'Adidas Predator Portée 2 fois sur herbe uniquement. État irréprochable. Échange uniquement contre des gants de gardien de valeur équivalente (Reusch ou Uhlsport) taille 9.',
-      prix: 0,
-      ville: 'Marseille',
-      typeOffre: 'echanger',
-      image: 'https://picsum.photos/seed/boots/600/400',
-      userNom: 'OMFan13',
-      userType: 'particulier',
-      userRating: 4.7,
-      date: 'Publié il y a 3 jours'
-    },
-    {
-      id: '4',
-      titre: 'Tournoi Futsal Solidaire',
-      description: 'Inscrivez votre équipe pour le tournoi de charité au Five de Paris. Tous les bénéfices seront reversés à une association locale. 5 joueurs + 2 remplaçants max par équipe. Inscription obligatoire.',
-      prix: 20,
-      ville: 'Paris',
-      typeOffre: 'evenement',
-      image: 'https://picsum.photos/seed/stadium/600/400',
-      userNom: 'PSG Academy',
-      userType: 'club_foot',
-      userRating: 5.0,
-      date: 'Publié il y a 5h'
-    },
-    {
-      id: '5',
-      titre: 'Veste de survêtement vintage',
-      description: 'Pièce rare des années 90, logo brodé. Très bon état général, taille M. Style rétro parfait pour les sorties ou les entraînements style old school.',
-      prix: 40,
-      ville: 'Lyon',
-      typeOffre: 'vendre',
-      image: 'https://picsum.photos/seed/vintage/600/400',
-      userNom: 'VintageFoot',
-      userType: 'particulier',
-      userRating: 4.6,
-      date: 'Publié la semaine dernière'
-    }
-  ]
-
   const offer = allOffers.find(o => o.id === id) || allOffers[0]
 
   return (
     <div className="flex flex-col min-h-screen bg-background pb-24">
-      {/* Header Image */}
       <div className="relative aspect-square w-full">
         <Image 
           src={offer.image} 
@@ -147,7 +79,6 @@ export default function OfferDetailPage() {
             </p>
           </div>
 
-          {/* User Section */}
           <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
             <Link href="/profile" className="flex items-center gap-3">
               <div className="relative">
@@ -173,7 +104,6 @@ export default function OfferDetailPage() {
         </div>
       </div>
 
-      {/* Floating Action Bar */}
       <div className="fixed bottom-24 left-6 right-6 z-40">
         <Button className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg shadow-2xl shadow-primary/20 gap-3 group">
           <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
