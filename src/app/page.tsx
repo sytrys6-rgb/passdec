@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,7 +19,7 @@ export default function HomePage() {
     { id: 'matcher', label: 'Matcher', icon: Square, color: 'bg-purple-500', iconColor: '#a855f7', description: 'Recrutement & Jobs' },
   ]
 
-  const mockOffers = [
+  const allOffers = [
     {
       id: '1',
       titre: 'Maillot OL 2024 Domicile',
@@ -41,8 +41,39 @@ export default function HomePage() {
       image: 'https://picsum.photos/seed/foot-match/600/400',
       userNom: 'FC Villeurbanne',
       userType: 'club_foot'
+    },
+    {
+      id: '3',
+      titre: 'Échange Crampons T42',
+      description: 'Contre paire de gants de gardien.',
+      prix: 0,
+      ville: 'Bron',
+      typeOffre: 'echanger',
+      image: 'https://picsum.photos/seed/boots/600/400',
+      userNom: 'FootLover69',
+      userType: 'particulier'
+    },
+    {
+      id: '4',
+      titre: 'Tournoi Futsal Solidaire',
+      description: 'Inscription ouverte pour les équipes U13.',
+      prix: 20,
+      ville: 'Lyon 8',
+      typeOffre: 'evenement',
+      image: 'https://picsum.photos/seed/stadium/600/400',
+      userNom: 'AS Lyon 8',
+      userType: 'club_foot'
     }
   ]
+
+  const filteredOffers = useMemo(() => {
+    if (!activeFilter) return allOffers
+    return allOffers.filter(offer => offer.typeOffre === activeFilter)
+  }, [activeFilter])
+
+  const handleFilterToggle = (filterId: string) => {
+    setActiveFilter(prev => prev === filterId ? null : filterId)
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -72,14 +103,17 @@ export default function HomePage() {
           {controllerFilters.map((filter) => (
             <button
               key={filter.id}
-              onClick={() => setActiveFilter(filter.id === activeFilter ? null : filter.id)}
-              className={`controller-btn group ${activeFilter === filter.id ? 'ring-2 ring-primary scale-105' : 'bg-card'}`}
+              onClick={() => handleFilterToggle(filter.id)}
+              className={`controller-btn group ${activeFilter === filter.id ? 'ring-2 ring-primary scale-105 bg-white/10' : 'bg-card'}`}
             >
               <div className={`p-3 rounded-full mb-2 ${filter.color} bg-opacity-20`}>
                 <filter.icon className="w-8 h-8" style={{ color: filter.iconColor }} />
               </div>
               <span className="font-bold text-sm uppercase tracking-widest">{filter.label}</span>
               <span className="text-[10px] text-muted-foreground opacity-70 mt-1">{filter.description}</span>
+              {activeFilter === filter.id && (
+                <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-pulse" />
+              )}
             </button>
           ))}
         </div>
@@ -97,57 +131,73 @@ export default function HomePage() {
       {/* Feed */}
       <section className="px-6 py-4 flex flex-col gap-6">
         <div className="flex justify-between items-end">
-          <h2 className="text-xl font-black italic uppercase tracking-tighter">Dernières passes</h2>
+          <h2 className="text-xl font-black italic uppercase tracking-tighter">
+            {activeFilter ? `Passes : ${activeFilter}` : 'Dernières passes'}
+          </h2>
           <Link href="/explore" className="text-primary text-xs font-bold uppercase tracking-widest hover:underline">Voir tout</Link>
         </div>
 
         <div className="grid gap-6">
-          {mockOffers.map((offer) => (
-            <div 
-              key={offer.id} 
-              className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all duration-300 animate-slide-up"
-            >
-              <div className="relative aspect-[16/9] w-full">
-                <Image 
-                  src={offer.image} 
-                  alt={offer.titre} 
-                  fill 
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  data-ai-hint="football product"
-                />
-                <div className="absolute top-3 left-3 flex gap-2">
-                  <Badge className="bg-primary text-black text-[10px] uppercase font-black tracking-wider px-2 py-0.5">
-                    {offer.typeOffre}
-                  </Badge>
-                </div>
-                {offer.prix > 0 && (
-                  <div className="absolute bottom-3 right-3 glass-morphism px-3 py-1 rounded-full font-black text-primary italic border-primary/20">
-                    {offer.prix}€
+          {filteredOffers.length > 0 ? (
+            filteredOffers.map((offer) => (
+              <div 
+                key={offer.id} 
+                className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all duration-300 animate-slide-up"
+              >
+                <div className="relative aspect-[16/9] w-full">
+                  <Image 
+                    src={offer.image} 
+                    alt={offer.titre} 
+                    fill 
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    data-ai-hint="football product"
+                  />
+                  <div className="absolute top-3 left-3 flex gap-2">
+                    <Badge className="bg-primary text-black text-[10px] uppercase font-black tracking-wider px-2 py-0.5">
+                      {offer.typeOffre}
+                    </Badge>
                   </div>
-                )}
-              </div>
-              
-              <div className="p-4 flex flex-col gap-2">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors italic uppercase tracking-tighter">{offer.titre}</h3>
-                </div>
-                <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">{offer.description}</p>
-                
-                <div className="pt-2 flex items-center justify-between border-t border-white/5 mt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-black">
-                      {offer.userNom[0]}
+                  {offer.prix > 0 && (
+                    <div className="absolute bottom-3 right-3 glass-morphism px-3 py-1 rounded-full font-black text-primary italic border-primary/20">
+                      {offer.prix}€
                     </div>
-                    <span className="text-xs font-bold uppercase tracking-tighter">{offer.userNom}</span>
+                  )}
+                </div>
+                
+                <div className="p-4 flex flex-col gap-2">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors italic uppercase tracking-tighter">{offer.titre}</h3>
                   </div>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <MapPin className="w-3 h-3 text-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">{offer.ville}</span>
+                  <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">{offer.description}</p>
+                  
+                  <div className="pt-2 flex items-center justify-between border-t border-white/5 mt-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-black">
+                        {offer.userNom[0]}
+                      </div>
+                      <span className="text-xs font-bold uppercase tracking-tighter">{offer.userNom}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <MapPin className="w-3 h-3 text-primary" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">{offer.ville}</span>
+                    </div>
                   </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-3">
+              <Search className="w-10 h-10 opacity-20" />
+              <p className="text-sm font-bold uppercase italic tracking-widest">Aucun résultat trouvé</p>
+              <Button 
+                variant="link" 
+                onClick={() => setActiveFilter(null)}
+                className="text-primary font-black uppercase italic tracking-widest text-[10px]"
+              >
+                Réinitialiser les filtres
+              </Button>
             </div>
-          ))}
+          )}
         </div>
       </section>
 
