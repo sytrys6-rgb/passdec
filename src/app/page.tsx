@@ -118,10 +118,10 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
-        {/* Nouvelle image de football dynamique */}
+        {/* Image de football dynamique avec ballon visible */}
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
-            src="https://picsum.photos/seed/football-stadium-match/1200/675" 
+            src="https://picsum.photos/seed/football-match-action-99/1200/675" 
             alt="Football Action" 
             fill
             className="object-cover"
