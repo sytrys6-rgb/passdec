@@ -71,7 +71,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [favorites, setFavorites] = useState<string[]>([])
 
-  const footballHeroImg = "https://picsum.photos/seed/football-stadium-hd/800/400"
+  const footballHeroImg = PlaceHolderImages.find(img => img.id === 'stadium-bg')?.imageUrl || "https://picsum.photos/seed/football-stadium/800/400"
 
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
@@ -128,7 +128,7 @@ export default function HomePage() {
             alt="Football Stadium" 
             width={800}
             height={400}
-            className="object-cover rounded-3xl shadow-2xl border border-white/10 ring-1 ring-primary/20"
+            className="object-cover rounded-3xl shadow-2xl border border-white/10 ring-1 ring-primary/20 aspect-video"
             priority
             data-ai-hint="football stadium"
           />
@@ -137,7 +137,7 @@ export default function HomePage() {
         {/* Titre stylisé avec 100% en italique et Pass' Déc' en rouge éclatant */}
         <div className="text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
-            <span className="text-primary italic">100%</span>{" "}
+            <span className="italic">100%</span>{" "}
             <span className="text-destructive">Pass' Déc'</span>
           </h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
