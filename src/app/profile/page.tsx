@@ -8,6 +8,13 @@ import { Settings, LogOut, ShieldCheck, MapPin, Star } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
+const profileTypes = {
+  particulier: { label: 'Footeux', emoji: '⚽' },
+  club_foot: { label: 'Team', emoji: '🏟️' },
+  club_supporter: { label: 'Ultras', emoji: '🎺' },
+  professionnel: { label: 'Pro', emoji: '🏢' },
+}
+
 export default function ProfilePage() {
   const [user, setUser] = useState({
     nom: 'FC Etoile',
@@ -34,9 +41,10 @@ export default function ProfilePage() {
     }
   }, [])
 
+  const currentType = profileTypes[user.typeProfil as keyof typeof profileTypes] || profileTypes.particulier
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Profile Header */}
       <div className="relative h-48 w-full bg-gradient-to-b from-primary/20 to-transparent overflow-hidden border-b border-white/5">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
         <div className="absolute top-6 right-6 flex gap-2">
@@ -62,8 +70,9 @@ export default function ProfilePage() {
             <MapPin className="w-3 h-3 text-primary" />
             <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{user.ville}</span>
           </div>
-          <Badge className="mt-3 bg-primary text-black border-none font-black uppercase tracking-tighter italic px-4">
-            {user.typeProfil === 'club_foot' ? 'Club de Foot' : 'Particulier'}
+          <Badge className="mt-3 bg-primary text-black border-none font-black uppercase tracking-tighter italic px-4 gap-2">
+            <span>{currentType.emoji}</span>
+            <span>{currentType.label}</span>
           </Badge>
         </div>
 
@@ -71,7 +80,6 @@ export default function ProfilePage() {
           {user.description}
         </p>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-3 w-full gap-4 mt-8">
           <div className="bg-card p-4 rounded-2xl flex flex-col items-center border border-white/5 group hover:border-primary/30 transition-colors">
             <span className="text-2xl font-black italic text-primary">{user.stats.offres}</span>

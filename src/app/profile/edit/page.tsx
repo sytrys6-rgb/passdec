@@ -65,7 +65,6 @@ export default function EditProfilePage() {
       </div>
 
       <form onSubmit={handleSave} className="flex flex-col gap-6 pb-24">
-        {/* Avatar change simulation */}
         <div className="flex flex-col items-center gap-4 mb-4">
           <div className="relative group cursor-pointer">
             <div className="w-24 h-24 rounded-3xl overflow-hidden border-2 border-primary/20 bg-card flex items-center justify-center">
@@ -79,7 +78,7 @@ export default function EditProfilePage() {
         </div>
 
         <div className="space-y-2">
-          <Label className="uppercase text-[10px] font-black tracking-[0.2em] text-muted-foreground ml-1">Nom du club ou utilisateur</Label>
+          <Label className="uppercase text-[10px] font-black tracking-[0.2em] text-muted-foreground ml-1">Nom affiché</Label>
           <Input 
             value={formData.nom}
             onChange={(e) => setFormData({...formData, nom: e.target.value})}
@@ -95,12 +94,13 @@ export default function EditProfilePage() {
             onValueChange={(val) => setFormData({...formData, typeProfil: val})}
           >
             <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus:ring-primary/50">
-              <SelectValue placeholder="Type de compte" />
+              <SelectValue placeholder="Catégorie" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="club_foot">Club de Football</SelectItem>
-              <SelectItem value="club_supporter">Club de Supporters</SelectItem>
-              <SelectItem value="particulier">Particulier / Fan</SelectItem>
+              <SelectItem value="particulier">Footeux ⚽</SelectItem>
+              <SelectItem value="club_foot">Team 🏟️</SelectItem>
+              <SelectItem value="club_supporter">Ultras 🎺</SelectItem>
+              <SelectItem value="professionnel">Pro 🏢</SelectItem>
             </SelectContent>
           </Select>
         </div>
