@@ -21,7 +21,6 @@ service cloud.firestore {
 
     /**
      * @description Les utilisateurs gèrent leur propre profil.
-     * Lecture 'get' autorisée pour voir le nom des vendeurs.
      */
     match /users/{userId} {
       allow get: if isSignedIn();
@@ -29,13 +28,20 @@ service cloud.firestore {
     }
 
     /**
-     * @description Offres publiques lisibles par tous (connectés ou non).
-     * Correction : Autorise explicitement get et list.
+     * @description Offres de la marketplace.
+     * Correction demandée par l'utilisateur pour autoriser le 'list'.
      */
     match /offres/{offreId} {
-      allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Tous les utilisateurs connectés peuvent lire toutes les offres (get et list)
+      allow list, get: if isSignedIn();
+
+      // Création autorisée seulement si l'utilisateur est propriétaire (champ userId)
+      allow create: if isSignedIn() 
+                    && request.resource.data.userId == request.auth.uid;
+
+      // Modification / suppression uniquement par le propriétaire
+      allow update, delete: if isSignedIn() 
+                            && resource.data.userId == request.auth.uid;
     }
 
     /**

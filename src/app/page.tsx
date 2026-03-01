@@ -29,7 +29,7 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // Récupération des offres depuis Firestore
+  // Récupération des offres depuis Firestore (Nécessite permission 'list')
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
@@ -104,7 +104,6 @@ export default function HomePage() {
             className="object-cover"
             priority
             unoptimized
-            data-ai-hint="football action"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
         </div>
