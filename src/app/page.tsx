@@ -73,7 +73,6 @@ export default function HomePage() {
 
   const brandLogo = PlaceHolderImages.find(img => img.id === 'brand-logo')
 
-  // Load favorites from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('pass-dec-favorites')
     if (saved) {
@@ -85,7 +84,6 @@ export default function HomePage() {
     }
   }, [])
 
-  // Save favorites to localStorage whenever they change
   const updateFavorites = (newFavs: string[]) => {
     setFavorites(newFavs)
     localStorage.setItem('pass-dec-favorites', JSON.stringify(newFavs))
@@ -122,33 +120,32 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="p-6 flex flex-col gap-6">
+      <header className="p-6 flex flex-col gap-6 items-center">
         {/* Logo and Brand Identity Section */}
-        <div className="flex flex-col items-center text-center gap-4">
-          {brandLogo && (
-            <div className="w-24 h-24 relative">
-              <Image 
-                src={brandLogo.imageUrl} 
-                alt="100% Pass' Déc'" 
-                fill
-                className="object-contain"
-                priority
-                data-ai-hint={brandLogo.imageHint}
-              />
-            </div>
-          )}
-          <div className="flex flex-col items-center">
-            <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-              <span className="text-primary">100%</span> <span className="text-destructive">Pass' Déc'</span>
-            </h1>
-            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
-              Le réseau social qui fait marquer
-            </p>
+        {brandLogo && (
+          <div className="w-24 h-24 relative mb-2">
+            <Image 
+              src={brandLogo.imageUrl} 
+              alt="100% Pass' Déc'" 
+              fill
+              className="object-contain"
+              priority
+              data-ai-hint={brandLogo.imageHint}
+            />
           </div>
+        )}
+        
+        <div className="flex flex-col items-center text-center">
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter">
+            <span className="text-primary italic">100%</span> <span className="text-destructive">Pass' Déc'</span>
+          </h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
+            Le réseau social qui fait marquer
+          </p>
         </div>
 
         {/* Search Bar */}
-        <div className="relative group">
+        <div className="relative group w-full max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
             value={searchQuery}
