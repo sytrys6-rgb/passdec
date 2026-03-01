@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react'
@@ -120,23 +121,22 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
-        {/* Logo Officiel Uploadé */}
+        {/* Logo Officiel Uploadé avec unoptimized pour éviter le carré vert */}
         {logoPlaceholder && (
           <div className="w-full flex justify-center pt-2">
-            <div className="relative w-72 h-36">
-              <Image 
-                src={logoPlaceholder.imageUrl} 
-                alt="Logo Officiel 100% Pass' Déc'" 
-                fill
-                className="object-contain"
-                priority
-                unoptimized
-              />
-            </div>
+            <Image 
+              src={logoPlaceholder.imageUrl} 
+              alt="Logo Pass' Déc'" 
+              width={280}
+              height={140}
+              className="object-contain"
+              priority
+              unoptimized
+            />
           </div>
         )}
 
-        {/* Titre et Slogan */}
+        {/* Titre stylisé exactement selon les consignes */}
         <div className="text-center">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
             <span className="text-primary italic">100%</span>{" "}
