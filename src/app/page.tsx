@@ -124,13 +124,13 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 flex flex-col gap-6">
         {/* Logo and Brand Identity Section */}
-        <div className="flex flex-col items-center text-center gap-3">
+        <div className="flex flex-col items-center text-center gap-4">
           {brandLogo && (
-            <div className="relative w-32 h-32">
+            <div className="w-24 h-24 relative">
               <Image 
                 src={brandLogo.imageUrl} 
                 alt="100% Pass' Déc'" 
-                fill 
+                fill
                 className="object-contain"
                 priority
                 data-ai-hint={brandLogo.imageHint}
@@ -138,10 +138,10 @@ export default function HomePage() {
             </div>
           )}
           <div className="flex flex-col items-center">
-            <h1 className="text-3xl font-black italic uppercase tracking-tighter text-primary">
-              100% Pass' Déc'
+            <h1 className="text-3xl font-black italic uppercase tracking-tighter">
+              <span className="text-primary">100%</span> <span className="text-destructive">Pass' Déc'</span>
             </h1>
-            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
               Le réseau social qui fait marquer
             </p>
           </div>
