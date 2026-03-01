@@ -29,7 +29,7 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // Récupération des offres depuis Firestore (Nécessite permission 'list')
+  // Récupération des offres depuis Firestore (Autorisé par allow list dans rules)
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
@@ -47,7 +47,7 @@ export default function HomePage() {
     return [...dynamic, ...allOffers]
   }, [firestoreOffers])
 
-  // Image HD action football avec ballon bien visible
+  // Image HD action football avec ballon bien visible au premier plan
   const heroImage = "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1200&auto=format&fit=crop"
 
   useEffect(() => {
@@ -99,7 +99,7 @@ export default function HomePage() {
         <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
           <Image 
             src={heroImage} 
-            alt="Action Football Authentique" 
+            alt="Action Football Pro" 
             fill
             className="object-cover"
             priority
@@ -187,7 +187,7 @@ export default function HomePage() {
 
       <section className="px-6 py-4 flex flex-col gap-6 pb-24">
         <div className="flex justify-between items-end">
-          <h2 className="text-xl font-black italic uppercase tracking-tighter">
+          <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">
             {activeFilter ? `Passes : ${activeFilter}` : 'Dernières passes'}
           </h2>
           {isOffersLoading && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
