@@ -121,12 +121,12 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="p-6 pb-2 flex flex-col items-center gap-4">
-        {/* Brand Logo Official Image - Increased size for readability */}
+        {/* Logo Officiel - Taille agrandie pour une lisibilité maximale */}
         {logoImage && (
-          <div className="relative w-64 h-32">
+          <div className="relative w-full max-w-[380px] h-48">
             <Image 
               src={logoImage.imageUrl} 
-              alt="Logo Officiel" 
+              alt="Logo Officiel 100% Pass' Déc'" 
               fill 
               className="object-contain"
               priority
@@ -134,8 +134,8 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Brand Title and Slogan */}
-        <div className="text-center">
+        {/* Brand Title and Slogan - Ajusté pour ne pas chevaucher le logo */}
+        <div className="text-center -mt-6">
           <h1 className="text-4xl font-black uppercase tracking-tighter">
             <span className="text-primary italic">100%</span> <span className="text-destructive">Pass' Déc'</span>
           </h1>
