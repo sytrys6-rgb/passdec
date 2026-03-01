@@ -15,10 +15,10 @@ export default function HomePage() {
   const [activeLocation, setActiveLocation] = useState<string | null>(null)
 
   const controllerFilters = [
-    { id: 'vendre', label: 'Vendre', icon: X, color: 'bg-blue-500', iconColor: '#3b82f6', description: 'Équipements & Goodies' },
-    { id: 'evenement', label: 'Événement', icon: Circle, color: 'bg-red-500', iconColor: '#ef4444', description: 'Tournois & Stages' },
-    { id: 'echanger', label: 'Échanger', icon: Triangle, color: 'bg-green-500', iconColor: '#22c55e', description: 'Troc & Dons' },
-    { id: 'matcher', label: 'Matcher', icon: Square, color: 'bg-purple-500', iconColor: '#a855f7', description: 'Recrutement & Jobs' },
+    { id: 'vendre', label: 'Vendre', icon: X, color: 'text-blue-500', bgColor: 'bg-blue-500/10', iconColor: '#3b82f6', description: 'Équipements' },
+    { id: 'evenement', label: 'Événement', icon: Circle, color: 'text-red-500', bgColor: 'bg-red-500/10', iconColor: '#ef4444', description: 'Tournois' },
+    { id: 'echanger', label: 'Échanger', icon: Triangle, color: 'text-green-500', bgColor: 'bg-green-500/10', iconColor: '#22c55e', description: 'Troc & Dons' },
+    { id: 'matcher', label: 'Matcher', icon: Square, color: 'text-pink-500', bgColor: 'bg-pink-500/10', iconColor: '#ec4899', description: 'Recrutement' },
   ]
 
   const cities = ['Lyon', 'Paris', 'Marseille', 'Lille', 'Bordeaux']
@@ -40,7 +40,7 @@ export default function HomePage() {
       titre: 'Recherche Joueur U17',
       description: 'Poste de gardien pour tournoi régional.',
       prix: 0,
-      ville: 'Villeurbanne', // Considéré proche de Lyon
+      ville: 'Villeurbanne',
       typeOffre: 'matcher',
       image: 'https://picsum.photos/seed/foot-match/600/400',
       userNom: 'FC Villeurbanne',
@@ -84,13 +84,9 @@ export default function HomePage() {
   const filteredOffers = useMemo(() => {
     return allOffers.filter(offer => {
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
-      
-      // Simulation du filtre 150km : On filtre par ville exacte ou villes limitrophes pour le prototype
-      // Dans une version réelle, on utiliserait les coordonnées GPS.
       const matchesLocation = !activeLocation || 
         offer.ville === activeLocation || 
         (activeLocation === 'Lyon' && offer.ville === 'Villeurbanne')
-
       return matchesCategory && matchesLocation
     })
   }, [activeFilter, activeLocation])
@@ -125,26 +121,29 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Main Filter Section */}
+      {/* Main Filter Section - More Discreet Style */}
       <section className="px-6 py-2">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-4 gap-3">
           {controllerFilters.map((filter) => (
             <button
               key={filter.id}
               onClick={() => handleFilterToggle(filter.id)}
               className={cn(
-                "controller-btn group",
-                activeFilter === filter.id ? 'ring-2 ring-primary scale-105 bg-white/10' : 'bg-card'
+                "flex flex-col items-center justify-center py-3 rounded-xl transition-all duration-200 border",
+                activeFilter === filter.id 
+                  ? 'bg-card border-primary/50 scale-105 shadow-lg shadow-primary/5' 
+                  : 'bg-card/40 border-white/5 hover:border-white/10'
               )}
             >
-              <div className={cn("p-3 rounded-full mb-2 bg-opacity-20", filter.color)}>
-                <filter.icon className="w-8 h-8" style={{ color: filter.iconColor }} />
+              <div className={cn("p-2 rounded-full mb-1.5", filter.bgColor)}>
+                <filter.icon className={cn("w-5 h-5", filter.color)} />
               </div>
-              <span className="font-bold text-sm uppercase tracking-widest">{filter.label}</span>
-              <span className="text-[10px] text-muted-foreground opacity-70 mt-1">{filter.description}</span>
-              {activeFilter === filter.id && (
-                <div className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-pulse" />
-              )}
+              <span className={cn(
+                "text-[9px] font-black uppercase tracking-tighter",
+                activeFilter === filter.id ? "text-primary" : "text-muted-foreground"
+              )}>
+                {filter.label}
+              </span>
             </button>
           ))}
         </div>
@@ -153,7 +152,7 @@ export default function HomePage() {
       {/* Location Bar */}
       <div className="px-6 py-4 flex items-center gap-2 text-muted-foreground overflow-x-auto no-scrollbar">
         <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation ? "text-primary" : "text-muted-foreground")} />
-        <span className="text-xs whitespace-nowrap uppercase font-bold tracking-tighter mr-1">Proche de (150km) :</span>
+        <span className="text-xs whitespace-nowrap uppercase font-bold tracking-tighter mr-1">Secteur :</span>
         <div className="flex gap-2">
           {cities.map((city) => (
             <Badge 
@@ -163,7 +162,7 @@ export default function HomePage() {
               className={cn(
                 "rounded-full px-4 py-1.5 cursor-pointer transition-all font-black uppercase tracking-tighter text-[10px]",
                 activeLocation === city 
-                  ? "bg-primary text-black border-primary scale-105" 
+                  ? "bg-primary text-black border-primary" 
                   : "border-white/10 hover:border-primary/50 text-muted-foreground"
               )}
             >
