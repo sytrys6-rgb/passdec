@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState, useMemo } from 'react'
@@ -40,14 +39,12 @@ export default function ProfilePage() {
   const { toast } = useToast()
   const [showMyOffers, setShowMyOffers] = useState(false)
 
-  // Redirection si non connecté
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login')
     }
   }, [user, isUserLoading, router])
 
-  // On attend que l'utilisateur soit prêt avant tout
   const userRef = useMemoFirebase(() => {
     if (!db || !user || isUserLoading) return null
     return doc(db, 'users', user.uid)
@@ -55,7 +52,6 @@ export default function ProfilePage() {
 
   const { data: profile } = useDoc(userRef)
 
-  // Chargement des offres de l'utilisateur
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
     return query(
@@ -66,11 +62,9 @@ export default function ProfilePage() {
 
   const { data: myOffers, isLoading: isMyOffersLoading } = useCollection(myOffersQuery)
 
-  // Tri manuel côté client pour éviter le besoin d'index composite complexe au début
   const sortedMyOffers = useMemo(() => {
     if (!myOffers) return []
     return [...myOffers].sort((a, b) => {
-      // On gère les timestamps potentiellement null pendant l'optimistic UI
       const timeA = a.createdAt?.seconds || Date.now() / 1000
       const timeB = b.createdAt?.seconds || Date.now() / 1000
       return timeB - timeA
@@ -97,7 +91,8 @@ export default function ProfilePage() {
     e.preventDefault()
     e.stopPropagation()
     toast({
-      title: "Changement en préparation...",
+      variant: "warning",
+      title: "Carton jaune !",
       description: "La modification d'annonce sera disponible lors de la prochaine saison (mise à jour)."
     })
   }
@@ -224,7 +219,6 @@ export default function ProfilePage() {
                         </Link>
 
                         <div className="absolute right-3 flex gap-1.5 items-center">
-                          {/* Bouton Changement (Substitution / Edit) - Inactif par défaut */}
                           <Button 
                             variant="ghost" 
                             size="icon" 

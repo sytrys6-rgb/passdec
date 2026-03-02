@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -49,7 +48,7 @@ export default function NewOfferPage() {
 
     if (!formData.titre || !formData.description || !formData.ville) {
       toast({
-        variant: "destructive",
+        variant: "warning",
         title: "Carton jaune !",
         description: "Veuillez remplir les informations essentielles du match (Titre, Description et Ville)."
       })
