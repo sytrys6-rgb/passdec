@@ -10,8 +10,8 @@ import { collection, query, where } from 'firebase/firestore'
 import { useMemo } from 'react'
 
 /**
- * @fileOverview Barre de navigation principale avec badge de notification dynamique.
- * Calcule le total des messages non lus à travers toutes les conversations.
+ * @fileOverview Barre de navigation principale avec notification visuelle rouge.
+ * L'icône devient rouge et un point apparaît lorsqu'il y a des messages non lus.
  */
 
 export function Navigation() {
@@ -43,7 +43,7 @@ export function Navigation() {
     { href: '/', icon: Home, label: 'Accueil' },
     { href: '/favoris', icon: Trophy, label: 'Favoris' },
     { href: '/offres/new', icon: PlusCircle, label: 'Publier' },
-    { href: '/messages', icon: MessageSquare, label: 'Messages', unread: totalUnread },
+    { href: '/messages', icon: MessageSquare, label: 'Messages', hasNotification: totalUnread > 0 },
     { href: '/profile', icon: User, label: 'Profil' },
   ]
 
@@ -51,7 +51,7 @@ export function Navigation() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t border-white/10 px-4 py-2 flex justify-around items-center h-20">
       {navItems.map((item) => {
         const isActive = pathname === item.href
-        const showBadge = item.label === 'Messages' && (item.unread || 0) > 0
+        const isNotified = item.hasNotification
 
         return (
           <Link
@@ -66,18 +66,23 @@ export function Navigation() {
               "relative p-2 rounded-full transition-all duration-500",
               isActive && "bg-primary/10"
             )}>
-              <item.icon className={cn("w-6 h-6", isActive && "fill-primary/20")} />
+              <item.icon className={cn(
+                "w-6 h-6 transition-colors", 
+                isActive && "fill-primary/20",
+                isNotified && !isActive && "text-destructive animate-pulse"
+              )} />
               
-              {/* Badge de notification numérique ultra-compact */}
-              {showBadge && (
-                <div className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-primary flex items-center justify-center rounded-full border border-background shadow-lg animate-in zoom-in-50 duration-300 px-1">
-                  <span className="text-[9px] font-black text-black leading-none">
-                    {item.unread && item.unread > 9 ? '9+' : item.unread}
-                  </span>
-                </div>
+              {/* Point de notification rouge simple */}
+              {isNotified && (
+                <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-background shadow-lg animate-in zoom-in-50 duration-300" />
               )}
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
+            <span className={cn(
+              "text-[10px] font-bold uppercase tracking-widest",
+              isNotified && !isActive && "text-destructive"
+            )}>
+              {item.label}
+            </span>
           </Link>
         )
       })}
