@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Navigation } from '@/components/Navigation'
-import { MessageCircle, User, Loader2, Trophy, Trash2 } from 'lucide-react'
+import { MessageCircle, User, Loader2, Trophy, Trash2, Check, AlertCircle, Bell } from 'lucide-react'
 import Link from 'next/link'
 import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase'
 import { useRouter } from 'next/navigation'
@@ -37,7 +37,7 @@ const WhistleIcon = ({ className }: { className?: string }) => (
     strokeWidth="2.5" 
     strokeLinecap="round" 
     strokeLinejoin="round" 
-    className={cn("animate-bounce", className)}
+    className={cn(className)}
   >
     <path d="M18 7H6a3 3 0 0 0-3 3v4a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-4a3 3 0 0 0-3-3z" />
     <path d="M9 7V4h6v3" />
@@ -111,7 +111,7 @@ export default function MessagesPage() {
         </p>
       </header>
 
-      <div className="flex-grow flex flex-col px-6 gap-4 pb-32">
+      <div className="flex-grow flex flex-col px-6 gap-6 pb-32">
         {isConvsLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -130,83 +130,98 @@ export default function MessagesPage() {
             
             const targetOfferId = conv.offerId || 'default'
 
+            // Couleurs et sigles dynamiques
+            const statusColor = unreadCount > 0 
+              ? (isDelayed ? "text-destructive" : "text-orange-500") 
+              : "text-primary"
+            
+            const statusBadgeColor = unreadCount > 0 
+              ? (isDelayed ? "bg-destructive text-white" : "bg-orange-500 text-white") 
+              : "bg-primary/10 text-primary border-primary/20"
+
             return (
               <div key={conv.id} className="relative group">
                 <Link 
                   href={`/messages/${otherId}/${targetOfferId}`}
                   className={cn(
-                    "flex items-center gap-4 p-4 rounded-2xl bg-card border transition-all shadow-xl relative pr-14",
+                    "flex flex-col p-4 rounded-3xl bg-card border transition-all shadow-xl relative pr-14",
                     unreadCount > 0 
                       ? isDelayed 
-                        ? "border-destructive bg-destructive/10 shadow-destructive/20 border-2" 
-                        : "border-warning bg-warning/10 shadow-warning/20 border-2"
+                        ? "border-destructive/50 bg-destructive/5 shadow-destructive/10 border-2" 
+                        : "border-orange-500/50 bg-orange-500/5 shadow-orange-500/10 border-2"
                       : "border-white/5 hover:border-primary/20"
                   )}
                 >
-                  <div className="relative">
-                    <div className={cn(
-                      "w-14 h-14 rounded-full overflow-hidden bg-muted border-2 flex items-center justify-center transition-colors",
-                      unreadCount > 0 
-                        ? isDelayed ? "border-destructive" : "border-warning" 
-                        : "border-transparent group-hover:border-primary/50"
-                    )}>
-                      <User className="w-6 h-6 text-muted-foreground" />
-                    </div>
-                    {unreadCount > 0 && (
+                  <div className="flex items-start gap-4 mb-3">
+                    <div className="relative">
                       <div className={cn(
-                        "absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center rounded-full border-2 border-background px-1 z-10 shadow-lg transition-all duration-500",
-                        isDelayed ? "bg-destructive animate-bounce" : "bg-warning"
-                      )}>
-                        <span className="text-[10px] font-black text-black italic">{unreadCount}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex-grow flex flex-col gap-0.5 overflow-hidden text-left">
-                    <div className="flex justify-between items-center mb-1">
-                      <div className="flex items-center gap-2 overflow-hidden">
-                        <span className={cn(
-                          "font-black uppercase italic tracking-tighter text-sm truncate max-w-[150px]",
-                          unreadCount > 0 
-                            ? isDelayed ? "text-destructive" : "text-warning" 
-                            : "text-foreground"
-                        )}>{otherName}</span>
-                        {unreadCount > 0 && (
-                          <WhistleIcon className={cn("w-4 h-4 shrink-0", isDelayed ? "text-destructive" : "text-warning")} />
-                        )}
-                      </div>
-                      <span className="text-[9px] text-muted-foreground font-bold uppercase shrink-0">{lastMsgDate}</span>
-                    </div>
-                    
-                    <div className={cn(
-                      "flex items-center gap-1.5 mb-1.5 px-2 py-1 rounded-md w-fit max-w-full border transition-colors shadow-sm",
-                      unreadCount > 0 
-                        ? isDelayed ? "bg-destructive/20 border-destructive/40" : "bg-warning/20 border-warning/40"
-                        : "bg-white/5 border-white/5"
-                    )}>
-                      <Trophy className={cn(
-                        "w-3 h-3 shrink-0", 
+                        "w-14 h-14 rounded-2xl overflow-hidden bg-muted border-2 flex items-center justify-center transition-all",
                         unreadCount > 0 
-                          ? (isDelayed ? "text-destructive" : "text-warning") 
-                          : "text-primary"
-                      )} />
-                      <span className={cn(
-                        "text-[10px] font-black uppercase tracking-widest truncate",
-                        unreadCount > 0 
-                          ? (isDelayed ? "text-destructive" : "text-warning") 
-                          : "text-primary"
+                          ? isDelayed ? "border-destructive" : "border-orange-500" 
+                          : "border-white/10 group-hover:border-primary/50"
                       )}>
-                        {conv.offerTitle || 'Discussion tactique'}
-                      </span>
+                        <User className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                      {unreadCount > 0 && (
+                        <div className={cn(
+                          "absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full border-2 border-background z-10 shadow-lg",
+                          isDelayed ? "bg-destructive animate-bounce" : "bg-orange-500 animate-pulse"
+                        )}>
+                          <span className="text-[10px] font-black text-white italic">{unreadCount}</span>
+                        </div>
+                      )}
                     </div>
 
-                    <p className={cn(
-                      "text-xs line-clamp-1",
-                      unreadCount > 0 ? "text-foreground font-black italic" : "text-muted-foreground font-medium"
-                    )}>
-                      {conv.lastMessage || 'Démarrez la conversation...'}
-                    </p>
+                    <div className="flex-grow flex flex-col gap-1 overflow-hidden">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <span className={cn(
+                            "font-black uppercase italic tracking-tighter text-base truncate",
+                            unreadCount > 0 ? "text-foreground" : "text-muted-foreground"
+                          )}>{otherName}</span>
+                          
+                          {/* SIGLES D'INFORMATION */}
+                          {unreadCount > 0 ? (
+                            <WhistleIcon className={cn("w-5 h-5 shrink-0 animate-bounce", statusColor)} />
+                          ) : (
+                            <Check className="w-4 h-4 text-primary shrink-0 opacity-50" />
+                          )}
+                        </div>
+                        <span className="text-[9px] text-muted-foreground font-bold uppercase shrink-0">{lastMsgDate}</span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                         <Badge variant="outline" className={cn(
+                          "font-black uppercase tracking-widest text-[8px] px-2 py-0.5 border-none",
+                          statusBadgeColor
+                        )}>
+                          {unreadCount > 0 ? (isDelayed ? "🚨 URGENT" : "📣 NOUVEAU") : "✅ LU"}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
+                  
+                  <div className={cn(
+                    "flex items-center gap-2 p-2 rounded-xl border transition-colors",
+                    unreadCount > 0 
+                      ? (isDelayed ? "bg-destructive/10 border-destructive/20" : "bg-orange-500/10 border-orange-500/20")
+                      : "bg-white/5 border-white/5"
+                  )}>
+                    <Trophy className={cn("w-3.5 h-3.5 shrink-0", statusColor)} />
+                    <span className={cn(
+                      "text-[11px] font-black uppercase tracking-widest truncate",
+                      statusColor
+                    )}>
+                      {conv.offerTitle || 'Discussion tactique'}
+                    </span>
+                  </div>
+
+                  <p className={cn(
+                    "text-xs mt-3 line-clamp-1 italic",
+                    unreadCount > 0 ? "text-foreground font-bold" : "text-muted-foreground font-medium"
+                  )}>
+                    {conv.lastMessage || 'Démarrez la conversation...'}
+                  </p>
                 </Link>
 
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
