@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -15,7 +14,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@
 import { allOffers } from '@/app/lib/offers'
 import { doc, collection, query, orderBy } from 'firebase/firestore'
 import placeholderData from '@/app/lib/placeholder-images.json'
-import { CITY_DATA, calculateDistance, MAIN_CITIES } from '@/app/lib/cities'
+import { CITY_DATA, getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
@@ -53,27 +52,17 @@ export default function HomePage() {
   )
   if (!user) return null
 
-  // On enrichit toutes les offres (locales et firestore) avec des coordonnées si manquantes
+  // On combine toutes les offres (locales et firestore)
   const combinedOffers = [
-    ...allOffers.map(o => {
-      const cityCoords = CITY_DATA[o.ville];
-      return {
-        ...o,
-        latitude: cityCoords?.lat ?? 0,
-        longitude: cityCoords?.lng ?? 0,
-      };
-    }),
-    ...(firestoreOffers || []).map(o => {
-      const cityCoords = CITY_DATA[o.ville];
-      return {
-        ...o,
-        // On utilise les coordonnées stockées ou on fallback sur la ville
-        latitude: o.latitude ?? cityCoords?.lat ?? 0,
-        longitude: o.longitude ?? cityCoords?.lng ?? 0,
-        image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
-        date: 'Publié récemment'
-      };
-    })
+    ...allOffers.map(o => ({
+      ...o,
+      image: o.image || 'https://picsum.photos/seed/foot/600/400',
+    })),
+    ...(firestoreOffers || []).map(o => ({
+      ...o,
+      image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
+      date: 'Publié récemment'
+    }))
   ]
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
@@ -86,26 +75,28 @@ export default function HomePage() {
   ]
 
   const filteredOffers = combinedOffers.filter(offer => {
+    // 1. Filtre par catégorie
     const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
     
-    // On essaie de voir si la recherche textuelle correspond à une ville connue pour le calcul de distance
-    const searchCity = Object.keys(CITY_DATA).find(c => c.toLowerCase() === searchQuery.toLowerCase())
-    const targetCityName = activeLocation !== 'all' ? activeLocation : (searchCity || null)
-    const targetCityData = targetCityName ? CITY_DATA[targetCityName] : null
-
+    // 2. Filtre géographique (Rayon de 150km)
+    // On essaie de voir si la recherche textuelle correspond à une ville connue
+    const searchCityMatch = MAIN_CITIES.find(c => c.toLowerCase() === searchQuery.trim().toLowerCase())
+    const targetCityName = activeLocation !== 'all' ? activeLocation : searchCityMatch
+    
     let matchesLocation = true;
-    if (targetCityData) {
-      // Vérification stricte des coordonnées (latitude != 0)
-      if (offer.latitude && offer.longitude) {
-        const dist = calculateDistance(targetCityData.lat, targetCityData.lng, offer.latitude, offer.longitude)
-        // Rayon de 150km
-        matchesLocation = dist <= 150;
+    if (targetCityName) {
+      // Calcul de distance fiable basé sur les noms de villes master-list
+      const distance = getDistanceBetweenCities(targetCityName, offer.ville);
+      
+      if (distance !== null) {
+        matchesLocation = distance <= 150;
       } else {
-        // Fallback si pas de coordonnées : correspondance exacte du nom de ville
+        // Fallback : si la ville de l'offre n'est pas dans notre catalogue, on fait une égalité stricte
         matchesLocation = offer.ville.toLowerCase() === targetCityName.toLowerCase()
       }
     }
 
+    // 3. Filtre de recherche textuelle globale (titre, ville, description)
     const matchesSearch = !searchQuery || 
       offer.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
       offer.ville.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -194,7 +185,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FILTRE PAR VILLE (DropDown complet) */}
+      {/* FILTRE PAR VILLE (Menu déroulant dynamique) */}
       <div className="px-6 py-4 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-muted-foreground mb-1">
           <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation !== 'all' ? "text-primary" : "text-muted-foreground")} />

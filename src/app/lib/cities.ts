@@ -1,4 +1,3 @@
-
 export interface CityInfo {
   name: string;
   lat: number;
@@ -208,4 +207,15 @@ export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2
     Math.sin(dLon/2) * Math.sin(dLon/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return R * c; // Distance en km
+}
+
+/**
+ * Calcule la distance entre deux villes par leur nom, en utilisant les coordonnées master-list.
+ * Retourne null si l'une des villes n'est pas dans le catalogue.
+ */
+export function getDistanceBetweenCities(city1: string, city2: string): number | null {
+  const coords1 = CITY_DATA[city1];
+  const coords2 = CITY_DATA[city2];
+  if (!coords1 || !coords2) return null;
+  return calculateDistance(coords1.lat, coords1.lng, coords2.lat, coords2.lng);
 }
