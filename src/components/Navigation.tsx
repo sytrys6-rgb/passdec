@@ -5,15 +5,44 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Trophy, PlusCircle, MessageSquare, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase'
+import { collection, query, where } from 'firebase/firestore'
+import { useMemo } from 'react'
+
+/**
+ * @fileOverview Barre de navigation principale avec notifications en temps réel.
+ * Calcule le total des messages non lus pour afficher un badge sur l'icône Messages.
+ */
 
 export function Navigation() {
   const pathname = usePathname()
+  const { user } = useUser()
+  const db = useFirestore()
+
+  // On écoute toutes les conversations de l'utilisateur pour compter les non-lus
+  const convsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return query(
+      collection(db, 'conversations'),
+      where('participants', 'array-contains', user.uid)
+    )
+  }, [db, user])
+
+  const { data: conversations } = useCollection(convsQuery)
+
+  // Calcul du total des messages non lus
+  const totalUnread = useMemo(() => {
+    if (!conversations || !user) return 0
+    return conversations.reduce((acc, conv) => {
+      return acc + (conv.unreadCount?.[user.uid] || 0)
+    }, 0)
+  }, [conversations, user])
 
   const navItems = [
     { href: '/', icon: Home, label: 'Accueil' },
     { href: '/favoris', icon: Trophy, label: 'Favoris' },
     { href: '/offres/new', icon: PlusCircle, label: 'Publier' },
-    { href: '/messages', icon: MessageSquare, label: 'Messages' },
+    { href: '/messages', icon: MessageSquare, label: 'Messages', badge: totalUnread },
     { href: '/profile', icon: User, label: 'Profil' },
   ]
 
@@ -26,11 +55,18 @@ export function Navigation() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 transition-all duration-300",
+              "flex flex-col items-center justify-center gap-1 transition-all duration-300 relative",
               isActive ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <item.icon className={cn("w-6 h-6", isActive && "fill-primary/20")} />
+            <div className="relative">
+              <item.icon className={cn("w-6 h-6", isActive && "fill-primary/20")} />
+              {item.badge && item.badge > 0 && (
+                <div className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-primary text-black flex items-center justify-center rounded-full border-2 border-background animate-pulse">
+                  <span className="text-[9px] font-black px-1">{item.badge > 9 ? '9+' : item.badge}</span>
+                </div>
+              )}
+            </div>
             <span className="text-[10px] font-medium uppercase tracking-widest">{item.label}</span>
           </Link>
         )
