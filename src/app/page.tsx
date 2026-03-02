@@ -18,7 +18,7 @@ import placeholderData from '@/app/lib/placeholder-images.json'
 import { CITY_DATA, getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 
 /**
- * @fileOverview Page d'accueil avec système d'alerte multiniveaux (Immédiat / Carton Rouge).
+ * @fileOverview Page d'accueil avec système d'alerte numérique immédiate.
  */
 
 export default function HomePage() {
@@ -33,13 +33,11 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Gestion du temps
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 10000)
     return () => clearInterval(interval)
   }, [])
 
-  // Charger les filtres sauvegardés au montage
   useEffect(() => {
     const savedCity = sessionStorage.getItem('last_city') || 'all'
     const savedRadius = sessionStorage.getItem('last_radius') || '150'
@@ -54,7 +52,6 @@ export default function HomePage() {
     setTimeout(() => setIsInitialized(true), 100)
   }, [])
 
-  // Sauvegarder les filtres
   useEffect(() => {
     if (!isInitialized) return
     sessionStorage.setItem('last_city', activeLocation)
@@ -84,7 +81,6 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  // Surveillance des messages non lus
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, 'conversations'), where('participants', 'array-contains', user.uid))
@@ -93,15 +89,15 @@ export default function HomePage() {
   const { data: conversations } = useCollection(convsQuery)
   
   const unreadStats = useMemo(() => {
-    if (!conversations || !user) return { hasUnread: false, hasDelayed: false }
+    if (!conversations || !user) return { totalUnread: 0, hasDelayed: false }
     
-    let hasUnread = false
+    let totalUnread = 0
     let hasDelayed = false
 
     conversations.forEach(conv => {
       const count = conv.unreadCount?.[user.uid] || 0
       if (count > 0) {
-        hasUnread = true
+        totalUnread += count
         const lastTime = conv.lastMessageAt?.seconds || (Date.now() / 1000)
         if ((now / 1000 - lastTime) > 60) {
           hasDelayed = true
@@ -109,7 +105,7 @@ export default function HomePage() {
       }
     })
 
-    return { hasUnread, hasDelayed }
+    return { totalUnread, hasDelayed }
   }, [conversations, user, now])
 
   if (isUserLoading) return (
@@ -132,13 +128,6 @@ export default function HomePage() {
   ]
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
-
-  const controllerFilters = [
-    { id: 'vendre', label: 'Vendre', icon: X, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
-    { id: 'evenement', label: 'Événement', icon: Circle, color: 'text-red-500', bgColor: 'bg-red-500/10' },
-    { id: 'echanger', label: 'Échanger', icon: Triangle, color: 'text-green-500', bgColor: 'bg-green-500/10' },
-    { id: 'matcher', label: 'Matcher', icon: Square, color: 'text-pink-500', bgColor: 'bg-pink-500/10' },
-  ]
 
   const filteredOffers = combinedOffers.filter(offer => {
     const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
@@ -195,16 +184,19 @@ export default function HomePage() {
         </div>
 
         <div className="text-center flex flex-col items-center">
-          {unreadStats.hasUnread && (
+          {unreadStats.totalUnread > 0 && (
             <Link href="/messages" className={cn("mb-2", unreadStats.hasDelayed && "animate-bounce")}>
               <Badge className={cn(
-                "border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg flex items-center gap-2 transition-colors duration-500",
+                "border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg flex items-center gap-2 transition-all duration-500",
                 unreadStats.hasDelayed 
-                  ? "bg-destructive text-white shadow-destructive/20" 
-                  : "bg-primary text-black shadow-primary/20"
+                  ? "bg-destructive text-white shadow-destructive/40" 
+                  : "bg-primary text-black shadow-primary/40"
               )}>
                 <MessageSquare className={cn("w-3 h-3", unreadStats.hasDelayed ? "fill-white" : "fill-black")} />
-                {unreadStats.hasDelayed ? "Carton Rouge : Message en attente !" : "Nouveau message au vestiaire"}
+                <span className="flex items-center gap-1">
+                  {unreadStats.totalUnread} {unreadStats.totalUnread > 1 ? 'passes décisives' : 'passe décisive'}
+                  {unreadStats.hasDelayed ? " : Carton Rouge !" : " au vestiaire"}
+                </span>
               </Badge>
             </Link>
           )}
@@ -228,9 +220,15 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* Reste du composant identique... */}
       <section className="px-6 py-2">
         <div className="grid grid-cols-4 gap-3">
-          {controllerFilters.map((filter) => (
+          {[
+            { id: 'vendre', label: 'Vendre', icon: X, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
+            { id: 'evenement', label: 'Événement', icon: Circle, color: 'text-red-500', bgColor: 'bg-red-500/10' },
+            { id: 'echanger', label: 'Échanger', icon: Triangle, color: 'text-green-500', bgColor: 'bg-green-500/10' },
+            { id: 'matcher', label: 'Matcher', icon: Square, color: 'text-pink-500', bgColor: 'bg-pink-500/10' },
+          ].map((filter) => (
             <button
               key={filter.id}
               onClick={() => setActiveFilter(prev => prev === filter.id ? null : filter.id)}
@@ -262,10 +260,7 @@ export default function HomePage() {
         </div>
         
         <div className="grid grid-cols-[2fr_1.2fr] gap-2">
-          <Select 
-            value={activeLocation} 
-            onValueChange={(val) => setActiveLocation(val)}
-          >
+          <Select value={activeLocation} onValueChange={(val) => setActiveLocation(val)}>
             <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold focus:ring-primary/50 text-xs">
               <SelectValue placeholder="Toute la France" />
             </SelectTrigger>
@@ -277,10 +272,7 @@ export default function HomePage() {
             </SelectContent>
           </Select>
 
-          <Select 
-            value={activeRadius.toString()} 
-            onValueChange={(val) => setActiveRadius(parseInt(val))}
-          >
+          <Select value={activeRadius.toString()} onValueChange={(val) => setActiveRadius(parseInt(val))}>
             <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold focus:ring-primary/50 text-xs">
               <SelectValue placeholder="Rayon" />
             </SelectTrigger>
@@ -313,13 +305,7 @@ export default function HomePage() {
                 className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all duration-300 relative"
               >
                 <div className="relative aspect-[16/9] w-full">
-                  <Image 
-                    src={offer.image} 
-                    alt={offer.titre} 
-                    fill 
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    unoptimized
-                  />
+                  <Image src={offer.image} alt={offer.titre} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
                   <div className="absolute top-3 left-3 flex gap-2">
                     <Badge className="bg-primary text-black text-[10px] uppercase font-black tracking-wider px-2 py-0.5">
                       {offer.typeOffre}

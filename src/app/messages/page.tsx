@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { MessageCircle, User, Loader2, Trophy, Trash2 } from 'lucide-react'
 import Link from 'next/link'
@@ -13,6 +13,7 @@ import { fr } from 'date-fns/locale'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +28,7 @@ import {
 
 /**
  * @fileOverview Page de la liste des conversations (Le Vestiaire).
- * Permet de voir ses échanges par annonce et de supprimer (masquer) des fils de discussion avec confirmation.
+ * Affiche les notifications immédiates par conversation avec badge numérique.
  */
 
 export default function MessagesPage() {
@@ -35,6 +36,12 @@ export default function MessagesPage() {
   const db = useFirestore()
   const router = useRouter()
   const { toast } = useToast()
+  const [now, setNow] = useState(Date.now())
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 10000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -54,7 +61,6 @@ export default function MessagesPage() {
 
   const sortedConversations = useMemo(() => {
     if (!rawConversations || !user) return []
-    // Filtrer les conversations que l'utilisateur a supprimées (masquées)
     return [...rawConversations]
       .filter(conv => !conv.deletedBy?.includes(user.uid))
       .sort((a, b) => {
@@ -100,6 +106,9 @@ export default function MessagesPage() {
             const otherId = conv.participants.find((id: string) => id !== user.uid)
             const otherName = conv.participantNames?.[otherId] || 'Recrue'
             const unreadCount = conv.unreadCount?.[user.uid] || 0
+            const lastTime = conv.lastMessageAt?.seconds || (Date.now() / 1000)
+            const isDelayed = unreadCount > 0 && (now / 1000 - lastTime) > 60
+
             const lastMsgDate = conv.lastMessageAt?.seconds 
               ? formatDistanceToNow(new Date(conv.lastMessageAt.seconds * 1000), { addSuffix: true, locale: fr })
               : ''
@@ -110,33 +119,60 @@ export default function MessagesPage() {
               <div key={conv.id} className="relative group">
                 <Link 
                   href={`/messages/${otherId}/${targetOfferId}`}
-                  className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-white/5 hover:border-primary/20 transition-all shadow-lg relative pr-14"
+                  className={cn(
+                    "flex items-center gap-4 p-4 rounded-2xl bg-card border transition-all shadow-lg relative pr-14",
+                    unreadCount > 0 
+                      ? isDelayed 
+                        ? "border-destructive/40 shadow-destructive/5" 
+                        : "border-primary/40 shadow-primary/5"
+                      : "border-white/5 hover:border-primary/20"
+                  )}
                 >
                   <div className="relative">
-                    <div className="w-14 h-14 rounded-full overflow-hidden bg-muted border-2 border-transparent group-hover:border-primary/50 transition-colors flex items-center justify-center">
+                    <div className={cn(
+                      "w-14 h-14 rounded-full overflow-hidden bg-muted border-2 flex items-center justify-center transition-colors",
+                      unreadCount > 0 ? "border-primary" : "border-transparent group-hover:border-primary/50"
+                    )}>
                       <User className="w-6 h-6 text-muted-foreground" />
                     </div>
                     {unreadCount > 0 && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary flex items-center justify-center rounded-full border-2 border-card shadow-lg">
-                        <span className="text-[10px] font-black text-black">{unreadCount}</span>
+                      <div className={cn(
+                        "absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center rounded-full border-2 border-card shadow-lg z-10",
+                        isDelayed ? "bg-destructive animate-bounce" : "bg-primary"
+                      )}>
+                        <span className="text-[10px] font-black text-black italic">{unreadCount}</span>
                       </div>
                     )}
                   </div>
                   
                   <div className="flex-grow flex flex-col gap-0.5 overflow-hidden text-left">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="font-black uppercase italic tracking-tighter text-sm truncate max-w-[150px]">{otherName}</span>
+                      <span className={cn(
+                        "font-black uppercase italic tracking-tighter text-sm truncate max-w-[150px]",
+                        unreadCount > 0 ? "text-foreground" : "text-muted-foreground"
+                      )}>{otherName}</span>
                       <span className="text-[9px] text-muted-foreground font-bold uppercase shrink-0">{lastMsgDate}</span>
                     </div>
                     
-                    <div className="flex items-center gap-1.5 mb-1.5 bg-primary/5 px-2 py-1 rounded-md w-fit max-w-full border border-primary/10">
-                      <Trophy className="w-3 h-3 text-primary shrink-0" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-primary truncate">
+                    <div className={cn(
+                      "flex items-center gap-1.5 mb-1.5 px-2 py-1 rounded-md w-fit max-w-full border transition-colors",
+                      unreadCount > 0 
+                        ? isDelayed ? "bg-destructive/10 border-destructive/20" : "bg-primary/10 border-primary/20"
+                        : "bg-white/5 border-white/5"
+                    )}>
+                      <Trophy className={cn("w-3 h-3 shrink-0", unreadCount > 0 ? isDelayed ? "text-destructive" : "text-primary" : "text-muted-foreground")} />
+                      <span className={cn(
+                        "text-[10px] font-black uppercase tracking-widest truncate",
+                        unreadCount > 0 ? isDelayed ? "text-destructive" : "text-primary" : "text-muted-foreground"
+                      )}>
                         {conv.offerTitle || 'Discussion tactique'}
                       </span>
                     </div>
 
-                    <p className={`text-xs line-clamp-1 ${unreadCount > 0 ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}`}>
+                    <p className={cn(
+                      "text-xs line-clamp-1",
+                      unreadCount > 0 ? "text-foreground font-black" : "text-muted-foreground font-medium"
+                    )}>
                       {conv.lastMessage || 'Démarrez la conversation...'}
                     </p>
                   </div>

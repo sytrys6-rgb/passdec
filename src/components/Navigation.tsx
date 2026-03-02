@@ -11,8 +11,8 @@ import { useMemo, useState, useEffect } from 'react'
 
 /**
  * @fileOverview Barre de navigation principale avec système d'alerte multiniveaux.
- * - Point de notification : Immédiat si message non lu.
- * - Carton Rouge : Pulsation et couleur rouge si message non lu depuis > 1 min.
+ * - Badge numérique : Immédiat si messages non lus (total cumulé).
+ * - Carton Rouge : Couleur rouge et pulsation si au moins un message attend depuis > 1 min.
  */
 
 export function Navigation() {
@@ -38,25 +38,26 @@ export function Navigation() {
 
   const { data: conversations } = useCollection(convsQuery)
 
-  // Analyse des messages non lus
+  // Analyse précise des messages non lus
   const unreadStats = useMemo(() => {
-    if (!conversations || !user) return { hasUnread: false, hasDelayed: false }
+    if (!conversations || !user) return { totalCount: 0, hasDelayed: false }
     
-    let hasUnread = false
+    let totalCount = 0
     let hasDelayed = false
 
     conversations.forEach(conv => {
       const count = conv.unreadCount?.[user.uid] || 0
       if (count > 0) {
-        hasUnread = true
+        totalCount += count
         const lastTime = conv.lastMessageAt?.seconds || (Date.now() / 1000)
+        // Règle du carton rouge : plus de 60 secondes d'attente
         if ((now / 1000 - lastTime) > 60) {
           hasDelayed = true
         }
       }
     })
 
-    return { hasUnread, hasDelayed }
+    return { totalCount, hasDelayed }
   }, [conversations, user, now])
 
   const navItems = [
@@ -66,8 +67,8 @@ export function Navigation() {
     { 
       href: '/messages', 
       icon: MessageSquare, 
-      label: 'Messages', 
-      hasNotification: unreadStats.hasUnread,
+      label: 'Vestiaire', 
+      count: unreadStats.totalCount,
       isDelayed: unreadStats.hasDelayed
     },
     { href: '/profile', icon: User, label: 'Profil' },
@@ -77,8 +78,7 @@ export function Navigation() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t border-white/10 px-4 py-2 flex justify-around items-center h-20">
       {navItems.map((item) => {
         const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
-        const showNotif = item.hasNotification && !isActive
-        const showDelayed = item.isDelayed && !isActive
+        const showBadge = (item.count || 0) > 0 && !isActive
 
         return (
           <Link
@@ -92,27 +92,29 @@ export function Navigation() {
             <div className={cn(
               "relative p-2 rounded-full transition-all duration-500",
               isActive && "bg-primary/10",
-              showDelayed && "bg-destructive/10"
+              showBadge && item.isDelayed && "bg-destructive/10"
             )}>
               <item.icon className={cn(
                 "w-6 h-6 transition-colors", 
                 isActive && "fill-primary/20",
-                showDelayed && "text-destructive fill-destructive/20 animate-pulse scale-110"
+                showBadge && item.isDelayed && "text-destructive fill-destructive/20 animate-pulse scale-110"
               )} />
               
-              {/* Point de notification (Immédiat) */}
-              {showNotif && (
+              {/* Badge numérique (Immédiat) */}
+              {showBadge && (
                 <div className={cn(
-                  "absolute top-1 right-1 w-3 h-3 rounded-full border-2 border-background shadow-lg transition-colors duration-500",
-                  showDelayed 
-                    ? "bg-destructive shadow-[0_0_10px_rgba(239,68,68,0.6)]" 
-                    : "bg-primary shadow-[0_0_8px_rgba(163,230,53,0.4)]"
-                )} />
+                  "absolute -top-1 -right-1 min-w-[20px] h-[20px] flex items-center justify-center rounded-full border-2 border-background px-1 z-10 shadow-lg transition-all duration-500",
+                  item.isDelayed 
+                    ? "bg-destructive text-white shadow-destructive/40 scale-110 animate-bounce" 
+                    : "bg-primary text-black shadow-primary/40"
+                )}>
+                  <span className="text-[10px] font-black italic">{item.count}</span>
+                </div>
               )}
             </div>
             <span className={cn(
               "text-[10px] font-black uppercase tracking-widest transition-colors",
-              showDelayed && "text-destructive"
+              showBadge && item.isDelayed && "text-destructive"
             )}>
               {item.label}
             </span>
