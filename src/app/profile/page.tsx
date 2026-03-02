@@ -265,8 +265,8 @@ export default function ProfilePage() {
           </div>
 
           {profileData.clubPrefere && profileData.typeProfil === 'particulier' && (
-            <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full border border-primary/20 mt-1">
-              <span className="text-[10px] font-black uppercase tracking-tighter text-primary">Club de : 💛 {profileData.clubPrefere}</span>
+            <div className="flex items-center gap-1.5 bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20 mt-1">
+              <span className="text-xs font-black uppercase tracking-tighter text-primary">Club de 💛 {profileData.clubPrefere}</span>
             </div>
           )}
 

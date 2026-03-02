@@ -352,8 +352,8 @@ export default function OfferDetailPage() {
               <h3 className="text-2xl font-black uppercase italic tracking-tighter text-foreground">{offer.userNom}</h3>
               
               {authorProfile?.clubPrefere && authorProfile?.typeProfil === 'particulier' && (
-                <div className="flex items-center justify-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full border border-primary/20 w-fit mx-auto mb-1">
-                  <span className="text-[9px] font-black uppercase tracking-tighter text-primary">Club de : 💛 {authorProfile.clubPrefere}</span>
+                <div className="flex items-center justify-center gap-1.5 bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20 w-fit mx-auto mb-1">
+                  <span className="text-[11px] font-black uppercase tracking-tighter text-primary">Club de 💛 {authorProfile.clubPrefere}</span>
                 </div>
               )}
 
