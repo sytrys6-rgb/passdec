@@ -186,19 +186,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FILTRE PAR VILLE ET RAYON */}
-      <div className="px-6 py-4 flex flex-col gap-3">
+      {/* FILTRE PAR VILLE ET RAYON - ALIGNÉS SUR LA MÊME LIGNE */}
+      <div className="px-6 py-4 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-muted-foreground">
-          <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation !== 'all' ? "text-primary" : "text-muted-foreground")} />
-          <span className="text-[10px] font-black uppercase tracking-widest">Rayon de recherche autour de :</span>
+          <MapPin className={cn("w-3.5 h-3.5 flex-shrink-0 transition-colors", activeLocation !== 'all' ? "text-primary" : "text-muted-foreground")} />
+          <span className="text-[10px] font-black uppercase tracking-widest">Rayon autour de :</span>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-[2fr_1.2fr] gap-2">
           <Select 
             value={activeLocation} 
             onValueChange={(val) => setActiveLocation(val)}
           >
-            <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus:ring-primary/50">
+            <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold focus:ring-primary/50 text-xs">
               <SelectValue placeholder="Toute la France" />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
@@ -213,15 +213,15 @@ export default function HomePage() {
             value={activeRadius.toString()} 
             onValueChange={(val) => setActiveRadius(parseInt(val))}
           >
-            <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus:ring-primary/50">
+            <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold focus:ring-primary/50 text-xs">
               <SelectValue placeholder="Rayon" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="25">Rayon : 25 km</SelectItem>
-              <SelectItem value="50">Rayon : 50 km</SelectItem>
-              <SelectItem value="100">Rayon : 100 km</SelectItem>
-              <SelectItem value="150">Rayon : 150 km</SelectItem>
-              <SelectItem value="200">Rayon : 200 km</SelectItem>
+              <SelectItem value="25">25 km</SelectItem>
+              <SelectItem value="50">50 km</SelectItem>
+              <SelectItem value="100">100 km</SelectItem>
+              <SelectItem value="150">150 km</SelectItem>
+              <SelectItem value="200">200 km</SelectItem>
             </SelectContent>
           </Select>
         </div>
