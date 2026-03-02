@@ -115,11 +115,8 @@ export default function MessagesPage() {
             const otherId = conv.participants.find((id: string) => id !== user.uid)
             const otherName = conv.participantNames?.[otherId] || 'Recrue'
             
-            // Détection robuste des messages non lus
-            const unreadCount = (conv.unreadCount && typeof conv.unreadCount === 'object')
-              ? (conv.unreadCount[user.uid] || 0)
-              : (conv[`unreadCount.${user.uid}`] || 0)
-            
+            // Détection du compteur de messages non lus pour l'utilisateur actuel
+            const unreadCount = conv.unreadCount?.[user.uid] ?? conv[`unreadCount.${user.uid}`] ?? 0
             const isUnread = unreadCount > 0
 
             const lastMsgDate = conv.lastMessageAt?.seconds 

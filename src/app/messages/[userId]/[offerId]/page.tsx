@@ -50,7 +50,7 @@ export default function ChatPage() {
     )
   }, [db, convId])
 
-  // Charger les données de l'annonce pour avoir le titre
+  // Charger les données de l'annonce
   const mockOffer = allOffers.find(o => o.id === offerId)
   const fsOfferRef = useMemoFirebase(() => db && offerId && !mockOffer ? doc(db, 'offres', offerId) : null, [db, offerId, mockOffer])
   const { data: fsOffer } = useDoc(fsOfferRef)
@@ -64,7 +64,6 @@ export default function ChatPage() {
   const { data: otherProfile } = useDoc(otherUserRef)
   const { data: myProfile } = useDoc(myUserRef)
 
-  // Titre de l'annonce avec repli sur la conversation si l'annonce n'est pas chargée
   const displayOfferTitle = currentOffer?.titre || conversation?.offerTitle || 'Discussion'
 
   useEffect(() => {
@@ -73,14 +72,11 @@ export default function ChatPage() {
     }
   }, [messages])
 
-  // Nettoyage robuste des messages non lus lors de l'ouverture
+  // Marquage comme lu : on réinitialise spécifiquement le compteur de l'utilisateur actuel
   useEffect(() => {
-    if (convRef && user) {
-      const currentUnread = (conversation?.unreadCount && typeof conversation.unreadCount === 'object')
-        ? (conversation.unreadCount[user.uid] || 0)
-        : (conversation?.[`unreadCount.${user.uid}`] || 0)
-
-      if (currentUnread > 0) {
+    if (convRef && user && conversation) {
+      const myUnread = conversation.unreadCount?.[user.uid] ?? conversation[`unreadCount.${user.uid}`] ?? 0
+      if (myUnread > 0) {
         updateDocumentNonBlocking(convRef, {
           [`unreadCount.${user.uid}`]: 0
         })
@@ -95,7 +91,7 @@ export default function ChatPage() {
     const text = message.trim()
     setMessage('')
 
-    // Mise à jour ou création de la conversation avec incrémentation forcée
+    // Initialisation ou mise à jour de la conversation
     setDocumentNonBlocking(convRef, {
       participants: [user.uid, otherUserId].sort(),
       participantNames: {
@@ -104,11 +100,15 @@ export default function ChatPage() {
       },
       offerId: offerId,
       offerTitle: displayOfferTitle,
+      deletedBy: [] 
+    }, { merge: true })
+
+    // Mise à jour des métadonnées et incrémentation du compteur du destinataire
+    updateDocumentNonBlocking(convRef, {
       lastMessage: text,
       lastMessageAt: serverTimestamp(),
-      [`unreadCount.${otherUserId}`]: increment(1),
-      deletedBy: [] // Réinitialisation du statut masqué pour les deux joueurs
-    }, { merge: true })
+      [`unreadCount.${otherUserId}`]: increment(1)
+    })
 
     const messagesCol = collection(db, 'conversations', convId, 'messages')
     addDocumentNonBlocking(messagesCol, {
