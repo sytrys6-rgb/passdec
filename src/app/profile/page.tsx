@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState, useMemo } from 'react'
@@ -54,7 +55,7 @@ export default function ProfilePage() {
 
   const { data: profile } = useDoc(userRef)
 
-  // Chargement des offres de l'utilisateur. 
+  // Chargement des offres de l'utilisateur
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
     return query(
@@ -65,12 +66,13 @@ export default function ProfilePage() {
 
   const { data: myOffers, isLoading: isMyOffersLoading } = useCollection(myOffersQuery)
 
-  // Tri manuel côté client
+  // Tri manuel côté client pour éviter le besoin d'index composite complexe au début
   const sortedMyOffers = useMemo(() => {
     if (!myOffers) return []
     return [...myOffers].sort((a, b) => {
-      const timeA = a.createdAt?.seconds || 0
-      const timeB = b.createdAt?.seconds || 0
+      // On gère les timestamps potentiellement null pendant l'optimistic UI
+      const timeA = a.createdAt?.seconds || Date.now() / 1000
+      const timeB = b.createdAt?.seconds || Date.now() / 1000
       return timeB - timeA
     })
   }, [myOffers])
@@ -100,7 +102,7 @@ export default function ProfilePage() {
   if (!user) return null
 
   const profileData = {
-    nom: profile?.nom || 'Nouvelle Recrue',
+    nom: profile?.nom || user.email?.split('@')[0] || 'Nouvelle Recrue',
     typeProfil: profile?.typeProfil || 'particulier',
     ville: profile?.ville || 'Inconnue',
     description: profile?.description || 'Passionné de football sur 100% Pass\' Déc\'.',
