@@ -33,7 +33,8 @@ export default function NewOfferPage() {
     titre: '',
     description: '',
     ville: '',
-    prix: ''
+    prix: '',
+    etat: 'Bon'
   })
 
   useEffect(() => {
@@ -60,12 +61,16 @@ export default function NewOfferPage() {
     try {
       const cityCoords = CITY_DATA[formData.ville] || { lat: 0, lng: 0 };
       const offersRef = collection(db, 'offres')
+      
+      const isSalesOrExchange = formData.typeOffre === 'vendre' || formData.typeOffre === 'echanger';
+
       await addDoc(offersRef, {
         typeOffre: formData.typeOffre,
         titre: formData.titre,
         description: formData.description,
         ville: formData.ville,
         prix: Number(formData.prix) || 0,
+        etat: isSalesOrExchange ? formData.etat : null,
         userId: user.uid,
         userNom: profile?.nom || user.email?.split('@')[0] || 'Inconnu',
         userType: profile?.typeProfil || 'particulier',
@@ -92,6 +97,8 @@ export default function NewOfferPage() {
       setIsSubmitting(false)
     }
   }
+
+  const showConditionField = formData.typeOffre === 'vendre' || formData.typeOffre === 'echanger';
 
   if (isUserLoading || !user) return null
 
@@ -130,6 +137,26 @@ export default function NewOfferPage() {
             </SelectContent>
           </Select>
         </div>
+
+        {showConditionField && (
+          <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+            <Label className="uppercase text-[10px] font-bold tracking-widest text-muted-foreground ml-1">État de l'article</Label>
+            <Select 
+              value={formData.etat} 
+              onValueChange={(val) => setFormData({...formData, etat: val})}
+            >
+              <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12">
+                <SelectValue placeholder="Choisir l'état" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Neuf">Neuf</SelectItem>
+                <SelectItem value="Très bon">Très bon</SelectItem>
+                <SelectItem value="Bon">Bon</SelectItem>
+                <SelectItem value="Satisfaisant">État satisfaisant</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label className="uppercase text-[10px] font-bold tracking-widest text-muted-foreground ml-1">Titre de l'annonce</Label>

@@ -35,6 +35,7 @@ export default function OfferDetailPage() {
     titre: firestoreOffer.titre,
     description: firestoreOffer.description,
     prix: firestoreOffer.prix,
+    etat: firestoreOffer.etat,
     ville: firestoreOffer.ville,
     typeOffre: firestoreOffer.typeOffre as any,
     image: firestoreOffer.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
@@ -55,7 +56,7 @@ export default function OfferDetailPage() {
   if (!offer) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6 text-center">
-        <h1 className="text-2xl font-black uppercase italic italic tracking-tighter mb-4 text-destructive">Hors-jeu !</h1>
+        <h1 className="text-2xl font-black uppercase italic tracking-tighter mb-4 text-destructive">Hors-jeu !</h1>
         <p className="text-muted-foreground mb-8">Cette annonce n'existe pas ou a été retirée du terrain.</p>
         <Button onClick={() => router.push('/')} className="rounded-xl font-black uppercase italic">Retour à l'accueil</Button>
       </div>
@@ -96,10 +97,17 @@ export default function OfferDetailPage() {
       <div className="px-6 -mt-8 relative">
         <div className="bg-card rounded-3xl p-6 shadow-2xl border border-white/5">
           <div className="flex justify-between items-start mb-4">
-            <div className="flex flex-col gap-1">
-              <Badge className="w-fit bg-primary text-black font-black uppercase italic tracking-wider text-[10px]">
-                {offer.typeOffre}
-              </Badge>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2 items-center">
+                <Badge className="w-fit bg-primary text-black font-black uppercase italic tracking-wider text-[10px]">
+                  {offer.typeOffre}
+                </Badge>
+                {offer.etat && (
+                  <Badge variant="outline" className="w-fit border-primary/40 text-primary font-black uppercase italic tracking-wider text-[8px] h-5">
+                    {offer.etat === 'Satisfaisant' ? 'État satisfaisant' : offer.etat}
+                  </Badge>
+                )}
+              </div>
               <h1 className="text-2xl font-black italic uppercase tracking-tighter mt-1">{offer.titre}</h1>
             </div>
             {offer.prix > 0 ? (

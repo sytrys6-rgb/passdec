@@ -85,6 +85,11 @@
           "type": "string",
           "description": "A detailed description of the offer."
         },
+        "etat": {
+          "type": "string",
+          "description": "The condition of the item (for sales/exchanges).",
+          "enum": ["Neuf", "Très bon", "Bon", "Satisfaisant"]
+        },
         "ville": {
           "type": "string",
           "description": "The city associated with the offer's location."
