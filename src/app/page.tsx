@@ -78,6 +78,7 @@ export default function HomePage() {
   const filteredOffers = combinedOffers.filter(offer => {
     const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
     
+    // On essaie de voir si la recherche textuelle correspond à une ville connue pour le calcul de distance
     const searchCity = Object.keys(CITY_DATA).find(c => c.toLowerCase() === searchQuery.toLowerCase())
     const targetCityName = activeLocation !== 'all' ? activeLocation : (searchCity || null)
     const targetCityData = targetCityName ? CITY_DATA[targetCityName] : null
@@ -179,6 +180,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* FILTRE PAR VILLE (DropDown complet) */}
       <div className="px-6 py-4 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-muted-foreground mb-1">
           <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation !== 'all' ? "text-primary" : "text-muted-foreground")} />
@@ -236,7 +238,7 @@ export default function HomePage() {
                       favorites.includes(offer.id) ? "text-primary bg-primary/20 border-primary/30" : "text-white/60"
                     )}
                   >
-                    < Trophy className={cn("w-5 h-5", favorites.includes(offer.id) && "fill-primary")} />
+                    <Trophy className={cn("w-5 h-5", favorites.includes(offer.id) && "fill-primary")} />
                   </button>
 
                   {offer.prix > 0 && (
