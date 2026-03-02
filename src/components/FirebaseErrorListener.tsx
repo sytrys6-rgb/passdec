@@ -5,15 +5,20 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 /**
- * Un composant qui écoute les événements 'permission-error' émis globalement.
- * Désormais, il logue simplement l'erreur dans la console sans interrompre l'utilisateur.
+ * Écoute les erreurs de permission Firestore.
+ * Les erreurs sont loguées dans la console (console.warn) mais ne sont pas affichées 
+ * à l'utilisateur pour éviter de bloquer l'expérience de navigation.
  */
 export function FirebaseErrorListener() {
   useEffect(() => {
     const handleError = (error: FirestorePermissionError) => {
-      // Log l'erreur structurée dans la console pour faciliter le débogage technique
-      // sans afficher de message d'erreur visuel à l'utilisateur final.
-      console.warn("Firestore Permission Denied Context:", error.request);
+      // On logue l'erreur de manière silencieuse pour l'utilisateur final.
+      // Utile pour le débogage technique uniquement.
+      console.warn("Firestore Permission Denied (handled silently):", {
+        operation: error.request.method,
+        path: error.request.path,
+        authUid: error.request.auth?.uid
+      });
     };
 
     errorEmitter.on('permission-error', handleError);
@@ -23,6 +28,6 @@ export function FirebaseErrorListener() {
     };
   }, []);
 
-  // Ce composant ne rend rien visuellement
+  // Ce composant est purement logique et ne rend rien.
   return null;
 }
