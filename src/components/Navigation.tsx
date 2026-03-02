@@ -7,17 +7,25 @@ import { Home, Trophy, PlusCircle, MessageSquare, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase'
 import { collection, query, where } from 'firebase/firestore'
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 
 /**
- * @fileOverview Barre de navigation principale avec notification "Carton Rouge" amplifiée.
- * L'icône devient rouge vif et pulse, et un point de notification brillant apparaît.
+ * @fileOverview Barre de navigation principale avec notification "Carton Rouge" différée.
+ * L'icône devient rouge et pulse uniquement si un message est non lu depuis plus d'une minute.
  */
 
 export function Navigation() {
   const pathname = usePathname()
   const { user } = useUser()
   const db = useFirestore()
+  const [now, setNow] = useState<number | null>(null)
+
+  // Initialisation du temps pour éviter les erreurs d'hydratation et gérer le délai d'une minute
+  useEffect(() => {
+    setNow(Date.now())
+    const interval = setInterval(() => setNow(Date.now()), 5000) // Mise à jour toutes les 5s
+    return () => clearInterval(interval)
+  }, [])
 
   // On écoute toutes les conversations où l'utilisateur est présent
   const convsQuery = useMemoFirebase(() => {
@@ -30,17 +38,22 @@ export function Navigation() {
 
   const { data: conversations } = useCollection(convsQuery)
 
-  // Vérification des messages non lus
-  const hasUnread = useMemo(() => {
-    if (!conversations || !user) return false
-    return conversations.some(conv => (conv.unreadCount?.[user.uid] || 0) > 0)
-  }, [conversations, user])
+  // Vérification des messages non lus depuis plus d'une minute
+  const hasUnreadDelayed = useMemo(() => {
+    if (!conversations || !user || !now) return false
+    return conversations.some(conv => {
+      const count = conv.unreadCount?.[user.uid] || 0
+      const lastTime = conv.lastMessageAt?.seconds || 0
+      const isDelayed = (now / 1000 - lastTime) > 60 // Plus de 60 secondes
+      return count > 0 && isDelayed
+    })
+  }, [conversations, user, now])
 
   const navItems = [
     { href: '/', icon: Home, label: 'Accueil' },
     { href: '/favoris', icon: Trophy, label: 'Favoris' },
     { href: '/offres/new', icon: PlusCircle, label: 'Publier' },
-    { href: '/messages', icon: MessageSquare, label: 'Messages', hasNotification: hasUnread },
+    { href: '/messages', icon: MessageSquare, label: 'Messages', hasNotification: hasUnreadDelayed },
     { href: '/profile', icon: User, label: 'Profil' },
   ]
 
@@ -70,7 +83,7 @@ export function Navigation() {
                 isNotified && "text-destructive fill-destructive/20 animate-pulse scale-110"
               )} />
               
-              {/* Point de notification (Carton Rouge) - Plus visible */}
+              {/* Point de notification (Carton Rouge) */}
               {isNotified && (
                 <div className="absolute top-1 right-1 w-3.5 h-3.5 bg-destructive rounded-full border-2 border-background shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-in zoom-in-50 duration-300" />
               )}
