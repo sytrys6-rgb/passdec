@@ -132,6 +132,21 @@
         "createdAt": { "type": "object" },
         "read": { "type": "boolean" }
       }
+    },
+    "Signalement": {
+      "title": "Signalement",
+      "type": "object",
+      "description": "Represents a report made by a user against a suspicious offer.",
+      "properties": {
+        "offreId": { "type": "string" },
+        "offreTitre": { "type": "string" },
+        "signalePar": { "type": "string" },
+        "signaleParNom": { "type": "string" },
+        "raison": { "type": "string" },
+        "details": { "type": "string" },
+        "createdAt": { "type": "object" },
+        "statut": { "type": "string", "enum": ["en_attente", "traité", "ignoré"] }
+      }
     }
   },
   "auth": {
@@ -172,6 +187,14 @@
           "entityName": "Message",
           "schema": { "$ref": "#/backend/entities/Message" },
           "description": "Messages within a conversation."
+        }
+      },
+      {
+        "path": "/signalements/{sigId}",
+        "definition": {
+          "entityName": "Signalement",
+          "schema": { "$ref": "#/backend/entities/Signalement" },
+          "description": "User reports for moderation."
         }
       }
     ]

@@ -5,12 +5,37 @@ import { useParams, useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, Loader2, Info, User, Mail, MessageCircle, Trophy } from 'lucide-react'
+import { 
+  ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, 
+  Loader2, Info, User, Mail, MessageCircle, Trophy, Flag, AlertTriangle 
+} from 'lucide-react'
 import Image from 'next/image'
 import { allOffers } from '@/app/lib/offers'
-import { useFirestore, useDoc, useMemoFirebase, useUser, updateDocumentNonBlocking } from '@/firebase'
-import { doc } from 'firebase/firestore'
+import { 
+  useFirestore, useDoc, useMemoFirebase, useUser, 
+  updateDocumentNonBlocking, addDocumentNonBlocking, useCollection 
+} from '@/firebase'
+import { doc, collection, query, where, serverTimestamp } from 'firebase/firestore'
 import { cn } from '@/lib/utils'
+import { useState } from 'react'
+import { useToast } from '@/hooks/use-toast'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from '@/components/ui/textarea'
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -19,12 +44,26 @@ const profileTypes = {
   professionnel: { label: 'Pro', complement: 'Professionnel / Entreprise', emoji: '🏢' },
 }
 
+const REPORT_REASONS = [
+  "Contenu inapproprié",
+  "Arnaque / Fausse annonce",
+  "Spam",
+  "Contenu illégal",
+  "Autre"
+]
+
 export default function OfferDetailPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
   const db = useFirestore()
   const { user } = useUser()
+  const { toast } = useToast()
+
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const [reportReason, setReportReason] = useState("")
+  const [reportDetails, setReportDetails] = useState("")
+  const [isSendingReport, setIsSendingReport] = useState(false)
 
   const mockOffer = allOffers.find(o => o.id === id)
 
@@ -67,13 +106,20 @@ export default function OfferDetailPage() {
 
   const { data: authorProfile } = useDoc(authorRef)
 
+  // Vérifier si déjà signalé
+  const checkReportQuery = useMemoFirebase(() => {
+    if (!db || !user || !id) return null
+    return query(collection(db, 'signalements'), where('offreId', '==', id), where('signalePar', '==', user.uid))
+  }, [db, user, id])
+  const { data: existingReports } = useCollection(checkReportQuery)
+  const alreadyReported = existingReports && existingReports.length > 0
+
   const handleContactPassDec = () => {
     if (!user) {
       router.push('/login')
       return
     }
     if (offer?.userId) {
-      // Redirection vers le chat spécifique à l'annonce
       router.push(`/messages/${offer.userId}/${id}`)
     }
   }
@@ -91,6 +137,39 @@ export default function OfferDetailPage() {
     updateDocumentNonBlocking(userRef, { 
       favoris: newFavorites 
     })
+  }
+
+  const handleSendReport = async () => {
+    if (!user || !db || !offer || !reportReason) return
+    
+    setIsSendingReport(true)
+    try {
+      const reportsCol = collection(db, 'signalements')
+      addDocumentNonBlocking(reportsCol, {
+        offreId: id,
+        offreTitre: offer.titre,
+        signalePar: user.uid,
+        signaleParNom: currentUserProfile?.nom || user.email?.split('@')[0] || 'Inconnu',
+        raison: reportReason,
+        details: reportDetails,
+        createdAt: serverTimestamp(),
+        statut: "en_attente"
+      })
+      
+      toast({
+        title: "Signalement envoyé",
+        description: "L'arbitre va examiner cette annonce. Merci pour votre fair-play."
+      })
+      setIsReportModalOpen(false)
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible d'envoyer le signalement."
+      })
+    } finally {
+      setIsSendingReport(false)
+    }
   }
 
   if (isFirestoreLoading) {
@@ -120,7 +199,7 @@ export default function OfferDetailPage() {
   const emailLink = authorProfile?.emailPublic ? `mailto:${authorProfile.emailPublic}` : null
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-64">
+    <div className="flex flex-col min-h-screen bg-background pb-80">
       <div className="relative aspect-square w-full">
         <Image 
           src={offer.image} 
@@ -262,6 +341,72 @@ export default function OfferDetailPage() {
           </div>
         </div>
       </div>
+
+      {!isOwnOffer && (
+        <div className="px-6 mt-12 mb-20 flex justify-center">
+          <Dialog open={isReportModalOpen} onOpenChange={setIsReportModalOpen}>
+            <DialogTrigger asChild>
+              <button 
+                disabled={alreadyReported}
+                className={cn(
+                  "flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors",
+                  alreadyReported ? "text-muted-foreground cursor-not-allowed" : "text-muted-foreground hover:text-destructive"
+                )}
+              >
+                <Flag className="w-3 h-3" />
+                {alreadyReported ? "Signalé à l'arbitre" : "Signaler l'annonce"}
+              </button>
+            </DialogTrigger>
+            <DialogContent className="bg-card border-white/10 rounded-3xl">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                  Signalement
+                </DialogTitle>
+                <DialogDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Aidez-nous à garder le terrain propre et sécurisé.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Raison du signalement</label>
+                  <Select value={reportReason} onValueChange={setReportReason}>
+                    <SelectTrigger className="bg-background border-none ring-1 ring-white/10 rounded-xl">
+                      <SelectValue placeholder="Choisir une raison" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {REPORT_REASONS.map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Détails (Optionnel)</label>
+                  <Textarea 
+                    placeholder="Précisez votre signalement..."
+                    value={reportDetails}
+                    onChange={(e) => setReportDetails(e.target.value)}
+                    className="bg-background border-none ring-1 ring-white/10 rounded-xl min-h-[100px]"
+                  />
+                </div>
+              </div>
+              <DialogFooter className="flex flex-col gap-2">
+                <Button 
+                  onClick={handleSendReport} 
+                  disabled={!reportReason || isSendingReport}
+                  className="w-full bg-destructive text-white hover:bg-destructive/90 rounded-xl font-black uppercase italic tracking-wider h-12"
+                >
+                  {isSendingReport ? "Envoi..." : "Envoyer le signalement"}
+                </Button>
+                <Button variant="ghost" onClick={() => setIsReportModalOpen(false)} className="w-full uppercase font-black text-[10px] tracking-widest">
+                  Annuler
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
 
       {!isOwnOffer && offer.userId && (
         <div className="fixed bottom-24 left-6 right-6 z-40 flex flex-col gap-3 animate-in slide-in-from-bottom-8 duration-500">

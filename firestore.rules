@@ -9,31 +9,30 @@ service cloud.firestore {
     }
     
     // Annonces : Tout utilisateur connecté peut lire et créer, seul l'auteur peut modifier ou supprimer
+    // L'administrateur peut également supprimer
     match /offres/{offreId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && (resource.data.userId == request.auth.uid || request.auth.uid == "OvtBOwidg7dc4lHw5rR56yqLlIT2");
     }
 
     // Messagerie : Seuls les participants peuvent lire et écrire dans une conversation
     match /conversations/{convId} {
-      // Lecture autorisée si l'utilisateur est dans la liste des participants
       allow read: if request.auth != null && request.auth.uid in resource.data.participants;
-      
-      // Création autorisée si l'utilisateur s'inclut correctement dans les participants
       allow create: if request.auth != null && request.auth.uid in request.resource.data.participants;
-      
-      // Mise à jour autorisée pour les participants existants
       allow update: if request.auth != null && request.auth.uid in resource.data.participants;
       
       match /messages/{msgId} {
-        // Lecture autorisée si on est participant de la conversation parente
         allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.participants;
-        
-        // Création autorisée pour tout utilisateur connecté qui est l'expéditeur
-        // La sécurité est renforcée par le fait que seuls les participants peuvent LIRE
         allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;
       }
+    }
+
+    // Signalements : Tout utilisateur connecté peut créer, seul l'admin peut lire et modifier
+    match /signalements/{sigId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null && request.auth.uid == "OvtBOwidg7dc4lHw5rR56yqLlIT2";
     }
     
     // Règle par défaut pour le reste du projet
