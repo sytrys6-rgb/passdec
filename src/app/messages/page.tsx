@@ -27,9 +27,24 @@ import {
 } from "@/components/ui/alert-dialog"
 
 /**
- * @fileOverview Page de la liste des conversations (Le Vestiaire).
- * Affiche les notifications immédiates par conversation avec badge numérique.
+ * Icône de sifflet personnalisée (SVG)
  */
+const WhistleIcon = ({ className }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2.5" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={cn("animate-bounce", className)}
+  >
+    <path d="M18 7H6a3 3 0 0 0-3 3v4a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-4a3 3 0 0 0-3-3z" />
+    <path d="M9 7V4h6v3" />
+    <circle cx="11" cy="12" r="1.5" />
+    <path d="M21 12h2" />
+  </svg>
+)
 
 export default function MessagesPage() {
   const { user, isUserLoading } = useUser()
@@ -123,15 +138,17 @@ export default function MessagesPage() {
                     "flex items-center gap-4 p-4 rounded-2xl bg-card border transition-all shadow-lg relative pr-14",
                     unreadCount > 0 
                       ? isDelayed 
-                        ? "border-destructive/40 shadow-destructive/5" 
-                        : "border-primary/40 shadow-primary/5"
+                        ? "border-destructive bg-destructive/5 shadow-destructive/10" 
+                        : "border-primary bg-primary/5 shadow-primary/10"
                       : "border-white/5 hover:border-primary/20"
                   )}
                 >
                   <div className="relative">
                     <div className={cn(
                       "w-14 h-14 rounded-full overflow-hidden bg-muted border-2 flex items-center justify-center transition-colors",
-                      unreadCount > 0 ? "border-primary" : "border-transparent group-hover:border-primary/50"
+                      unreadCount > 0 
+                        ? isDelayed ? "border-destructive" : "border-primary" 
+                        : "border-transparent group-hover:border-primary/50"
                     )}>
                       <User className="w-6 h-6 text-muted-foreground" />
                     </div>
@@ -147,10 +164,15 @@ export default function MessagesPage() {
                   
                   <div className="flex-grow flex flex-col gap-0.5 overflow-hidden text-left">
                     <div className="flex justify-between items-center mb-1">
-                      <span className={cn(
-                        "font-black uppercase italic tracking-tighter text-sm truncate max-w-[150px]",
-                        unreadCount > 0 ? "text-foreground" : "text-muted-foreground"
-                      )}>{otherName}</span>
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <span className={cn(
+                          "font-black uppercase italic tracking-tighter text-sm truncate max-w-[150px]",
+                          unreadCount > 0 ? "text-foreground" : "text-muted-foreground"
+                        )}>{otherName}</span>
+                        {unreadCount > 0 && (
+                          <WhistleIcon className={cn("w-4 h-4 shrink-0", isDelayed ? "text-destructive" : "text-primary")} />
+                        )}
+                      </div>
                       <span className="text-[9px] text-muted-foreground font-bold uppercase shrink-0">{lastMsgDate}</span>
                     </div>
                     

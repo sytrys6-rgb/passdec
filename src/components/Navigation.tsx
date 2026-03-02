@@ -46,6 +46,9 @@ export function Navigation() {
     let hasDelayed = false
 
     conversations.forEach(conv => {
+      // On filtre les conversations masquées par l'utilisateur
+      if (conv.deletedBy?.includes(user.uid)) return;
+
       const count = conv.unreadCount?.[user.uid] || 0
       if (count > 0) {
         totalCount += count
@@ -92,12 +95,12 @@ export function Navigation() {
             <div className={cn(
               "relative p-2 rounded-full transition-all duration-500",
               isActive && "bg-primary/10",
-              showBadge && item.isDelayed && "bg-destructive/10"
+              showBadge && (item.isDelayed ? "bg-destructive/10" : "bg-primary/10")
             )}>
               <item.icon className={cn(
                 "w-6 h-6 transition-colors", 
                 isActive && "fill-primary/20",
-                showBadge && item.isDelayed && "text-destructive fill-destructive/20 animate-pulse scale-110"
+                showBadge && (item.isDelayed ? "text-destructive fill-destructive/20 animate-pulse scale-110" : "text-primary fill-primary/20")
               )} />
               
               {/* Badge numérique (Immédiat) */}
@@ -114,7 +117,7 @@ export function Navigation() {
             </div>
             <span className={cn(
               "text-[10px] font-black uppercase tracking-widest transition-colors",
-              showBadge && item.isDelayed && "text-destructive"
+              showBadge && (item.isDelayed ? "text-destructive" : "text-primary")
             )}>
               {item.label}
             </span>
