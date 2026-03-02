@@ -205,7 +205,7 @@ export default function ProfilePage() {
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="icon" className="glass-morphism rounded-full border-white/10 hover:bg-destructive/20 hover:text-destructive">
-                <UserX className="w-5 h-5" />
+                <UserX className="w-5 h-5 text-destructive" />
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
