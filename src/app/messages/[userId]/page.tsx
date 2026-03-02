@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ArrowLeft, Send, User, Loader2 } from 'lucide-react'
 import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase'
-import { doc, collection, query, orderBy, serverTimestamp, limit } from 'firebase/firestore'
+import { doc, collection, query, orderBy, serverTimestamp, limit, increment } from 'firebase/firestore'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -16,7 +16,7 @@ import { fr } from 'date-fns/locale'
 /**
  * @fileOverview Page de chat privée entre deux utilisateurs.
  * Gère l'envoi et la réception de messages en temps réel via Firestore.
- * Assure la mise à jour des compteurs de messages non lus pour les notifications.
+ * Utilise 'increment' pour assurer la fiabilité des notifications pour le destinataire.
  */
 
 export default function ChatPage() {
@@ -28,14 +28,13 @@ export default function ChatPage() {
   const [message, setMessage] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Construction de l'ID de conversation déterministe (userId1_userId2 trié)
+  // Construction de l'ID de conversation déterministe
   const convId = useMemoFirebase(() => {
     if (!user || !otherUserId) return null
     const ids = [user.uid, otherUserId].sort()
     return `${ids[0]}_${ids[1]}`
   }, [user, otherUserId])
 
-  // Références Firestore mémoïsées
   const convRef = useMemoFirebase(() => db && convId ? doc(db, 'conversations', convId) : null, [db, convId])
   
   const messagesQuery = useMemoFirebase(() => {
@@ -48,28 +47,22 @@ export default function ChatPage() {
   }, [db, convId])
 
   const otherUserRef = useMemoFirebase(() => db && otherUserId ? doc(db, 'users', otherUserId) : null, [db, otherUserId])
-  
-  const myUserRef = useMemoFirebase(() => {
-    if (!db || !user) return null
-    return doc(db, 'users', user.uid)
-  }, [db, user])
+  const myUserRef = useMemoFirebase(() => db && user ? doc(db, 'users', user.uid) : null, [db, user])
 
-  // Données Firestore en temps réel
   const { data: conversation, isLoading: isConvLoading } = useDoc(convRef)
   const { data: messages } = useCollection(messagesQuery)
   const { data: otherProfile } = useDoc(otherUserRef)
   const { data: myProfile } = useDoc(myUserRef)
 
-  // Auto-scroll vers le bas
   useEffect(() => {
     if (scrollRef.current && messages) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
 
-  // Marquer la conversation comme lue pour l'utilisateur actuel dès l'ouverture
+  // Remise à zéro des messages non lus quand on est sur la conversation
   useEffect(() => {
-    if (convRef && user && conversation?.unreadCount?.[user.uid] > 0) {
+    if (convRef && user && (conversation?.unreadCount?.[user.uid] || 0) > 0) {
       updateDocumentNonBlocking(convRef, {
         [`unreadCount.${user.uid}`]: 0
       })
@@ -83,7 +76,7 @@ export default function ChatPage() {
     const text = message.trim()
     setMessage('')
 
-    // 1. Mise à jour de la conversation parente (incrémente le non lu pour l'autre)
+    // 1. Mise à jour ou création de la conversation (utilise increment pour le destinataire)
     setDocumentNonBlocking(convRef, {
       participants: [user.uid, otherUserId].sort(),
       participantNames: {
@@ -92,10 +85,10 @@ export default function ChatPage() {
       },
       lastMessage: text,
       lastMessageAt: serverTimestamp(),
-      [`unreadCount.${otherUserId}`]: (conversation?.unreadCount?.[otherUserId] || 0) + 1
+      [`unreadCount.${otherUserId}`]: increment(1)
     }, { merge: true })
 
-    // 2. Ajout du message
+    // 2. Enregistrement du message
     const messagesCol = collection(db, 'conversations', convId, 'messages')
     addDocumentNonBlocking(messagesCol, {
       senderId: user.uid,
