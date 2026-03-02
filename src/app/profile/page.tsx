@@ -155,16 +155,14 @@ export default function ProfilePage() {
     avatar: profile?.photoUrl || null
   }
 
-  const currentType = profileTypes[profileData.typeProfil as keyof typeof profileTypes] || profileTypes.particulier
-
   const lawsOfGame = [
-    { name: "Nos Causes", icon: Trophy },
-    { name: "Politique de confidentialité", icon: Shield },
-    { name: "Politique de cookies", icon: Cookie },
-    { name: "Mentions légales", icon: FileText },
-    { name: "Données personnelles", icon: Database },
-    { name: "Conformité Stores", icon: Smartphone },
-    { name: "Spécificité football", icon: Flag },
+    { name: "Nos Causes", icon: Trophy, path: "/legal/causes" },
+    { name: "Politique de confidentialité", icon: Shield, path: "/legal/confidentialite" },
+    { name: "Politique de cookies", icon: Cookie, path: "/legal/cookies" },
+    { name: "Mentions légales", icon: FileText, path: "/legal/mentions-legales" },
+    { name: "Données personnelles", icon: Database, path: "/legal/donnees-personnelles" },
+    { name: "Conformité Stores", icon: Smartphone, path: "/legal/stores" },
+    { name: "Spécificité football", icon: Flag, path: "/legal/football" },
   ]
 
   return (
@@ -172,7 +170,6 @@ export default function ProfilePage() {
       <div className="relative h-48 w-full bg-gradient-to-b from-primary/20 to-transparent border-b border-white/5">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
         
-        {/* Logo de marque intégré au profil */}
         <div className="absolute top-6 left-6 opacity-80">
            <Image 
             src={LOGO_URL}
@@ -200,9 +197,9 @@ export default function ProfilePage() {
               </DialogHeader>
               <div className="flex flex-col gap-2 mt-4">
                 {lawsOfGame.map((law) => (
-                  <button
+                  <Link
                     key={law.name}
-                    onClick={(e) => handleInactiveFeature(e, law.name)}
+                    href={law.path}
                     className="flex items-center justify-between p-3 rounded-xl bg-background/50 border border-white/5 hover:border-primary/30 transition-all group"
                   >
                     <div className="flex items-center gap-3">
@@ -210,7 +207,7 @@ export default function ProfilePage() {
                       <span className="text-[11px] font-black uppercase tracking-widest text-left">{law.name}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </button>
+                  </Link>
                 ))}
               </div>
             </DialogContent>
