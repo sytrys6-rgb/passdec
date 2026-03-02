@@ -14,6 +14,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@
 import { allOffers } from '@/app/lib/offers'
 import { doc, collection, query, orderBy } from 'firebase/firestore'
 import placeholderData from '@/app/lib/placeholder-images.json'
+import { CITY_DATA, calculateDistance } from '@/app/lib/cities'
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
@@ -23,14 +24,12 @@ export default function HomePage() {
   const [activeLocation, setActiveLocation] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Redirection si non connecté
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login')
     }
   }, [user, isUserLoading, router])
 
-  // Garde de sécurité : on n'interroge rien tant que l'utilisateur n'est pas prêt
   const userRef = useMemoFirebase(() => {
     if (!db || !user || isUserLoading) return null
     return doc(db, 'users', user.uid)
@@ -39,7 +38,6 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // On ne charge les offres que si l'utilisateur est authentifié et que le chargement est fini
   const offersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
     return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
@@ -47,7 +45,6 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  // Garde de rendu : on n'affiche rien au début du composant si pas prêt
   if (isUserLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -55,8 +52,13 @@ export default function HomePage() {
   )
   if (!user) return null
 
+  // On injecte des coordonnées par défaut aux offres mockées pour le calcul
   const combinedOffers = [
-    ...allOffers,
+    ...allOffers.map(o => ({
+      ...o,
+      latitude: CITY_DATA[o.ville]?.lat || 0,
+      longitude: CITY_DATA[o.ville]?.lng || 0,
+    })),
     ...(firestoreOffers || []).map(o => ({
       ...o,
       image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
@@ -77,10 +79,27 @@ export default function HomePage() {
 
   const filteredOffers = combinedOffers.filter(offer => {
     const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
-    const matchesLocation = !activeLocation || 
-      offer.ville === activeLocation || 
-      (activeLocation === 'Lyon' && offer.ville === 'Villeurbanne')
-    const matchesSearch = !searchQuery || offer.titre.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    // Détection si la recherche correspond à une ville
+    const searchCity = Object.keys(CITY_DATA).find(c => c.toLowerCase() === searchQuery.toLowerCase())
+    const targetCityData = searchCity ? CITY_DATA[searchCity] : (activeLocation ? CITY_DATA[activeLocation] : null)
+
+    let matchesLocation = true;
+    if (targetCityData) {
+      if (offer.latitude && offer.longitude) {
+        const dist = calculateDistance(targetCityData.lat, targetCityData.lng, offer.latitude, offer.longitude)
+        matchesLocation = dist <= 150; // Filtre 150km
+      } else {
+        // Fallback si pas de coordonnées
+        matchesLocation = offer.ville === (searchCity || activeLocation)
+      }
+    } else if (activeLocation) {
+        matchesLocation = offer.ville === activeLocation
+    }
+
+    const matchesSearch = !searchQuery || 
+      offer.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      offer.ville.toLowerCase().includes(searchQuery.toLowerCase())
     
     return matchesCategory && matchesLocation && matchesSearch
   })
@@ -132,7 +151,7 @@ export default function HomePage() {
           <Input 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher une annonce..." 
+            placeholder="Rechercher une annonce ou une ville..." 
             className="pl-10 h-12 bg-card border-none ring-1 ring-white/10 focus-visible:ring-primary/50 rounded-xl shadow-inner"
           />
         </div>

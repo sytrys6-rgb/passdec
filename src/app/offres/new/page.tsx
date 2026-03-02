@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation'
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase'
 import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore'
 import { useToast } from '@/hooks/use-toast'
-import { MAIN_CITIES } from '@/app/lib/cities'
+import { MAIN_CITIES, CITY_DATA } from '@/app/lib/cities'
 
 export default function NewOfferPage() {
   const router = useRouter()
@@ -58,6 +58,7 @@ export default function NewOfferPage() {
     setIsSubmitting(true)
 
     try {
+      const cityCoords = CITY_DATA[formData.ville] || { lat: 0, lng: 0 };
       const offersRef = collection(db, 'offres')
       await addDoc(offersRef, {
         typeOffre: formData.typeOffre,
@@ -72,8 +73,8 @@ export default function NewOfferPage() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         isActive: true,
-        latitude: 0,
-        longitude: 0
+        latitude: cityCoords.lat,
+        longitude: cityCoords.lng
       })
 
       toast({

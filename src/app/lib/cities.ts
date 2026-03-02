@@ -1,4 +1,45 @@
 
-export const MAIN_CITIES = [
-  "Abbeville", "Agen", "Aix-en-Provence", "Ajaccio", "Albi", "Alès", "Alfortville", "Amiens", "Angers", "Anglet", "Angoulême", "Annecy", "Annemasse", "Antibes", "Antony", "Argenteuil", "Arles", "Arras", "Asnières-sur-Seine", "Aubervilliers", "Aulnay-sous-Bois", "Aurillac", "Auxerre", "Avignon", "Bagneux", "Bayonne", "Beauvais", "Belfort", "Bergerac", "Besançon", "Béziers", "Biarritz", "Blois", "Bobigny", "Bondy", "Bordeaux", "Boulogne-Billancourt", "Boulogne-sur-Mer", "Bourg-en-Bresse", "Bourges", "Brest", "Brive-la-Gaillarde", "Bron", "Caen", "Cahors", "Calais", "Caluire-et-Cuire", "Cambrai", "Cannes", "Carcassonne", "Castres", "Cayenne", "Cergy", "Chalon-sur-Saône", "Châlons-en-Champagne", "Chambéry", "Champigny-sur-Marne", "Charenton-le-Pont", "Charleville-Mézières", "Chartres", "Châteauroux", "Châtellerault", "Châtenay-Malabry", "Châtillon", "Chatou", "Chaumont", "Chelles", "Cherbourg-en-Cotentin", "Choisy-le-Roi", "Cholet", "Clamart", "Clichy", "Clichy-sous-Bois", "Clermont-Ferrand", "Cognac", "Colmar", "Colombes", "Colomiers", "Combs-la-Ville", "Compiègne", "Concarneau", "Conflans-Sainte-Honorine", "Corbeil-Essonnes", "Courbevoie", "Creil", "Créteil", "Dax", "Dieppe", "Dijon", "Dole", "Douai", "Drancy", "Draguignan", "Dreux", "Dunkerque", "Échirolles", "Élancourt", "Épernay", "Épinal", "Épinay-sur-Seine", "Ermont", "Étampes", "Évreux", "Évry-Courcouronnes", "Fécamp", "Fleury-les-Aubrais", "Fontaine", "Fontenay-aux-Roses", "Fontenay-sous-Bois", "Forbach", "Fougères", "Franconville", "Fréjus", "Gagny", "Gap", "Garges-lès-Gonesse", "Gennevilliers", "Gif-sur-Yvette", "Gonesse", "Goussainville", "Gradignan", "Grande-Synthe", "Granville", "Grasse", "Grenoble", "Grigny", "Guéret", "Guyancourt", "Haguenau", "Hazebrouck", "Henin-Beaumont", "Herblay-sur-Seine", "Houilles", "Hyères", "Illkirch-Graffenstaden", "Issy-les-Moulineaux", "Istres", "Ivry-sur-Seine", "Joué-lès-Tours", "La Courneuve", "La Garde", "La Garenne-Colombes", "La Madeleine", "La Possession", "La Roche-sur-Yon", "La Rochelle", "La Seyne-sur-Mer", "La Valette-du-Var", "Lagny-sur-Marne", "Lambersart", "Lanester", "Laon", "Laval", "Le Blanc-Mesnil", "Le Bouscat", "Le Cannet", "Le Chesnay-Rocquencourt", "Le Creusot", "Le Grand-Quevilly", "Le Havre", "Le Kremlin-Bicêtre", "Le Mans", "Le Mée-sur-Seine", "Le Perreux-sur-Marne", "Le Petit-Quevilly", "Le Plessis-Robinson", "Le Pontet", "Le Port", "Le Raincy", "Le Robert", "Le Tampon", "Lens", "Les Abymes", "Les Lilas", "Les Mureaux", "Les Pavillons-sous-Bois", "Les Sables-d'Olonne", "Les Ulis", "Levallois-Perret", "Libourne", "Liévin", "Lille", "Limoges", "Lisieux", "Livry-Gargan", "Lons-le-Saunier", "Lorient", "Lormont", "Lunel", "Lunéville", "Lyon", "Mâcon", "Maisons-Alfort", "Maisons-Laffitte", "Malakoff", "Mandelieu-la-Napoule", "Manosque", "Mantes-la-Jolie", "Marcq-en-Barœul", "Marignane", "Marseille", "Martigues", "Massy", "Maubeuge", "Meaux", "Melun", "Menton", "Mérignac", "Metz", "Meudon", "Meyzieu", "Millau", "Miramas", "Mons-en-Barœul", "Mont-de-Marsan", "Mont-Saint-Aignan", "Montauban", "Montbéliard", "Montceau-les-Mines", "Montélimar", "Montfermeil", "Montgeron", "Montigny-le-Bretonneux", "Montigny-lès-Metz", "Montluçon", "Montmorency", "Montpellier", "Montreuil", "Montrouge", "Moulins", "Mulhouse", "Muret", "Nancy", "Nanterre", "Nantes", "Narbonne", "Neuilly-sur-Marne", "Neuilly-sur-Seine", "Nevers", "Nice", "Nîmes", "Niort", "Nogent-sur-Marne", "Noisy-le-Grand", "Noisy-le-Sec", "Olivet", "Orange", "Orléans", "Orly", "Orvault", "Oullins", "Outreau", "Oyonnax", "Ozoir-la-Ferrière", "Pantin", "Paris", "Palaiseau", "Pamiers", "Pau", "Périgueux", "Perpignan", "Pessac", "Pierrefitte-sur-Seine", "Plaisir", "Poissy", "Poitiers", "Pont-à-Mousson", "Pontault-Combault", "Pontoise", "Puteaux", "Quimper", "Rambouillet", "Reims", "Rennes", "Rezé", "Rillieux-la-Pape", "Ris-Orangis", "Roanne", "Rochefort", "Rodez", "Romainville", "Romans-sur-Isère", "Rosny-sous-Bois", "Roubaix", "Rouen", "Rueil-Malmaison", "Saint-André-lez-Lille", "Saint-Brieuc", "Saint-Chamond", "Saint-Cloud", "Saint-Denis", "Saint-Dié-des-Vosges", "Saint-Dizier", "Saint-Étienne", "Saint-Étienne-du-Rouvray", "Saint-Germain-en-Laye", "Saint-Gratien", "Saint-Herblain", "Saint-Jean-de-Braye", "Saint-Jean-de-Luz", "Saint-Joseph", "Saint-Laurent-du-Var", "Saint-Leu", "Saint-Louis", "Saint-Malo", "Saint-Mandé", "Saint-Martin-d'Hères", "Saint-Maur-des-Fossés", "Saint-Médard-en-Jalles", "Saint-Michel-sur-Orge", "Saint-Nazaire", "Saint-Ouen-sur-Seine", "Saint-Paul", "Saint-Pierre", "Saint-Priest", "Saint-Quentin", "Saint-Raphaël", "Saint-Sébastien-sur-Loire", "Sainte-Foy-lès-Lyon", "Sainte-Geneviève-des-Bois", "Sainte-Marie", "Saintes", "Salon-de-Provence", "Sannois", "Sarcelles", "Sarreguemines", "Sartrouville", "Saumur", "Savigny-le-Temple", "Savigny-sur-Orge", "Schiltigheim", "Sedan", "Sens", "Sète", "Sevran", "Sèvres", "Six-Fours-les-Plages", "Soissons", "Sotteville-lès-Rouen", "Stains", "Strasbourg", "Sucy-en-Brie", "Suresnes", "Talence", "Tarbes", "Taverny", "Thiais", "Thonon-les-Bains", "Torcy", "Toulon", "Toulouse", "Tourcoing", "Tournefeuille", "Tours", "Trappes", "Tremblay-en-France", "Tulle", "Valence", "Valenciennes", "Vallauris", "Vandoeuvre-lès-Nancy", "Vannes", "Vanves", "Vaulx-en-Velin", "Vélizy-Villacoublay", "Vénissieux", "Vernon", "Versailles", "Vertou", "Vichy", "Vienne", "Vierzon", "Vigneux-sur-Seine", "Villejuif", "Villemomble", "Villenave-d'Ornon", "Villeneuve-d'Ascq", "Villeneuve-la-Garenne", "Villeneuve-Saint-Georges", "Villeparisis", "Villepinte", "Villeurbanne", "Villiers-le-Bel", "Villiers-sur-Marne", "Vincennes", "Viry-Châtillon", "Vitrolles", "Vitry-sur-Seine", "Voiron", "Wattrelos", "Yerres"
-].sort();
+export interface CityInfo {
+  name: string;
+  lat: number;
+  lng: number;
+}
+
+// Liste étendue avec coordonnées pour le calcul de distance
+export const CITY_DATA: Record<string, { lat: number, lng: number }> = {
+  "Paris": { lat: 48.8566, lng: 2.3522 },
+  "Lyon": { lat: 45.7640, lng: 4.8357 },
+  "Marseille": { lat: 43.2965, lng: 5.3698 },
+  "Lille": { lat: 50.6292, lng: 3.0573 },
+  "Bordeaux": { lat: 44.8378, lng: -0.5792 },
+  "Nantes": { lat: 47.2184, lng: -1.5536 },
+  "Strasbourg": { lat: 48.5734, lng: 7.7521 },
+  "Montpellier": { lat: 43.6108, lng: 3.8767 },
+  "Rennes": { lat: 48.1173, lng: -1.6778 },
+  "Toulouse": { lat: 43.6047, lng: 1.4442 },
+  "Nice": { lat: 43.7102, lng: 7.2620 },
+  "Saint-Étienne": { lat: 45.4397, lng: 4.3872 },
+  "Toulon": { lat: 43.1242, lng: 5.9280 },
+  "Grenoble": { lat: 45.1885, lng: 5.7245 },
+  "Dijon": { lat: 47.3220, lng: 5.0415 },
+  "Angers": { lat: 47.4784, lng: -0.5632 },
+  "Nîmes": { lat: 43.8367, lng: 4.3601 },
+  "Villeurbanne": { lat: 45.7719, lng: 4.8817 },
+  "Le Havre": { lat: 49.4944, lng: 0.1079 },
+  "Reims": { lat: 49.2583, lng: 4.0317 }
+};
+
+export const MAIN_CITIES = Object.keys(CITY_DATA).sort();
+
+// Fonction de calcul de distance (Haversine)
+export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Rayon de la terre en km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // Distance en km
+}
