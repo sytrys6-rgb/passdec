@@ -18,7 +18,7 @@ import placeholderData from '@/app/lib/placeholder-images.json'
 import { CITY_DATA, getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 
 /**
- * @fileOverview Page d'accueil avec système d'alerte numérique Lu / Non lu.
+ * @fileOverview Page d'accueil avec titre textuel et système d'alerte numérique.
  */
 
 export default function HomePage() {
@@ -31,8 +31,6 @@ export default function HomePage() {
   const [activeRadius, setActiveRadius] = useState<number>(150)
   const [searchQuery, setSearchQuery] = useState('')
   const [isInitialized, setIsInitialized] = useState(false)
-
-  const logoUrl = "https://res.cloudinary.com/dfincejqz/image/upload/v1772489336/logo_fec345.jpg"
 
   useEffect(() => {
     const savedCity = sessionStorage.getItem('last_city') || 'all'
@@ -179,14 +177,9 @@ export default function HomePage() {
             </Link>
           )}
           
-          <Image 
-            src={logoUrl}
-            alt="100% Pass'Déc' Logo"
-            width={180}
-            height={72}
-            unoptimized={true}
-            className="object-contain"
-          />
+          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-brand-gradient">
+            100% Pass' Déc'
+          </h1>
           
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
             Le réseau qui fait marquer

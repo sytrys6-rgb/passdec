@@ -41,8 +41,7 @@ const profileTypes = {
 }
 
 const ADMIN_UID = "OvtBOwidg7dc4lHw5rR56yqLlIT2"
-const CLOUDINARY_CLOUD_NAME = "dfincejqz";
-const CLOUDINARY_API_KEY = "323874418517541";
+const LOGO_URL = "https://res.cloudinary.com/dfincejqz/image/upload/v1772489336/logo_fec345.jpg"
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser()
@@ -91,13 +90,10 @@ export default function ProfilePage() {
   const handleDeleteOffer = async (e: React.MouseEvent, offerId: string, photoIds?: string[]) => {
     if (!db) return
 
-    // 1. Logique de suppression Cloudinary (Prête pour activation avec API Secret)
     if (photoIds && photoIds.length > 0) {
       console.log(`[Cloudinary] Nettoyage requis pour les IDs: ${photoIds.join(', ')}`);
-      // Note: La suppression réelle nécessite une signature générée avec l'API Secret.
     }
 
-    // 2. Suppression Firestore
     const offerRef = doc(db, 'offres', offerId)
     deleteDocumentNonBlocking(offerRef)
     
@@ -175,6 +171,19 @@ export default function ProfilePage() {
     <div className="flex flex-col min-h-screen bg-background">
       <div className="relative h-48 w-full bg-gradient-to-b from-primary/20 to-transparent border-b border-white/5">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
+        
+        {/* Logo de marque intégré au profil */}
+        <div className="absolute top-6 left-6 opacity-80">
+           <Image 
+            src={LOGO_URL}
+            alt="100% Pass'Déc' Logo"
+            width={100}
+            height={40}
+            unoptimized={true}
+            className="object-contain"
+          />
+        </div>
+
         <div className="absolute top-6 right-6 flex gap-2">
           <Dialog>
             <DialogTrigger asChild>
