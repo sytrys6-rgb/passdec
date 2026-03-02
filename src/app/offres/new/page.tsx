@@ -14,6 +14,14 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase'
 import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore'
 import { useToast } from '@/hooks/use-toast'
 
+const MAIN_CITIES = [
+  "Aix-en-Provence", "Amiens", "Angers", "Annecy", "Besançon", "Bordeaux", "Boulogne-Billancourt", "Brest", 
+  "Caen", "Clermont-Ferrand", "Dijon", "Grenoble", "Le Havre", "Le Mans", "Lille", "Limoges", "Lyon", 
+  "Marseille", "Metz", "Montpellier", "Montreuil", "Mulhouse", "Nancy", "Nantes", "Nice", "Nîmes", 
+  "Orléans", "Paris", "Perpignan", "Reims", "Rennes", "Rouen", "Saint-Denis", "Saint-Etienne", 
+  "Strasbourg", "Toulon", "Toulouse", "Tours", "Villeurbanne"
+].sort();
+
 export default function NewOfferPage() {
   const router = useRouter()
   const { user, isUserLoading } = useUser()
@@ -50,7 +58,7 @@ export default function NewOfferPage() {
       toast({
         variant: "destructive",
         title: "Carton jaune !",
-        description: "Veuillez remplir les informations essentielles du match."
+        description: "Veuillez remplir les informations essentielles du match (Titre, Description et Ville)."
       })
       return
     }
@@ -68,7 +76,7 @@ export default function NewOfferPage() {
         userId: user.uid,
         userNom: profile?.nom || user.email?.split('@')[0] || 'Inconnu',
         userType: profile?.typeProfil || 'particulier',
-        photos: ['https://picsum.photos/seed/' + Math.random() + '/600/400'], // Placeholder pour l'instant
+        photos: ['https://picsum.photos/seed/' + Math.random() + '/600/400'], 
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         isActive: true,
@@ -153,12 +161,19 @@ export default function NewOfferPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="uppercase text-[10px] font-bold tracking-widest text-muted-foreground ml-1">Ville</Label>
-            <Input 
-              value={formData.ville}
-              onChange={(e) => setFormData({...formData, ville: e.target.value})}
-              placeholder="Ex: Lyon" 
-              className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12" 
-            />
+            <Select 
+              value={formData.ville} 
+              onValueChange={(val) => setFormData({...formData, ville: val})}
+            >
+              <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12">
+                <SelectValue placeholder="Choisir une ville" />
+              </SelectTrigger>
+              <SelectContent>
+                {MAIN_CITIES.map((city) => (
+                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label className="uppercase text-[10px] font-bold tracking-widest text-muted-foreground ml-1">Prix (€)</Label>
