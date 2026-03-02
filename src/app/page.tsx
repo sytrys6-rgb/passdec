@@ -86,6 +86,7 @@ export default function HomePage() {
     if (!conversations || !user) return 0
     let count = 0
     conversations.forEach(conv => {
+      if (conv.deletedBy?.includes(user.uid)) return;
       count += (conv.unreadCount?.[user.uid] || 0)
     })
     return count
@@ -169,7 +170,7 @@ export default function HomePage() {
         <div className="text-center flex flex-col items-center">
           {totalUnread > 0 && (
             <Link href="/messages" className="mb-2">
-              <Badge className="bg-orange-500 text-white border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg shadow-orange-500/20 flex items-center gap-2">
+              <Badge className="bg-orange-500 text-white border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg shadow-orange-500/20 flex items-center gap-2 animate-in slide-in-from-top duration-500">
                 <MessageSquare className="w-3 h-3 fill-white" />
                 <span>{totalUnread} {totalUnread > 1 ? 'passes' : 'passe'} non lue(s)</span>
               </Badge>
@@ -303,7 +304,7 @@ export default function HomePage() {
                   )}
                 </div>
                 
-                <div className="p-4 flex flex-col gap-2">
+                <div className="p-4 flex flex-col gap-2 text-left">
                   <h3 className="font-bold text-lg group-hover:text-primary transition-colors italic uppercase tracking-tighter">{offer.titre}</h3>
                   <p className="text-muted-foreground text-sm line-clamp-2">{offer.description}</p>
                   

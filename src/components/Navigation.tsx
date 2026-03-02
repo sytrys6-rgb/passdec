@@ -35,6 +35,7 @@ export function Navigation() {
     
     let count = 0
     conversations.forEach(conv => {
+      // Ne pas compter si la conversation est masquée par l'utilisateur
       if (conv.deletedBy?.includes(user.uid)) return;
       count += (conv.unreadCount?.[user.uid] || 0)
     })
@@ -59,7 +60,7 @@ export function Navigation() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t border-white/10 px-4 py-2 flex justify-around items-center h-20">
       {navItems.map((item) => {
         const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
-        const showBadge = (item.count || 0) > 0 && !isActive
+        const hasUnread = (item.count || 0) > 0
 
         return (
           <Link
@@ -73,23 +74,23 @@ export function Navigation() {
             <div className={cn(
               "relative p-2 rounded-full transition-all duration-500",
               isActive && "bg-primary/10",
-              showBadge && "bg-orange-500/10"
+              hasUnread && !isActive && "bg-orange-500/10"
             )}>
               <item.icon className={cn(
                 "w-6 h-6 transition-colors", 
                 isActive && "fill-primary/20",
-                showBadge && "text-orange-500 fill-orange-500/20"
+                hasUnread && !isActive && "text-orange-500 fill-orange-500/20"
               )} />
               
-              {showBadge && (
-                <div className="absolute -top-1 -right-1 min-w-[20px] h-[20px] flex items-center justify-center rounded-full border-2 border-background px-1 z-10 shadow-lg bg-orange-500 text-white">
+              {hasUnread && (
+                <div className="absolute -top-1 -right-1 min-w-[20px] h-[20px] flex items-center justify-center rounded-full border-2 border-background px-1 z-10 shadow-lg bg-orange-500 text-white animate-in zoom-in">
                   <span className="text-[10px] font-black italic">{item.count}</span>
                 </div>
               )}
             </div>
             <span className={cn(
               "text-[10px] font-black uppercase tracking-widest transition-colors",
-              showBadge && "text-orange-500"
+              hasUnread && !isActive && "text-orange-500"
             )}>
               {item.label}
             </span>

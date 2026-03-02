@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { MessageCircle, User, Loader2, Trophy, Trash2, Check } from 'lucide-react'
 import Link from 'next/link'
@@ -101,7 +101,7 @@ export default function MessagesPage() {
         <h1 className="text-3xl font-black italic uppercase tracking-tighter">Vestiaires</h1>
         <div className="h-1 w-12 bg-primary mt-1 rounded-full" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-2">
-          Vos échanges par annonce (Lu / Non lu)
+          Vos échanges tactiques (Lu / Non lu)
         </p>
       </header>
 
@@ -115,6 +115,7 @@ export default function MessagesPage() {
             const otherId = conv.participants.find((id: string) => id !== user.uid)
             const otherName = conv.participantNames?.[otherId] || 'Recrue'
             const unreadCount = conv.unreadCount?.[user.uid] || 0
+            const isUnread = unreadCount > 0
 
             const lastMsgDate = conv.lastMessageAt?.seconds 
               ? formatDistanceToNow(new Date(conv.lastMessageAt.seconds * 1000), { addSuffix: true, locale: fr })
@@ -122,20 +123,14 @@ export default function MessagesPage() {
             
             const targetOfferId = conv.offerId || 'default'
 
-            // Code couleur simple : Orange = Non lu, Vert = Lu
-            const statusColor = unreadCount > 0 ? "text-orange-500" : "text-primary"
-            const statusBadgeColor = unreadCount > 0 
-              ? "bg-orange-500 text-white" 
-              : "bg-primary/10 text-primary border-primary/20"
-
             return (
               <div key={conv.id} className="relative group">
                 <Link 
                   href={`/messages/${otherId}/${targetOfferId}`}
                   className={cn(
                     "flex flex-col p-4 rounded-3xl bg-card border transition-all shadow-xl relative pr-14",
-                    unreadCount > 0 
-                      ? "border-orange-500/50 bg-orange-500/5 border-2 shadow-orange-500/5" 
+                    isUnread 
+                      ? "border-orange-500 bg-orange-500/5" 
                       : "border-white/5 hover:border-primary/20"
                   )}
                 >
@@ -143,29 +138,29 @@ export default function MessagesPage() {
                     <div className="relative">
                       <div className={cn(
                         "w-14 h-14 rounded-2xl overflow-hidden bg-muted border-2 flex items-center justify-center transition-all",
-                        unreadCount > 0 ? "border-orange-500" : "border-white/10"
+                        isUnread ? "border-orange-500" : "border-white/10"
                       )}>
                         <User className="w-6 h-6 text-muted-foreground" />
                       </div>
-                      {unreadCount > 0 && (
-                        <div className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full border-2 border-background z-10 shadow-lg bg-orange-500">
+                      {isUnread && (
+                        <div className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full border-2 border-background z-10 shadow-lg bg-orange-500 animate-in zoom-in">
                           <span className="text-[10px] font-black text-white italic">{unreadCount}</span>
                         </div>
                       )}
                     </div>
 
-                    <div className="flex-grow flex flex-col gap-1 overflow-hidden">
+                    <div className="flex-grow flex flex-col gap-1 overflow-hidden text-left">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2 overflow-hidden">
                           <span className={cn(
                             "font-black uppercase italic tracking-tighter text-base truncate",
-                            unreadCount > 0 ? "text-foreground" : "text-muted-foreground"
+                            isUnread ? "text-foreground" : "text-muted-foreground"
                           )}>{otherName}</span>
                           
-                          {unreadCount > 0 ? (
-                            <WhistleIcon className={cn("w-5 h-5 shrink-0 animate-bounce", statusColor)} />
+                          {isUnread ? (
+                            <WhistleIcon className="w-5 h-5 shrink-0 animate-bounce text-orange-500" />
                           ) : (
-                            <Check className="w-4 h-4 text-primary shrink-0 opacity-50" />
+                            <Check className="w-4 h-4 text-primary shrink-0" />
                           )}
                         </div>
                         <span className="text-[9px] text-muted-foreground font-bold uppercase shrink-0">{lastMsgDate}</span>
@@ -174,9 +169,9 @@ export default function MessagesPage() {
                       <div className="flex flex-wrap gap-2">
                          <Badge variant="outline" className={cn(
                           "font-black uppercase tracking-widest text-[8px] px-2 py-0.5 border-none",
-                          statusBadgeColor
+                          isUnread ? "bg-orange-500 text-white" : "bg-primary/10 text-primary"
                         )}>
-                          {unreadCount > 0 ? "📣 NOUVEAU" : "✅ LU"}
+                          {isUnread ? "📣 NOUVEAU" : "✅ LU"}
                         </Badge>
                       </div>
                     </div>
@@ -184,22 +179,22 @@ export default function MessagesPage() {
                   
                   <div className={cn(
                     "flex items-center gap-2 p-2 rounded-xl border transition-colors",
-                    unreadCount > 0 
+                    isUnread 
                       ? "bg-orange-500/10 border-orange-500/20"
-                      : "bg-white/5 border-white/5"
+                      : "bg-primary/5 border-primary/10"
                   )}>
-                    <Trophy className={cn("w-3.5 h-3.5 shrink-0", statusColor)} />
+                    <Trophy className={cn("w-3.5 h-3.5 shrink-0", isUnread ? "text-orange-500" : "text-primary")} />
                     <span className={cn(
                       "text-[11px] font-black uppercase tracking-widest truncate",
-                      statusColor
+                      isUnread ? "text-orange-500" : "text-primary"
                     )}>
                       {conv.offerTitle || 'Discussion tactique'}
                     </span>
                   </div>
 
                   <p className={cn(
-                    "text-xs mt-3 line-clamp-1 italic",
-                    unreadCount > 0 ? "text-foreground font-bold" : "text-muted-foreground font-medium"
+                    "text-xs mt-3 line-clamp-1 italic text-left",
+                    isUnread ? "text-foreground font-bold" : "text-muted-foreground font-medium"
                   )}>
                     {conv.lastMessage || 'Démarrez la conversation...'}
                   </p>
