@@ -64,9 +64,10 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
+  // Simplification de la requête : on évite le mélange where + orderBy qui demande un index composite
   const offersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
-    return query(collection(db, 'offres'), where('isActive', '==', true), orderBy('createdAt', 'desc'))
+    return collection(db, 'offres')
   }, [db, isUserLoading, user])
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
@@ -88,18 +89,25 @@ export default function HomePage() {
     return count
   }, [conversations, user])
 
+  const combinedOffers = useMemo(() => {
+    if (!firestoreOffers) return []
+    // On trie par date de création côté client pour éviter le besoin d'index Firestore
+    return [...firestoreOffers]
+      .filter(o => o.isActive !== false)
+      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+      .map(o => ({
+        ...o,
+        image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
+        date: 'En ligne'
+      }))
+  }, [firestoreOffers])
+
   if (isUserLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>
   )
   if (!user) return null
-
-  const combinedOffers = (firestoreOffers || []).map(o => ({
-    ...o,
-    image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
-    date: 'En ligne'
-  }))
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
@@ -133,11 +141,10 @@ export default function HomePage() {
       ? favorites.filter((id: string) => id !== offerId)
       : [...favorites, offerId]
 
-    import('@/firebase').then(({ setDocumentNonBlocking }) => {
-      setDocumentNonBlocking(userRef, { 
-        id: user.uid,
+    import('@/firebase').then(({ updateDocumentNonBlocking }) => {
+      updateDocumentNonBlocking(userRef, { 
         favoris: newFavorites 
-      }, { merge: true })
+      })
     })
   }
 
