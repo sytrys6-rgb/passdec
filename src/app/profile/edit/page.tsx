@@ -12,6 +12,7 @@ import { ArrowLeft, Check, Camera } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
 import { doc, serverTimestamp } from 'firebase/firestore'
+import { MAIN_CITIES } from '@/app/lib/cities'
 
 export default function EditProfilePage() {
   const router = useRouter()
@@ -128,12 +129,19 @@ export default function EditProfilePage() {
 
         <div className="space-y-2">
           <Label className="uppercase text-[10px] font-black tracking-[0.2em] text-muted-foreground ml-1">Ma Ville</Label>
-          <Input 
-            value={formData.ville}
-            onChange={(e) => setFormData({...formData, ville: e.target.value})}
-            placeholder="Ex: Lyon" 
-            className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus-visible:ring-primary/50" 
-          />
+          <Select 
+            value={formData.ville} 
+            onValueChange={(val) => setFormData({...formData, ville: val})}
+          >
+            <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus:ring-primary/50">
+              <SelectValue placeholder="Choisir une ville" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              {MAIN_CITIES.map((city) => (
+                <SelectItem key={city} value={city}>{city}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
