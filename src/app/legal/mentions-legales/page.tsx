@@ -28,12 +28,12 @@ export default function LegalMentionsPage() {
           <div className="space-y-2">
             <h2 className="text-xs font-black uppercase italic tracking-widest text-secondary">HÉBERGEMENT :</h2>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Google Firebase • 1600 Amphitheatre Parkway • Mountain View, CA 94043, USA
+              Google Firebase
             </p>
           </div>
           <div className="space-y-2">
             <h2 className="text-xs font-black uppercase italic tracking-widest text-primary">STOCKAGE IMAGES :</h2>
-            <p className="text-[11px] text-muted-foreground">Cloudinary Ltd. • 3 Ha'ivrit St., Beer Sheva, Israël</p>
+            <p className="text-[11px] text-muted-foreground">Cloudinary Ltd.</p>
           </div>
         </div>
       </div>
