@@ -3,19 +3,14 @@
 
 import { useEffect, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
-import { MessageCircle, User, Loader2 } from 'lucide-react'
+import { MessageCircle, User, Loader2, Trophy } from 'lucide-react'
 import Link from 'next/link'
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase'
 import { useRouter } from 'next/navigation'
 import { collection, query, where } from 'firebase/firestore'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
-
-/**
- * @fileOverview Liste des conversations de l'utilisateur.
- * Utilise Firestore pour récupérer les échanges en temps réel.
- * Le tri est effectué côté client pour éviter les erreurs d'index composite Firestore.
- */
+import { Badge } from '@/components/ui/badge'
 
 export default function MessagesPage() {
   const { user, isUserLoading } = useUser()
@@ -28,8 +23,6 @@ export default function MessagesPage() {
     }
   }, [user, isUserLoading, router])
 
-  // Récupération des conversations où l'utilisateur est participant
-  // On retire l'orderBy pour éviter de bloquer si l'index n'est pas créé
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(
@@ -40,7 +33,6 @@ export default function MessagesPage() {
 
   const { data: rawConversations, isLoading: isConvsLoading } = useCollection(convsQuery)
 
-  // Tri côté client par date du dernier message
   const sortedConversations = useMemo(() => {
     if (!rawConversations) return []
     return [...rawConversations].sort((a, b) => {
@@ -58,7 +50,7 @@ export default function MessagesPage() {
         <h1 className="text-3xl font-black italic uppercase tracking-tighter">Vestiaires</h1>
         <div className="h-1 w-12 bg-primary mt-1 rounded-full" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-2">
-          Vos échanges tactiques (Temps réel)
+          Vos échanges tactiques par annonce
         </p>
       </header>
 
@@ -75,11 +67,14 @@ export default function MessagesPage() {
             const lastMsgDate = conv.lastMessageAt?.seconds 
               ? formatDistanceToNow(new Date(conv.lastMessageAt.seconds * 1000), { addSuffix: true, locale: fr })
               : ''
+            
+            // On construit le lien avec l'offerId stocké
+            const targetOfferId = conv.offerId || 'default'
 
             return (
               <Link 
                 key={conv.id}
-                href={`/messages/${otherId}`}
+                href={`/messages/${otherId}/${targetOfferId}`}
                 className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-white/5 hover:border-primary/20 transition-all group shadow-lg relative"
               >
                 <div className="relative">
@@ -93,12 +88,22 @@ export default function MessagesPage() {
                   )}
                 </div>
                 
-                <div className="flex-grow flex flex-col gap-0.5">
+                <div className="flex-grow flex flex-col gap-0.5 overflow-hidden">
                   <div className="flex justify-between items-center">
                     <span className="font-black uppercase italic tracking-tighter text-sm">{otherName}</span>
                     <span className="text-[9px] text-muted-foreground font-bold uppercase">{lastMsgDate}</span>
                   </div>
-                  <p className={`text-xs line-clamp-1 mt-0.5 ${unreadCount > 0 ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}`}>
+                  
+                  {conv.offerTitle && (
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <Trophy className="w-2.5 h-2.5 text-primary" />
+                      <span className="text-[8px] font-black uppercase tracking-widest text-primary truncate">
+                        {conv.offerTitle}
+                      </span>
+                    </div>
+                  )}
+
+                  <p className={`text-xs line-clamp-1 ${unreadCount > 0 ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}`}>
                     {conv.lastMessage || 'Démarrez la conversation...'}
                   </p>
                 </div>

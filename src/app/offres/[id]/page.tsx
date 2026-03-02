@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useParams, useRouter } from 'next/navigation'
@@ -25,10 +26,8 @@ export default function OfferDetailPage() {
   const db = useFirestore()
   const { user } = useUser()
 
-  // 1. Chercher d'abord dans les données mockées
   const mockOffer = allOffers.find(o => o.id === id)
 
-  // 2. Si pas trouvé, chercher dans Firestore
   const offerRef = useMemoFirebase(() => {
     if (!db || !id || mockOffer) return null
     return doc(db, 'offres', id)
@@ -52,7 +51,6 @@ export default function OfferDetailPage() {
     date: 'Publié récemment'
   } : null)
 
-  // Charger le profil de l'utilisateur actuel pour les favoris
   const userRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, 'users', user.uid)
@@ -61,7 +59,6 @@ export default function OfferDetailPage() {
   const favorites = currentUserProfile?.favoris || []
   const isFavorite = favorites.includes(id)
 
-  // Charger le profil de l'auteur
   const authorId = offer?.userId
   const authorRef = useMemoFirebase(() => {
     if (!db || !authorId) return null
@@ -76,7 +73,8 @@ export default function OfferDetailPage() {
       return
     }
     if (offer?.userId) {
-      router.push(`/messages/${offer.userId}`)
+      // Redirection vers le chat spécifique à l'annonce
+      router.push(`/messages/${offer.userId}/${id}`)
     }
   }
 
@@ -116,7 +114,6 @@ export default function OfferDetailPage() {
   const currentType = profileTypes[offer.userType as keyof typeof profileTypes] || profileTypes.particulier
   const isOwnOffer = user?.uid === offer.userId
 
-  // Pour wa.me, on garde seulement les chiffres (le + est retiré)
   const whatsappLink = authorProfile?.whatsapp 
     ? `https://wa.me/${authorProfile.whatsapp.replace(/\D/g, '')}` 
     : null

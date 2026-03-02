@@ -115,6 +115,8 @@
       "properties": {
         "participants": { "type": "array", "items": { "type": "string" } },
         "participantNames": { "type": "object" },
+        "offerId": { "type": "string" },
+        "offerTitle": { "type": "string" },
         "lastMessage": { "type": "string" },
         "lastMessageAt": { "type": "object" },
         "unreadCount": { "type": "object" }
