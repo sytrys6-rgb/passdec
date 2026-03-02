@@ -34,7 +34,7 @@ export default function ChatPage() {
     return `${ids[0]}_${ids[1]}`
   }, [user, otherUserId])
 
-  // Références Firestore mémoïsées
+  // Références Firestore mémoïsées pour éviter les boucles de rendu
   const convRef = useMemoFirebase(() => db && convId ? doc(db, 'conversations', convId) : null, [db, convId])
   
   const messagesQuery = useMemoFirebase(() => {
@@ -61,7 +61,7 @@ export default function ChatPage() {
 
   // Auto-scroll vers le bas lors de l'arrivée de nouveaux messages
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && messages) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
@@ -83,6 +83,7 @@ export default function ChatPage() {
     setMessage('')
 
     // 1. On met d'abord à jour (ou on crée) le document de conversation parent
+    // On utilise merge: true pour être sûr de ne pas écraser les autres données
     setDocumentNonBlocking(convRef, {
       participants: [user.uid, otherUserId].sort(),
       participantNames: {
@@ -95,14 +96,13 @@ export default function ChatPage() {
     }, { merge: true })
 
     // 2. On ajoute le message dans la sous-collection
-    const msgData = {
+    const messagesCol = collection(db, 'conversations', convId, 'messages')
+    addDocumentNonBlocking(messagesCol, {
       senderId: user.uid,
       text,
       createdAt: serverTimestamp(),
       read: false
-    }
-
-    addDocumentNonBlocking(collection(db, 'conversations', convId, 'messages'), msgData)
+    })
   }
 
   if (isUserLoading || !user) return null
@@ -118,7 +118,7 @@ export default function ChatPage() {
           <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border border-primary/20">
             <User className="w-5 h-5 text-muted-foreground" />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col text-left">
             <span className="font-black italic uppercase tracking-tighter text-sm">
               {otherProfile?.nom || 'Chargement...'}
             </span>
@@ -176,7 +176,7 @@ export default function ChatPage() {
       {/* Input de Message */}
       <form 
         onSubmit={handleSend}
-        className="fixed bottom-0 left-0 right-0 p-4 pb-10 glass-morphism border-t border-white/10 flex gap-2"
+        className="fixed bottom-0 left-0 right-0 p-4 pb-10 glass-morphism border-t border-white/10 flex gap-2 z-50"
       >
         <Input 
           value={message}
@@ -193,6 +193,8 @@ export default function ChatPage() {
           <Send className="w-5 h-5" />
         </Button>
       </form>
+      
+      {/* Spacer pour la barre de navigation si nécessaire, bien que le chat soit souvent full screen */}
     </div>
   )
 }
