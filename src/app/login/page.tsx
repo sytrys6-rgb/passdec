@@ -41,6 +41,19 @@ export default function LoginPage() {
       return
     }
 
+    // Validation des domaines autorisés
+    const allowedDomains = ['gmail.com', 'outlook.fr', 'hotmail.fr', 'hotmail.com', 'yahoo.fr', 'orange.fr', 'free.fr'];
+    const emailDomain = email.split('@')[1]?.toLowerCase();
+
+    if (!allowedDomains.includes(emailDomain)) {
+      toast({
+        variant: "destructive",
+        title: "Carton Rouge !",
+        description: "Seules les adresses Gmail, Outlook, Hotmail, Yahoo, Orange et Free sont autorisées sur le terrain."
+      })
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -65,7 +78,7 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Hors-jeu !",
-        description: "L'adresse mail ou le mot de passe n'existe pas ou est incorrect. Veuillez redemander l'adresse mail et le mot de passe."
+        description: "L'adresse mail ou le mot de passe est incorrect. Veuillez vérifier vos informations."
       })
     } finally {
       setIsLoading(false)
@@ -112,10 +125,13 @@ export default function LoginPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest ml-1">Email</Label>
+                <div className="flex justify-between items-center px-1">
+                  <Label className="text-[10px] uppercase font-black tracking-widest">Email</Label>
+                  <span className="text-[8px] font-bold text-primary uppercase">Gmail, Microsoft, Yahoo, Orange, Free</span>
+                </div>
                 <Input 
                   type="email" 
-                  placeholder="foot@passion.fr" 
+                  placeholder="votre.nom@gmail.com" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
