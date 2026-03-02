@@ -155,6 +155,8 @@ export default function ProfilePage() {
     avatar: profile?.photoUrl || null
   }
 
+  const currentType = profileTypes[profileData.typeProfil as keyof typeof profileTypes] || profileTypes.particulier
+
   const lawsOfGame = [
     { name: "Nos Causes", icon: Trophy, path: "/legal/causes" },
     { name: "Politique de confidentialité", icon: Shield, path: "/legal/confidentialite" },
@@ -255,6 +257,16 @@ export default function ProfilePage() {
         
         <div className="mt-4 flex flex-col items-center gap-1">
           <h1 className="text-3xl font-black italic uppercase tracking-tighter">{profileData.nom}</h1>
+          
+          <div className="flex flex-col items-center gap-1 my-1">
+             <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest px-3 py-1 bg-primary/5">
+                {currentType.emoji} {currentType.label}
+             </Badge>
+             <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">
+                {currentType.complement}
+             </span>
+          </div>
+
           <div className="flex items-center gap-1 text-muted-foreground mt-0.5">
             <MapPin className="w-3 h-3 text-primary" />
             <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{profileData.ville}</span>
