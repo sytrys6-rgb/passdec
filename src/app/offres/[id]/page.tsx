@@ -36,15 +36,6 @@ export default function OfferDetailPage() {
 
   const { data: firestoreOffer, isLoading: isFirestoreLoading } = useDoc(offerRef)
 
-  // 3. Charger le profil de l'auteur
-  const authorId = mockOffer?.id ? 'mock-user' : firestoreOffer?.userId
-  const authorRef = useMemoFirebase(() => {
-    if (!db || !authorId) return null
-    return doc(db, 'users', authorId)
-  }, [db, authorId])
-
-  const { data: authorProfile } = useDoc(authorRef)
-
   const offer = mockOffer || (firestoreOffer ? {
     id: firestoreOffer.id,
     titre: firestoreOffer.titre,
@@ -60,6 +51,15 @@ export default function OfferDetailPage() {
     userRating: 5.0,
     date: 'Publié récemment'
   } : null)
+
+  // Charger le profil de l'auteur
+  const authorId = offer?.userId
+  const authorRef = useMemoFirebase(() => {
+    if (!db || !authorId) return null
+    return doc(db, 'users', authorId)
+  }, [db, authorId])
+
+  const { data: authorProfile } = useDoc(authorRef)
 
   const handleContact = () => {
     if (!user) {
@@ -232,7 +232,7 @@ export default function OfferDetailPage() {
             className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg shadow-2xl shadow-primary/20 gap-3 group"
           >
             <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            Contacter l&apos;auteur
+            Contacter l'auteur
           </Button>
         </div>
       )}

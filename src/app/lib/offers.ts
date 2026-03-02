@@ -11,6 +11,7 @@ export interface OfferData {
   userType: string;
   userRating: number;
   date: string;
+  userId: string;
 }
 
 export const allOffers: OfferData[] = [
@@ -25,7 +26,8 @@ export const allOffers: OfferData[] = [
     userNom: 'GonesFC',
     userType: 'club_supporter',
     userRating: 4.9,
-    date: 'Publié il y a 2h'
+    date: 'Publié il y a 2h',
+    userId: 'mock-user-1'
   },
   {
     id: '2',
@@ -38,7 +40,8 @@ export const allOffers: OfferData[] = [
     userNom: 'FC Villeurbanne',
     userType: 'club_foot',
     userRating: 4.8,
-    date: 'Publié hier'
+    date: 'Publié hier',
+    userId: 'mock-user-2'
   },
   {
     id: '3',
@@ -51,7 +54,8 @@ export const allOffers: OfferData[] = [
     userNom: 'OMFan13',
     userType: 'particulier',
     userRating: 4.7,
-    date: 'Publié il y a 3 jours'
+    date: 'Publié il y a 3 jours',
+    userId: 'mock-user-3'
   },
   {
     id: '4',
@@ -64,7 +68,8 @@ export const allOffers: OfferData[] = [
     userNom: 'PSG Academy',
     userType: 'club_foot',
     userRating: 5.0,
-    date: 'Publié il y a 5h'
+    date: 'Publié il y a 5h',
+    userId: 'mock-user-4'
   },
   {
     id: '5',
@@ -77,6 +82,7 @@ export const allOffers: OfferData[] = [
     userNom: 'VintageFoot',
     userType: 'particulier',
     userRating: 4.6,
-    date: 'Publié la semaine dernière'
+    date: 'Publié la semaine dernière',
+    userId: 'mock-user-5'
   }
 ];
