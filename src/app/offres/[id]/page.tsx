@@ -7,13 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, 
-  Loader2, Info, User, Mail, MessageCircle, Trophy, Flag, AlertTriangle, Shield 
+  Loader2, Info, User, Mail, MessageCircle, Trophy, Flag, AlertTriangle, Shield, Trash2 
 } from 'lucide-react'
 import Image from 'next/image'
 import { allOffers } from '@/app/lib/offers'
 import { 
   useFirestore, useDoc, useMemoFirebase, useUser, 
-  updateDocumentNonBlocking, addDocumentNonBlocking, useCollection 
+  updateDocumentNonBlocking, addDocumentNonBlocking, useCollection, deleteDocumentNonBlocking 
 } from '@/firebase'
 import { doc, collection, query, where, serverTimestamp } from 'firebase/firestore'
 import { cn } from '@/lib/utils'
@@ -29,6 +29,17 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import {
   Select,
   SelectContent,
@@ -109,7 +120,6 @@ export default function OfferDetailPage() {
 
   const { data: authorProfile } = useDoc(authorRef)
 
-  // Vérifier si déjà signalé
   const checkReportQuery = useMemoFirebase(() => {
     if (!db || !user || !id) return null
     return query(collection(db, 'signalements'), where('offreId', '==', id), where('signalePar', '==', user.uid))
@@ -175,6 +185,18 @@ export default function OfferDetailPage() {
     }
   }
 
+  const handleAdminDelete = () => {
+    if (!db || !offerRef || user?.uid !== ADMIN_UID) return
+    
+    deleteDocumentNonBlocking(offerRef)
+    toast({
+      variant: "destructive",
+      title: "Arbitrage effectué",
+      description: "L'annonce a été retirée du terrain par l'arbitre."
+    })
+    router.push('/')
+  }
+
   if (isFirestoreLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -195,6 +217,7 @@ export default function OfferDetailPage() {
 
   const currentType = profileTypes[offer.userType as keyof typeof profileTypes] || profileTypes.particulier
   const isOwnOffer = user?.uid === offer.userId
+  const isAdmin = user?.uid === ADMIN_UID
 
   const whatsappLink = authorProfile?.whatsapp 
     ? `https://wa.me/${authorProfile.whatsapp.replace(/\D/g, '')}` 
@@ -342,13 +365,41 @@ export default function OfferDetailPage() {
               </p>
             </div>
 
-            {user?.uid === ADMIN_UID && (
-              <Link href="/admin" className="mt-4">
-                <Button variant="ghost" size="sm" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary h-8 opacity-50 flex items-center gap-2">
-                  <Shield className="w-3.5 h-3.5" />
-                  Panel Arbitre
+            {isAdmin && (
+              <div className="flex flex-col gap-2 w-full mt-4">
+                <Button asChild variant="ghost" size="sm" className="w-full text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary h-8 opacity-50 flex items-center gap-2">
+                  <Link href="/admin">
+                    <Shield className="w-3.5 h-3.5" />
+                    Panel Arbitre
+                  </Link>
                 </Button>
-              </Link>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="w-full text-[9px] font-black uppercase tracking-widest text-destructive hover:bg-destructive/10 h-8 flex items-center gap-2">
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Supprimer l'annonce (Arbitre)
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter text-destructive">Carton Rouge !</AlertDialogTitle>
+                      <AlertDialogDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Confirmez-vous la suppression immédiate de cette annonce ? Cette action est irréversible.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-xs">Annuler</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleAdminDelete}
+                        className="bg-destructive text-white hover:bg-destructive/90 rounded-xl font-black uppercase tracking-tighter text-xs"
+                      >
+                        Confirmer l'arbitrage
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             )}
           </div>
         </div>
