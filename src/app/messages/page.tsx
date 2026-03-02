@@ -115,14 +115,12 @@ export default function MessagesPage() {
                       <span className="text-[9px] text-muted-foreground font-bold uppercase shrink-0">{lastMsgDate}</span>
                     </div>
                     
-                    {conv.offerTitle && (
-                      <div className="flex items-center gap-1.5 mb-1.5 bg-primary/5 px-2 py-0.5 rounded-md w-fit max-w-full">
-                        <Trophy className="w-2.5 h-2.5 text-primary shrink-0" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-primary truncate">
-                          {conv.offerTitle}
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1.5 mb-1.5 bg-primary/5 px-2 py-1 rounded-md w-fit max-w-full border border-primary/10">
+                      <Trophy className="w-3 h-3 text-primary shrink-0" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-primary truncate">
+                        {conv.offerTitle || 'Discussion tactique'}
+                      </span>
+                    </div>
 
                     <p className={`text-xs line-clamp-1 ${unreadCount > 0 ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}`}>
                       {conv.lastMessage || 'Démarrez la conversation...'}

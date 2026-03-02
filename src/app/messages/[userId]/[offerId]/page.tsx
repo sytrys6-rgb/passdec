@@ -88,7 +88,7 @@ export default function ChatPage() {
     const text = message.trim()
     setMessage('')
 
-    // Lors de l'envoi d'un message, on réinitialise deletedBy pour que la conv réapparaisse pour tout le monde
+    // Mise à jour ou création de la conversation
     setDocumentNonBlocking(convRef, {
       participants: [user.uid, otherUserId].sort(),
       participantNames: {
@@ -100,7 +100,7 @@ export default function ChatPage() {
       lastMessage: text,
       lastMessageAt: serverTimestamp(),
       [`unreadCount.${otherUserId}`]: increment(1),
-      deletedBy: [] // Réinitialisation du statut masqué
+      deletedBy: [] // Réinitialisation du statut masqué pour les deux joueurs
     }, { merge: true })
 
     const messagesCol = collection(db, 'conversations', convId, 'messages')
@@ -144,18 +144,11 @@ export default function ChatPage() {
           </div>
         </div>
         
-        <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest text-[8px] px-2 py-1 bg-primary/5 hidden sm:flex items-center gap-1 max-w-[150px] truncate">
-          <Trophy className="w-2.5 h-2.5" />
-          {displayOfferTitle}
+        <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest text-[10px] px-3 py-1 bg-primary/5 flex items-center gap-2 max-w-[180px]">
+          <Trophy className="w-3 h-3 shrink-0" />
+          <span className="truncate">{displayOfferTitle}</span>
         </Badge>
       </header>
-
-      <div className="bg-primary/5 p-2 border-b border-white/5 flex justify-center sm:hidden">
-        <span className="text-[8px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5 truncate max-w-[280px]">
-          <Trophy className="w-3 h-3" />
-          OBJET : {displayOfferTitle}
-        </span>
-      </div>
 
       <div 
         ref={scrollRef}
@@ -196,8 +189,11 @@ export default function ChatPage() {
           })
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center opacity-30">
-            <Send className="w-12 h-12 mb-4" />
-            <p className="text-xs font-black uppercase tracking-widest italic">Engagez le jeu pour cette annonce !</p>
+            <div className="p-4 rounded-full bg-primary/10 mb-4">
+              <Trophy className="w-10 h-10 text-primary" />
+            </div>
+            <p className="text-sm font-black uppercase tracking-widest italic mb-1">{displayOfferTitle}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Engagez le jeu pour cette annonce !</p>
           </div>
         )}
 
