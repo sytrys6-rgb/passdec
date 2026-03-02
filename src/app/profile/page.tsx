@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,7 +11,7 @@ import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase'
 import { signOut } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
-import { doc, collection, query, where, orderBy } from 'firebase/firestore'
+import { doc, collection, query, where } from 'firebase/firestore'
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -41,17 +42,27 @@ export default function ProfilePage() {
 
   const { data: profile } = useDoc(userRef)
 
-  // Chargement conditionnel : on n'interroge Firestore que si l'utilisateur est prêt
+  // Chargement des offres de l'utilisateur. 
+  // Note: On retire l'orderBy ici pour éviter le besoin d'un index composite Firestore manuel.
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
     return query(
       collection(db, 'offres'), 
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     )
   }, [db, isUserLoading, user])
 
   const { data: myOffers, isLoading: isMyOffersLoading } = useCollection(myOffersQuery)
+
+  // Tri manuel côté client pour plus de robustesse
+  const sortedMyOffers = useMemo(() => {
+    if (!myOffers) return []
+    return [...myOffers].sort((a, b) => {
+      const timeA = a.createdAt?.seconds || 0
+      const timeB = b.createdAt?.seconds || 0
+      return timeB - timeA
+    })
+  }, [myOffers])
 
   const handleLogout = () => {
     signOut(auth)
@@ -71,7 +82,7 @@ export default function ProfilePage() {
     ville: profile?.ville || 'Inconnue',
     description: profile?.description || 'Passionné de football sur 100% Pass\' Déc\'.',
     stats: {
-      offres: myOffers?.length || 0,
+      offres: sortedMyOffers.length,
       avis: 0,
       rating: 5.0
     },
@@ -151,9 +162,9 @@ export default function ProfilePage() {
               <h3 className="text-left text-sm font-black uppercase italic tracking-widest text-primary border-b border-primary/20 pb-1">Mes Passes en cours</h3>
               {isMyOffersLoading ? (
                 <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-              ) : myOffers && myOffers.length > 0 ? (
+              ) : sortedMyOffers.length > 0 ? (
                 <div className="grid gap-4">
-                  {myOffers.map((offer) => (
+                  {sortedMyOffers.map((offer) => (
                     <Link 
                       key={offer.id} 
                       href={`/offres/${offer.id}`}
