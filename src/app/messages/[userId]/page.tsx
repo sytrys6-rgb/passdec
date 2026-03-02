@@ -77,18 +77,8 @@ export default function ChatPage() {
     const text = message.trim()
     setMessage('')
 
-    // Données du nouveau message
-    const msgData = {
-      senderId: user.uid,
-      text,
-      createdAt: serverTimestamp(),
-      read: false
-    }
-
-    // Ajout du message dans la sous-collection (non-bloquant pour UX fluide)
-    addDocumentNonBlocking(collection(db, 'conversations', convId, 'messages'), msgData)
-
-    // Mise à jour des métadonnées de la conversation
+    // 1. On met d'abord à jour (ou on crée) le document de conversation parent
+    // pour s'assurer que les règles de sécurité autorisent l'écriture du message.
     setDocumentNonBlocking(convRef, {
       participants: [user.uid, otherUserId].sort(),
       participantNames: {
@@ -99,6 +89,16 @@ export default function ChatPage() {
       lastMessageAt: serverTimestamp(),
       [`unreadCount.${otherUserId}`]: (conversation?.unreadCount?.[otherUserId] || 0) + 1
     }, { merge: true })
+
+    // 2. On ajoute le message dans la sous-collection
+    const msgData = {
+      senderId: user.uid,
+      text,
+      createdAt: serverTimestamp(),
+      read: false
+    }
+
+    addDocumentNonBlocking(collection(db, 'conversations', convId, 'messages'), msgData)
   }
 
   if (isUserLoading || !user) return null
