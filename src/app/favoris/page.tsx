@@ -9,7 +9,7 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, updateDocumentNonBlocking } from '@/firebase'
 import { useRouter } from 'next/navigation'
-import { doc, collection, query, where, orderBy } from 'firebase/firestore'
+import { doc, collection } from 'firebase/firestore'
 import { cn } from '@/lib/utils'
 
 /**
@@ -31,9 +31,10 @@ export default function FavoritesPage() {
   const favorites = profile?.favoris || []
 
   const offersQuery = useMemoFirebase(() => {
-    if (!db || favorites.length === 0) return null
-    return query(collection(db, 'offres'), where('isActive', '==', true), orderBy('createdAt', 'desc'))
-  }, [db, favorites])
+    if (!db || !user) return null
+    // Récupère toutes les offres pour filtrage client, évitant les erreurs d'index
+    return collection(db, 'offres')
+  }, [db, user])
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
@@ -46,7 +47,8 @@ export default function FavoritesPage() {
   const favoriteOffersList = useMemo(() => {
     if (!firestoreOffers) return []
     return firestoreOffers
-      .filter(offer => favorites.includes(offer.id))
+      .filter(offer => favorites.includes(offer.id) && offer.isActive !== false)
+      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
       .map(o => ({
         ...o,
         image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',

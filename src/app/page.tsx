@@ -11,7 +11,7 @@ import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2, MessageSq
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase'
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, updateDocumentNonBlocking } from '@/firebase'
 import { doc, collection, query, orderBy, where } from 'firebase/firestore'
 import placeholderData from '@/app/lib/placeholder-images.json'
 import { CITY_DATA, getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
@@ -64,7 +64,6 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // Simplification de la requête : on évite le mélange where + orderBy qui demande un index composite
   const offersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
     return collection(db, 'offres')
@@ -91,7 +90,6 @@ export default function HomePage() {
 
   const combinedOffers = useMemo(() => {
     if (!firestoreOffers) return []
-    // On trie par date de création côté client pour éviter le besoin d'index Firestore
     return [...firestoreOffers]
       .filter(o => o.isActive !== false)
       .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
@@ -141,10 +139,8 @@ export default function HomePage() {
       ? favorites.filter((id: string) => id !== offerId)
       : [...favorites, offerId]
 
-    import('@/firebase').then(({ updateDocumentNonBlocking }) => {
-      updateDocumentNonBlocking(userRef, { 
-        favoris: newFavorites 
-      })
+    updateDocumentNonBlocking(userRef, { 
+      favoris: newFavorites 
     })
   }
 
