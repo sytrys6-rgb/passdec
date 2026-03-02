@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, 
-  Loader2, Info, User, Mail, MessageCircle, Trophy, Flag, AlertTriangle 
+  Loader2, Info, User, Mail, MessageCircle, Trophy, Flag, AlertTriangle, Shield 
 } from 'lucide-react'
 import Image from 'next/image'
 import { allOffers } from '@/app/lib/offers'
@@ -19,6 +19,7 @@ import { doc, collection, query, where, serverTimestamp } from 'firebase/firesto
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import Link from 'next/link'
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from '@/components/ui/textarea'
+
+const ADMIN_UID = "OvtBOwidg7dc4lHw5rR56yqLlIT2"
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -338,6 +341,15 @@ export default function OfferDetailPage() {
                 "{authorProfile?.description || "Cette recrue n'a pas encore rempli son palmarès."}"
               </p>
             </div>
+
+            {user?.uid === ADMIN_UID && (
+              <Link href="/admin" className="mt-4">
+                <Button variant="ghost" size="sm" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary h-8 opacity-50 flex items-center gap-2">
+                  <Shield className="w-3.5 h-3.5" />
+                  Panel Arbitre
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
