@@ -109,16 +109,16 @@ export default function MessagesPage() {
                     )}
                   </div>
                   
-                  <div className="flex-grow flex flex-col gap-0.5 overflow-hidden">
-                    <div className="flex justify-between items-center">
-                      <span className="font-black uppercase italic tracking-tighter text-sm">{otherName}</span>
-                      <span className="text-[9px] text-muted-foreground font-bold uppercase">{lastMsgDate}</span>
+                  <div className="flex-grow flex flex-col gap-0.5 overflow-hidden text-left">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-black uppercase italic tracking-tighter text-sm truncate max-w-[150px]">{otherName}</span>
+                      <span className="text-[9px] text-muted-foreground font-bold uppercase shrink-0">{lastMsgDate}</span>
                     </div>
                     
                     {conv.offerTitle && (
-                      <div className="flex items-center gap-1 mb-0.5">
-                        <Trophy className="w-2.5 h-2.5 text-primary" />
-                        <span className="text-[8px] font-black uppercase tracking-widest text-primary truncate">
+                      <div className="flex items-center gap-1.5 mb-1.5 bg-primary/5 px-2 py-0.5 rounded-md w-fit max-w-full">
+                        <Trophy className="w-2.5 h-2.5 text-primary shrink-0" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-primary truncate">
                           {conv.offerTitle}
                         </span>
                       </div>

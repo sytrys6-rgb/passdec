@@ -64,6 +64,9 @@ export default function ChatPage() {
   const { data: otherProfile } = useDoc(otherUserRef)
   const { data: myProfile } = useDoc(myUserRef)
 
+  // Titre de l'annonce avec repli sur la conversation si l'annonce n'est pas chargée
+  const displayOfferTitle = currentOffer?.titre || conversation?.offerTitle || 'Discussion'
+
   useEffect(() => {
     if (scrollRef.current && messages) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
@@ -93,7 +96,7 @@ export default function ChatPage() {
         [otherUserId]: otherProfile?.nom || 'Recrue'
       },
       offerId: offerId,
-      offerTitle: currentOffer?.titre || 'Discussion',
+      offerTitle: displayOfferTitle,
       lastMessage: text,
       lastMessageAt: serverTimestamp(),
       [`unreadCount.${otherUserId}`]: increment(1),
@@ -120,20 +123,20 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-screen bg-background">
       <header className="p-4 glass-morphism border-b border-white/10 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.push('/messages')} className="rounded-full">
+        <div className="flex items-center gap-4 overflow-hidden">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/messages')} className="rounded-full shrink-0">
             <ArrowLeft className="w-6 h-6" />
           </Button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border border-primary/20 overflow-hidden relative">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border border-primary/20 overflow-hidden relative shrink-0">
               {otherProfile?.photoUrl ? (
                 <Image src={otherProfile.photoUrl} alt={otherProfile.nom} fill className="object-cover" unoptimized />
               ) : (
                 <User className="w-5 h-5 text-muted-foreground" />
               )}
             </div>
-            <div className="flex flex-col text-left">
-              <span className="font-black italic uppercase tracking-tighter text-sm">
+            <div className="flex flex-col text-left overflow-hidden">
+              <span className="font-black italic uppercase tracking-tighter text-sm truncate">
                 {otherProfile?.nom || 'Chargement...'}
               </span>
               <span className="text-[8px] font-bold uppercase tracking-widest text-primary">Match en direct</span>
@@ -141,22 +144,18 @@ export default function ChatPage() {
           </div>
         </div>
         
-        {currentOffer && (
-          <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest text-[8px] px-2 py-1 bg-primary/5 hidden sm:flex items-center gap-1 max-w-[150px] truncate">
-            <Trophy className="w-2.5 h-2.5" />
-            {currentOffer.titre}
-          </Badge>
-        )}
+        <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest text-[8px] px-2 py-1 bg-primary/5 hidden sm:flex items-center gap-1 max-w-[150px] truncate">
+          <Trophy className="w-2.5 h-2.5" />
+          {displayOfferTitle}
+        </Badge>
       </header>
 
-      {currentOffer && (
-        <div className="bg-primary/5 p-2 border-b border-white/5 flex justify-center sm:hidden">
-          <span className="text-[8px] font-black uppercase tracking-widest text-primary flex items-center gap-1 truncate max-w-[250px]">
-            <Trophy className="w-2.5 h-2.5" />
-            Objet : {currentOffer.titre}
-          </span>
-        </div>
-      )}
+      <div className="bg-primary/5 p-2 border-b border-white/5 flex justify-center sm:hidden">
+        <span className="text-[8px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5 truncate max-w-[280px]">
+          <Trophy className="w-3 h-3" />
+          OBJET : {displayOfferTitle}
+        </span>
+      </div>
 
       <div 
         ref={scrollRef}
