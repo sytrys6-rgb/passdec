@@ -11,15 +11,13 @@ import { useMemo } from 'react'
 import Image from 'next/image'
 
 /**
- * @fileOverview Barre de navigation principale avec détection robuste des messages non lus et logo persistant.
+ * @fileOverview Barre de navigation principale avec détection robuste des messages non lus.
  */
 
 export function Navigation() {
   const pathname = usePathname()
   const { user } = useUser()
   const db = useFirestore()
-
-  const logoUrl = "https://res.cloudinary.com/dfincejqz/image/upload/v1772489336/logo_fec345.jpg"
 
   // On écoute toutes les conversations où l'utilisateur est présent
   const convsQuery = useMemoFirebase(() => {
@@ -66,18 +64,6 @@ export function Navigation() {
 
   return (
     <>
-      {/* Logo persistant en haut à gauche */}
-      <div className="fixed top-0 left-0 p-6 z-50 pointer-events-none">
-        <Image 
-          src={logoUrl}
-          alt="100% Pass'Déc' Logo"
-          width={120}
-          height={48}
-          unoptimized={true}
-          className="object-contain"
-        />
-      </div>
-
       <nav className="fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t border-white/10 px-4 py-2 flex justify-around items-center h-20">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))

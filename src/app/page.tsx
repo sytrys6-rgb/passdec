@@ -32,6 +32,8 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isInitialized, setIsInitialized] = useState(false)
 
+  const logoUrl = "https://res.cloudinary.com/dfincejqz/image/upload/v1772489336/logo_fec345.jpg"
+
   useEffect(() => {
     const savedCity = sessionStorage.getItem('last_city') || 'all'
     const savedRadius = sessionStorage.getItem('last_radius') || '150'
@@ -176,10 +178,16 @@ export default function HomePage() {
               </Badge>
             </Link>
           )}
-          <h1 className="text-4xl font-black uppercase tracking-tighter">
-            <span className="italic text-primary">100%</span>{" "}
-            <span className="text-destructive">Pass' Déc'</span>
-          </h1>
+          
+          <Image 
+            src={logoUrl}
+            alt="100% Pass'Déc' Logo"
+            width={180}
+            height={72}
+            unoptimized={true}
+            className="object-contain"
+          />
+          
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
             Le réseau qui fait marquer
           </p>
