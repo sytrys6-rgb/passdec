@@ -1,10 +1,11 @@
+
 "use client"
 
 import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw, BookOpen, ChevronRight, Scale, Info, Shield, Cookie, FileText, Database, Smartphone, Trophy } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -23,6 +24,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -87,13 +96,13 @@ export default function ProfilePage() {
     })
   }
 
-  const handleEditInactive = (e: React.MouseEvent) => {
+  const handleInactiveFeature = (e: React.MouseEvent, featureName: string) => {
     e.preventDefault()
     e.stopPropagation()
     toast({
       variant: "warning",
       title: "Carton jaune !",
-      description: "La modification d'annonce sera disponible lors de la prochaine saison (mise à jour)."
+      description: `La section "${featureName}" est en cours de validation par la Ligue. Revenez plus tard.`
     })
   }
 
@@ -119,11 +128,55 @@ export default function ProfilePage() {
 
   const currentType = profileTypes[profileData.typeProfil as keyof typeof profileTypes] || profileTypes.particulier
 
+  const lawsOfGame = [
+    { name: "Nos Causes", icon: Trophy },
+    { name: "Politique de confidentialité", icon: Shield },
+    { name: "Politique de cookies", icon: Cookie },
+    { name: "Mentions légales", icon: FileText },
+    { name: "Gestion des données personnelles", icon: Database },
+    { name: "Conformité Stores", icon: Smartphone },
+    { name: "Spécificité football", icon: Scale },
+  ]
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <div className="relative h-48 w-full bg-gradient-to-b from-primary/20 to-transparent overflow-hidden border-b border-white/5">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
         <div className="absolute top-6 right-6 flex gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="glass-morphism rounded-full border-white/10">
+                <BookOpen className="w-5 h-5 text-primary" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-card border-white/10 rounded-3xl max-w-[90vw] sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2">
+                  <Scale className="w-5 h-5 text-primary" />
+                  Lois du Jeu
+                </DialogTitle>
+                <DialogDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Le règlement officiel du terrain Pass' Déc'
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col gap-2 mt-4">
+                {lawsOfGame.map((law) => (
+                  <button
+                    key={law.name}
+                    onClick={(e) => handleInactiveFeature(e, law.name)}
+                    className="flex items-center justify-between p-3 rounded-xl bg-background/50 border border-white/5 hover:border-primary/30 transition-all group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <law.icon className="w-4 h-4 text-primary" />
+                      <span className="text-[11px] font-black uppercase tracking-widest text-left">{law.name}</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </button>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <Link href="/profile/edit">
             <Button variant="ghost" size="icon" className="glass-morphism rounded-full border-white/10">
               <Settings className="w-5 h-5 text-primary" />
@@ -222,7 +275,7 @@ export default function ProfilePage() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            onClick={handleEditInactive}
+                            onClick={(e) => handleInactiveFeature(e, "Modification d'annonce")}
                             className="h-10 w-10 text-primary hover:bg-primary/10 rounded-full bg-background/50 backdrop-blur-sm border border-primary/20"
                             title="Procéder au changement (Modifier)"
                           >
