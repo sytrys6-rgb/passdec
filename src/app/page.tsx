@@ -53,17 +53,27 @@ export default function HomePage() {
   )
   if (!user) return null
 
+  // On enrichit toutes les offres (locales et firestore) avec des coordonnées si manquantes
   const combinedOffers = [
-    ...allOffers.map(o => ({
-      ...o,
-      latitude: CITY_DATA[o.ville]?.lat || 0,
-      longitude: CITY_DATA[o.ville]?.lng || 0,
-    })),
-    ...(firestoreOffers || []).map(o => ({
-      ...o,
-      image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
-      date: 'Publié récemment'
-    }))
+    ...allOffers.map(o => {
+      const cityCoords = CITY_DATA[o.ville];
+      return {
+        ...o,
+        latitude: cityCoords?.lat ?? 0,
+        longitude: cityCoords?.lng ?? 0,
+      };
+    }),
+    ...(firestoreOffers || []).map(o => {
+      const cityCoords = CITY_DATA[o.ville];
+      return {
+        ...o,
+        // On utilise les coordonnées stockées ou on fallback sur la ville
+        latitude: o.latitude ?? cityCoords?.lat ?? 0,
+        longitude: o.longitude ?? cityCoords?.lng ?? 0,
+        image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
+        date: 'Publié récemment'
+      };
+    })
   ]
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
@@ -85,17 +95,21 @@ export default function HomePage() {
 
     let matchesLocation = true;
     if (targetCityData) {
+      // Vérification stricte des coordonnées (latitude != 0)
       if (offer.latitude && offer.longitude) {
         const dist = calculateDistance(targetCityData.lat, targetCityData.lng, offer.latitude, offer.longitude)
+        // Rayon de 150km
         matchesLocation = dist <= 150;
       } else {
-        matchesLocation = offer.ville === targetCityName
+        // Fallback si pas de coordonnées : correspondance exacte du nom de ville
+        matchesLocation = offer.ville.toLowerCase() === targetCityName.toLowerCase()
       }
     }
 
     const matchesSearch = !searchQuery || 
       offer.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      offer.ville.toLowerCase().includes(searchQuery.toLowerCase())
+      offer.ville.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      offer.description.toLowerCase().includes(searchQuery.toLowerCase())
     
     return matchesCategory && matchesLocation && matchesSearch
   })
@@ -265,6 +279,7 @@ export default function HomePage() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <p className="text-sm font-bold uppercase italic tracking-widest">Aucun résultat trouvé</p>
+              <p className="text-[10px] uppercase font-bold mt-2">Essayez d'élargir votre recherche ou de changer de ville.</p>
             </div>
           )}
         </div>
