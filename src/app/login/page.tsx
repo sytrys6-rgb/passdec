@@ -86,6 +86,7 @@ export default function LoginPage() {
   }
 
   const heroImage = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1200&auto=format&fit=crop"
+  const logoUrl = "https://res.cloudinary.com/dfincejqz/image/upload/v1772489336/logo_fec345.jpg"
 
   if (isUserLoading) return null
 
@@ -103,12 +104,16 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full max-w-md z-10 flex flex-col gap-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-5xl font-black uppercase tracking-tighter">
-            <span className="italic text-primary">100%</span>{" "}
-            <span className="text-destructive">Pass' Déc'</span>
-          </h1>
-          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
+        <div className="flex flex-col items-center">
+          <Image 
+            src={logoUrl}
+            alt="100% Pass'Déc' Logo"
+            width={200}
+            height={80}
+            unoptimized={true}
+            className="object-contain"
+          />
+          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-4">
             Le réseau qui fait marquer
           </p>
         </div>
