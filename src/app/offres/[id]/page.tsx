@@ -38,7 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/dialog"
+} from "@/components/ui/alert-dialog"
 import {
   Select,
   SelectContent,
