@@ -149,7 +149,7 @@ export default function EditProfilePage() {
         {formData.typeProfil === 'particulier' && (
           <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
             <Label className="uppercase text-[10px] font-black tracking-[0.2em] text-primary ml-1 flex items-center gap-1.5">
-              <Heart className="w-3 h-3 fill-primary" /> Mon Club de cœur
+              Club de : 💛
             </Label>
             <Input 
               value={formData.clubPrefere}

@@ -90,10 +90,6 @@ export default function ProfilePage() {
   const handleDeleteOffer = async (e: React.MouseEvent, offerId: string, photoIds?: string[]) => {
     if (!db) return
 
-    if (photoIds && photoIds.length > 0) {
-      console.log(`[Cloudinary] Nettoyage requis pour les IDs: ${photoIds.join(', ')}`);
-    }
-
     const offerRef = doc(db, 'offres', offerId)
     deleteDocumentNonBlocking(offerRef)
     
@@ -146,7 +142,7 @@ export default function ProfilePage() {
     nom: profile?.nom || user.email?.split('@')[0] || 'Nouvelle Recrue',
     typeProfil: profile?.typeProfil || 'particulier',
     ville: profile?.ville || 'Inconnue',
-    description: profile?.description || 'Passionné de football.',
+    description: profile?.description || 'Cette recrue n\'a pas encore rempli son palmarès.',
     clubPrefere: profile?.clubPrefere || '',
     stats: {
       offres: sortedMyOffers.length,
@@ -270,8 +266,7 @@ export default function ProfilePage() {
 
           {profileData.clubPrefere && profileData.typeProfil === 'particulier' && (
             <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full border border-primary/20 mt-1">
-              <Heart className="w-3 h-3 text-primary fill-primary" />
-              <span className="text-[10px] font-black uppercase tracking-tighter text-primary">Fan de : {profileData.clubPrefere}</span>
+              <span className="text-[10px] font-black uppercase tracking-tighter text-primary">Club de : 💛 {profileData.clubPrefere}</span>
             </div>
           )}
 

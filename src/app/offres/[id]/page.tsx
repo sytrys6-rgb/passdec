@@ -353,8 +353,7 @@ export default function OfferDetailPage() {
               
               {authorProfile?.clubPrefere && authorProfile?.typeProfil === 'particulier' && (
                 <div className="flex items-center justify-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full border border-primary/20 w-fit mx-auto mb-1">
-                  <Heart className="w-3 h-3 text-primary fill-primary" />
-                  <span className="text-[9px] font-black uppercase tracking-tighter text-primary">Fan de : {authorProfile.clubPrefere}</span>
+                  <span className="text-[9px] font-black uppercase tracking-tighter text-primary">Club de : 💛 {authorProfile.clubPrefere}</span>
                 </div>
               )}
 
