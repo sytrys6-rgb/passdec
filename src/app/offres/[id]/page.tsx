@@ -5,11 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, Loader2, Info, User, Mail, MessageCircle } from 'lucide-react'
+import { ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, Loader2, Info, User, Mail, MessageCircle, Trophy } from 'lucide-react'
 import Image from 'next/image'
 import { allOffers } from '@/app/lib/offers'
-import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase'
+import { useFirestore, useDoc, useMemoFirebase, useUser, updateDocumentNonBlocking } from '@/firebase'
 import { doc } from 'firebase/firestore'
+import { cn } from '@/lib/utils'
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -52,6 +53,15 @@ export default function OfferDetailPage() {
     date: 'Publié récemment'
   } : null)
 
+  // Charger le profil de l'utilisateur actuel pour les favoris
+  const userRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, 'users', user.uid)
+  }, [db, user])
+  const { data: currentUserProfile } = useDoc(userRef)
+  const favorites = currentUserProfile?.favoris || []
+  const isFavorite = favorites.includes(id)
+
   // Charger le profil de l'auteur
   const authorId = offer?.userId
   const authorRef = useMemoFirebase(() => {
@@ -69,6 +79,21 @@ export default function OfferDetailPage() {
     if (offer?.userId) {
       router.push(`/messages/${offer.userId}`)
     }
+  }
+
+  const toggleFavorite = () => {
+    if (!userRef || !user) {
+      router.push('/login')
+      return
+    }
+
+    const newFavorites = isFavorite
+      ? favorites.filter((favId: string) => favId !== id)
+      : [...favorites, id]
+
+    updateDocumentNonBlocking(userRef, { 
+      favoris: newFavorites 
+    })
   }
 
   if (isFirestoreLoading) {
@@ -104,6 +129,7 @@ export default function OfferDetailPage() {
           fill 
           className="object-cover"
           priority
+          unoptimized
         />
         <div className="absolute top-6 left-6 flex gap-2">
           <Button 
@@ -115,7 +141,18 @@ export default function OfferDetailPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
         </div>
-        <div className="absolute top-6 right-6">
+        <div className="absolute top-6 right-6 flex gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleFavorite}
+            className={cn(
+              "glass-morphism rounded-full h-10 w-10 border-white/10 transition-all active:scale-90",
+              isFavorite ? "text-primary bg-primary/20 border-primary/30" : "text-white"
+            )}
+          >
+            <Trophy className={cn("w-5 h-5", isFavorite && "fill-primary")} />
+          </Button>
           <Button 
             variant="ghost" 
             size="icon" 
@@ -166,7 +203,6 @@ export default function OfferDetailPage() {
         </div>
       </div>
 
-      {/* SECTION FICHE FIFA */}
       <div className="px-6 mt-8">
         <h2 className="text-lg font-black italic uppercase tracking-tighter mb-4 flex items-center gap-2">
           <Info className="w-5 h-5 text-primary" />

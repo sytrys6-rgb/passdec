@@ -1,16 +1,22 @@
 
 "use client"
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
-import { Trophy, MapPin } from 'lucide-react'
+import { Trophy, MapPin, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { allOffers } from '@/app/lib/offers'
-import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, updateDocumentNonBlocking } from '@/firebase'
 import { useRouter } from 'next/navigation'
-import { doc } from 'firebase/firestore'
+import { doc, collection, query, orderBy } from 'firebase/firestore'
+import { cn } from '@/lib/utils'
+
+/**
+ * @fileOverview Page des favoris de l'utilisateur (Mes Trophées).
+ * Affiche les annonces mockées ET les annonces Firestore marquées comme favoris.
+ */
 
 export default function FavoritesPage() {
   const { user, isUserLoading } = useUser()
@@ -25,24 +31,42 @@ export default function FavoritesPage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
+  // Charger également toutes les annonces Firestore pour vérifier lesquelles sont en favoris
+  const offersQuery = useMemoFirebase(() => {
+    if (!db) return null
+    return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
+  }, [db])
+
+  const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
+
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login')
     }
   }, [user, isUserLoading, router])
 
-  const favoriteOffers = allOffers.filter(offer => favorites.includes(offer.id))
+  // Combiner les offres mockées et Firestore qui sont dans les favoris
+  const favoriteOffersList = useMemo(() => {
+    const mockFavs = allOffers.filter(offer => favorites.includes(offer.id))
+    const fsFavs = (firestoreOffers || [])
+      .filter(offer => favorites.includes(offer.id))
+      .map(o => ({
+        ...o,
+        image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
+        date: 'Publié récemment'
+      }))
+    
+    return [...mockFavs, ...fsFavs]
+  }, [favorites, firestoreOffers])
 
   const toggleFavorite = (e: React.MouseEvent, id: string) => {
     e.preventDefault()
     if (!userRef || !user) return
     const newFavs = favorites.filter((favId: string) => favId !== id)
     
-    // On utilise setDocument avec merge: true pour garantir que les favoris sont liés au compte user
-    setDocumentNonBlocking(userRef, { 
-      id: user.uid,
+    updateDocumentNonBlocking(userRef, { 
       favoris: newFavs 
-    }, { merge: true })
+    })
   }
 
   if (isUserLoading || !user) return null
@@ -58,9 +82,13 @@ export default function FavoritesPage() {
       </header>
 
       <div className="flex-grow px-6 pb-24">
-        {favoriteOffers.length > 0 ? (
+        {isOffersLoading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : favoriteOffersList.length > 0 ? (
           <div className="grid gap-6">
-            {favoriteOffers.map((offer) => (
+            {favoriteOffersList.map((offer) => (
               <Link 
                 href={`/offres/${offer.id}`}
                 key={offer.id} 
@@ -72,6 +100,7 @@ export default function FavoritesPage() {
                     alt={offer.titre} 
                     fill 
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    unoptimized
                   />
                   <div className="absolute top-3 left-3 flex gap-2">
                     <Badge className="bg-primary text-black text-[10px] uppercase font-black tracking-wider px-2 py-0.5">
