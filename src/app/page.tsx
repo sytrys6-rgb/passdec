@@ -18,7 +18,7 @@ import placeholderData from '@/app/lib/placeholder-images.json'
 import { CITY_DATA, getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 
 /**
- * @fileOverview Page d'accueil avec système d'alerte numérique immédiate.
+ * @fileOverview Page d'accueil avec système d'alerte numérique Lu / Non lu.
  */
 
 export default function HomePage() {
@@ -26,17 +26,11 @@ export default function HomePage() {
   const db = useFirestore()
   const router = useRouter()
   
-  const [now, setNow] = useState<number>(Date.now())
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<string>('all')
   const [activeRadius, setActiveRadius] = useState<number>(150)
   const [searchQuery, setSearchQuery] = useState('')
   const [isInitialized, setIsInitialized] = useState(false)
-
-  useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 10000)
-    return () => clearInterval(interval)
-  }, [])
 
   useEffect(() => {
     const savedCity = sessionStorage.getItem('last_city') || 'all'
@@ -88,25 +82,14 @@ export default function HomePage() {
   
   const { data: conversations } = useCollection(convsQuery)
   
-  const unreadStats = useMemo(() => {
-    if (!conversations || !user) return { totalUnread: 0, hasDelayed: false }
-    
-    let totalUnread = 0
-    let hasDelayed = false
-
+  const totalUnread = useMemo(() => {
+    if (!conversations || !user) return 0
+    let count = 0
     conversations.forEach(conv => {
-      const count = conv.unreadCount?.[user.uid] || 0
-      if (count > 0) {
-        totalUnread += count
-        const lastTime = conv.lastMessageAt?.seconds || (Date.now() / 1000)
-        if ((now / 1000 - lastTime) > 60) {
-          hasDelayed = true
-        }
-      }
+      count += (conv.unreadCount?.[user.uid] || 0)
     })
-
-    return { totalUnread, hasDelayed }
-  }, [conversations, user, now])
+    return count
+  }, [conversations, user])
 
   if (isUserLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -184,19 +167,11 @@ export default function HomePage() {
         </div>
 
         <div className="text-center flex flex-col items-center">
-          {unreadStats.totalUnread > 0 && (
-            <Link href="/messages" className={cn("mb-2", unreadStats.hasDelayed && "animate-bounce")}>
-              <Badge className={cn(
-                "border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg flex items-center gap-2 transition-all duration-500",
-                unreadStats.hasDelayed 
-                  ? "bg-destructive text-white shadow-destructive/40" 
-                  : "bg-primary text-black shadow-primary/40"
-              )}>
-                <MessageSquare className={cn("w-3 h-3", unreadStats.hasDelayed ? "fill-white" : "fill-black")} />
-                <span className="flex items-center gap-1">
-                  {unreadStats.totalUnread} {unreadStats.totalUnread > 1 ? 'passes décisives' : 'passe décisive'}
-                  {unreadStats.hasDelayed ? " : Carton Rouge !" : " au vestiaire"}
-                </span>
+          {totalUnread > 0 && (
+            <Link href="/messages" className="mb-2">
+              <Badge className="bg-orange-500 text-white border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg shadow-orange-500/20 flex items-center gap-2">
+                <MessageSquare className="w-3 h-3 fill-white" />
+                <span>{totalUnread} {totalUnread > 1 ? 'passes' : 'passe'} non lue(s)</span>
               </Badge>
             </Link>
           )}
@@ -220,7 +195,6 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Reste du composant identique... */}
       <section className="px-6 py-2">
         <div className="grid grid-cols-4 gap-3">
           {[
@@ -346,7 +320,6 @@ export default function HomePage() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <p className="text-sm font-bold uppercase italic tracking-widest">Aucun résultat trouvé</p>
-              <p className="text-[10px] uppercase font-bold mt-2">Essayez d'élargir votre recherche ou de changer de ville.</p>
             </div>
           )}
         </div>

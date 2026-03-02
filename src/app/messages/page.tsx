@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Navigation } from '@/components/Navigation'
-import { MessageCircle, User, Loader2, Trophy, Trash2, Check, AlertCircle, Bell } from 'lucide-react'
+import { MessageCircle, User, Loader2, Trophy, Trash2, Check } from 'lucide-react'
 import Link from 'next/link'
 import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase'
 import { useRouter } from 'next/navigation'
@@ -51,12 +51,6 @@ export default function MessagesPage() {
   const db = useFirestore()
   const router = useRouter()
   const { toast } = useToast()
-  const [now, setNow] = useState(Date.now())
-
-  useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 5000)
-    return () => clearInterval(interval)
-  }, [])
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -107,7 +101,7 @@ export default function MessagesPage() {
         <h1 className="text-3xl font-black italic uppercase tracking-tighter">Vestiaires</h1>
         <div className="h-1 w-12 bg-primary mt-1 rounded-full" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-2">
-          Vos échanges tactiques par annonce
+          Vos échanges par annonce (Lu / Non lu)
         </p>
       </header>
 
@@ -121,8 +115,6 @@ export default function MessagesPage() {
             const otherId = conv.participants.find((id: string) => id !== user.uid)
             const otherName = conv.participantNames?.[otherId] || 'Recrue'
             const unreadCount = conv.unreadCount?.[user.uid] || 0
-            const lastTime = conv.lastMessageAt?.seconds || (Date.now() / 1000)
-            const isDelayed = unreadCount > 0 && (now / 1000 - lastTime) > 60
 
             const lastMsgDate = conv.lastMessageAt?.seconds 
               ? formatDistanceToNow(new Date(conv.lastMessageAt.seconds * 1000), { addSuffix: true, locale: fr })
@@ -130,13 +122,10 @@ export default function MessagesPage() {
             
             const targetOfferId = conv.offerId || 'default'
 
-            // Couleurs et sigles dynamiques
-            const statusColor = unreadCount > 0 
-              ? (isDelayed ? "text-destructive" : "text-orange-500") 
-              : "text-primary"
-            
+            // Code couleur simple : Orange = Non lu, Vert = Lu
+            const statusColor = unreadCount > 0 ? "text-orange-500" : "text-primary"
             const statusBadgeColor = unreadCount > 0 
-              ? (isDelayed ? "bg-destructive text-white" : "bg-orange-500 text-white") 
+              ? "bg-orange-500 text-white" 
               : "bg-primary/10 text-primary border-primary/20"
 
             return (
@@ -146,9 +135,7 @@ export default function MessagesPage() {
                   className={cn(
                     "flex flex-col p-4 rounded-3xl bg-card border transition-all shadow-xl relative pr-14",
                     unreadCount > 0 
-                      ? isDelayed 
-                        ? "border-destructive/50 bg-destructive/5 shadow-destructive/10 border-2" 
-                        : "border-orange-500/50 bg-orange-500/5 shadow-orange-500/10 border-2"
+                      ? "border-orange-500/50 bg-orange-500/5 border-2 shadow-orange-500/5" 
                       : "border-white/5 hover:border-primary/20"
                   )}
                 >
@@ -156,17 +143,12 @@ export default function MessagesPage() {
                     <div className="relative">
                       <div className={cn(
                         "w-14 h-14 rounded-2xl overflow-hidden bg-muted border-2 flex items-center justify-center transition-all",
-                        unreadCount > 0 
-                          ? isDelayed ? "border-destructive" : "border-orange-500" 
-                          : "border-white/10 group-hover:border-primary/50"
+                        unreadCount > 0 ? "border-orange-500" : "border-white/10"
                       )}>
                         <User className="w-6 h-6 text-muted-foreground" />
                       </div>
                       {unreadCount > 0 && (
-                        <div className={cn(
-                          "absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full border-2 border-background z-10 shadow-lg",
-                          isDelayed ? "bg-destructive animate-bounce" : "bg-orange-500 animate-pulse"
-                        )}>
+                        <div className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center rounded-full border-2 border-background z-10 shadow-lg bg-orange-500">
                           <span className="text-[10px] font-black text-white italic">{unreadCount}</span>
                         </div>
                       )}
@@ -180,7 +162,6 @@ export default function MessagesPage() {
                             unreadCount > 0 ? "text-foreground" : "text-muted-foreground"
                           )}>{otherName}</span>
                           
-                          {/* SIGLES D'INFORMATION */}
                           {unreadCount > 0 ? (
                             <WhistleIcon className={cn("w-5 h-5 shrink-0 animate-bounce", statusColor)} />
                           ) : (
@@ -195,7 +176,7 @@ export default function MessagesPage() {
                           "font-black uppercase tracking-widest text-[8px] px-2 py-0.5 border-none",
                           statusBadgeColor
                         )}>
-                          {unreadCount > 0 ? (isDelayed ? "🚨 URGENT" : "📣 NOUVEAU") : "✅ LU"}
+                          {unreadCount > 0 ? "📣 NOUVEAU" : "✅ LU"}
                         </Badge>
                       </div>
                     </div>
@@ -204,7 +185,7 @@ export default function MessagesPage() {
                   <div className={cn(
                     "flex items-center gap-2 p-2 rounded-xl border transition-colors",
                     unreadCount > 0 
-                      ? (isDelayed ? "bg-destructive/10 border-destructive/20" : "bg-orange-500/10 border-orange-500/20")
+                      ? "bg-orange-500/10 border-orange-500/20"
                       : "bg-white/5 border-white/5"
                   )}>
                     <Trophy className={cn("w-3.5 h-3.5 shrink-0", statusColor)} />
@@ -231,7 +212,6 @@ export default function MessagesPage() {
                         variant="ghost"
                         size="icon"
                         className="h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Sortie définitive (Supprimer)"
                       >
                         <Trash2 className="w-5 h-5" />
                       </Button>
@@ -240,7 +220,7 @@ export default function MessagesPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter">Sortie définitive ?</AlertDialogTitle>
                         <AlertDialogDescription className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                          Voulez-vous retirer cette conversation de votre vestiaire ? L'autre joueur pourra toujours voir l'historique de son côté.
+                          Voulez-vous retirer cette conversation de votre vestiaire ?
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -249,7 +229,7 @@ export default function MessagesPage() {
                           onClick={() => handleDeleteConversation(conv.id)}
                           className="bg-destructive text-white hover:bg-destructive/90 rounded-xl font-black uppercase tracking-tighter text-xs"
                         >
-                          Confirmer la sortie
+                          Confirmer
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -263,7 +243,6 @@ export default function MessagesPage() {
             <MessageCircle className="w-12 h-12 text-primary/10" />
             <div className="text-center">
               <p className="text-sm font-black uppercase tracking-widest italic">Vestiaire vide</p>
-              <p className="text-[10px] font-bold mt-2">Contactez un joueur sur une annonce pour discuter.</p>
             </div>
           </div>
         )}
