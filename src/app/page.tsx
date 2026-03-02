@@ -7,7 +7,7 @@ import { Navigation } from '@/components/Navigation'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2, MessageSquare, Plus } from 'lucide-react'
+import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2, MessageSquare, Plus, Activity } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -161,14 +161,21 @@ export default function HomePage() {
         </div>
 
         <div className="text-center flex flex-col items-center">
-          {totalUnread > 0 && (
-            <Link href="/messages" className="mb-2">
-              <Badge className="bg-orange-500 text-white border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg shadow-orange-500/20 flex items-center gap-2 animate-in slide-in-from-top duration-500">
-                <MessageSquare className="w-3 h-3 fill-white" />
-                <span>{totalUnread} {totalUnread > 1 ? 'passes' : 'passe'} non lue(s)</span>
-              </Badge>
-            </Link>
-          )}
+          <div className="flex flex-wrap justify-center gap-2 mb-2">
+            {totalUnread > 0 && (
+              <Link href="/messages">
+                <Badge className="bg-orange-500 text-white border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg shadow-orange-500/20 flex items-center gap-2 animate-in slide-in-from-top duration-500">
+                  <MessageSquare className="w-3 h-3 fill-white" />
+                  <span>{totalUnread} {totalUnread > 1 ? 'passes' : 'passe'} non lue(s)</span>
+                </Badge>
+              </Link>
+            )}
+            
+            <Badge variant="outline" className="border-primary/50 text-primary font-black uppercase italic tracking-tighter px-4 py-1.5 bg-primary/5 flex items-center gap-2 shadow-lg shadow-primary/5">
+              <Activity className="w-3 h-3 animate-pulse" />
+              <span>Mercato : {combinedOffers.length} passes</span>
+            </Badge>
+          </div>
           
           <h1 className="text-4xl font-black italic uppercase tracking-tighter">
             <span className="text-primary">100%</span> <span className="text-secondary">Pass&apos; Déc&apos;</span>
