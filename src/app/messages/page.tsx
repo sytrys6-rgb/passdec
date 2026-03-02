@@ -3,15 +3,18 @@
 
 import { useEffect } from 'react'
 import { Navigation } from '@/components/Navigation'
-import { Badge } from '@/components/ui/badge'
 import { MessageCircle, User, Loader2 } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase'
 import { useRouter } from 'next/navigation'
 import { collection, query, where, orderBy } from 'firebase/firestore'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
+
+/**
+ * @fileOverview Liste des conversations de l'utilisateur.
+ * Utilise Firestore pour récupérer les échanges en temps réel.
+ */
 
 export default function MessagesPage() {
   const { user, isUserLoading } = useUser()
@@ -24,6 +27,7 @@ export default function MessagesPage() {
     }
   }, [user, isUserLoading, router])
 
+  // Récupération des conversations où l'utilisateur est participant
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(
@@ -43,7 +47,7 @@ export default function MessagesPage() {
         <h1 className="text-3xl font-black italic uppercase tracking-tighter">Vestiaires</h1>
         <div className="h-1 w-12 bg-primary mt-1 rounded-full" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-2">
-          Vos échanges tactiques
+          Vos échanges tactiques (Temps réel)
         </p>
       </header>
 
@@ -55,7 +59,7 @@ export default function MessagesPage() {
         ) : conversations && conversations.length > 0 ? (
           conversations.map((conv) => {
             const otherId = conv.participants.find((id: string) => id !== user.uid)
-            const otherName = conv.participantNames?.[otherId] || 'Recrue Inconnue'
+            const otherName = conv.participantNames?.[otherId] || 'Recrue'
             const unreadCount = conv.unreadCount?.[user.uid] || 0
             const lastMsgDate = conv.lastMessageAt?.seconds 
               ? formatDistanceToNow(new Date(conv.lastMessageAt.seconds * 1000), { addSuffix: true, locale: fr })

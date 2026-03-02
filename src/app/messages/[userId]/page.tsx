@@ -13,6 +13,11 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
+/**
+ * @fileOverview Page de chat privée entre deux utilisateurs.
+ * Gère l'envoi et la réception de messages en temps réel via Firestore.
+ */
+
 export default function ChatPage() {
   const params = useParams()
   const router = useRouter()
@@ -22,35 +27,41 @@ export default function ChatPage() {
   const [message, setMessage] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Construction de l'ID de conversation déterministe
+  // Construction de l'ID de conversation déterministe (userId1_userId2 trié)
   const convId = useMemoFirebase(() => {
     if (!user || !otherUserId) return null
     const ids = [user.uid, otherUserId].sort()
     return `${ids[0]}_${ids[1]}`
   }, [user, otherUserId])
 
-  // Refs Firestore
+  // Références Firestore
   const convRef = useMemoFirebase(() => db && convId ? doc(db, 'conversations', convId) : null, [db, convId])
+  
   const messagesQuery = useMemoFirebase(() => {
     if (!db || !convId) return null
-    return query(collection(db, 'conversations', convId, 'messages'), orderBy('createdAt', 'asc'), limit(50))
+    return query(
+      collection(db, 'conversations', convId, 'messages'), 
+      orderBy('createdAt', 'asc'), 
+      limit(50)
+    )
   }, [db, convId])
+
   const otherUserRef = useMemoFirebase(() => db && otherUserId ? doc(db, 'users', otherUserId) : null, [db, otherUserId])
 
-  // Données
+  // Données Firestore en temps réel
   const { data: conversation, isLoading: isConvLoading } = useDoc(convRef)
   const { data: messages } = useCollection(messagesQuery)
   const { data: otherProfile } = useDoc(otherUserRef)
   const { data: myProfile } = useDoc(user ? doc(db!, 'users', user.uid) : null)
 
-  // Scroll en bas auto
+  // Auto-scroll vers le bas lors de l'arrivée de nouveaux messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
 
-  // Marquer comme lu
+  // Marquer la conversation comme lue pour l'utilisateur actuel
   useEffect(() => {
     if (convRef && user && conversation?.unreadCount?.[user.uid] > 0) {
       updateDocumentNonBlocking(convRef, {
@@ -66,6 +77,7 @@ export default function ChatPage() {
     const text = message.trim()
     setMessage('')
 
+    // Données du nouveau message
     const msgData = {
       senderId: user.uid,
       text,
@@ -73,10 +85,10 @@ export default function ChatPage() {
       read: false
     }
 
-    // Ajout du message
+    // Ajout du message dans la sous-collection (non-bloquant pour UX fluide)
     addDocumentNonBlocking(collection(db, 'conversations', convId, 'messages'), msgData)
 
-    // Update conversation meta
+    // Mise à jour des métadonnées de la conversation
     setDocumentNonBlocking(convRef, {
       participants: [user.uid, otherUserId].sort(),
       participantNames: {
@@ -93,7 +105,7 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Header */}
+      {/* Header du Chat */}
       <header className="p-4 glass-morphism border-b border-white/10 flex items-center gap-4 sticky top-0 z-50">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
           <ArrowLeft className="w-6 h-6" />
@@ -106,18 +118,20 @@ export default function ChatPage() {
             <span className="font-black italic uppercase tracking-tighter text-sm">
               {otherProfile?.nom || 'Chargement...'}
             </span>
-            <span className="text-[8px] font-bold uppercase tracking-widest text-primary">En ligne (Match en cours)</span>
+            <span className="text-[8px] font-bold uppercase tracking-widest text-primary">Match en direct</span>
           </div>
         </div>
       </header>
 
-      {/* Messages */}
+      {/* Zone de Messages */}
       <div 
         ref={scrollRef}
         className="flex-grow overflow-y-auto p-6 flex flex-col gap-4 pb-32"
       >
         {isConvLoading ? (
-          <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+          <div className="flex justify-center py-10">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
         ) : messages && messages.length > 0 ? (
           messages.map((msg, idx) => {
             const isMe = msg.senderId === user.uid
@@ -150,12 +164,12 @@ export default function ChatPage() {
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center opacity-30">
             <Send className="w-12 h-12 mb-4" />
-            <p className="text-xs font-black uppercase tracking-widest italic">Envoyez le premier ballon !</p>
+            <p className="text-xs font-black uppercase tracking-widest italic">Engagez le jeu !</p>
           </div>
         )}
       </div>
 
-      {/* Input */}
+      {/* Input de Message */}
       <form 
         onSubmit={handleSend}
         className="fixed bottom-0 left-0 right-0 p-4 pb-10 glass-morphism border-t border-white/10 flex gap-2"
@@ -163,7 +177,7 @@ export default function ChatPage() {
         <Input 
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Écrivez votre message..."
+          placeholder="Entrez votre passe décisive..."
           className="bg-card border-none ring-1 ring-white/10 focus-visible:ring-primary rounded-xl h-12 font-medium"
         />
         <Button 
