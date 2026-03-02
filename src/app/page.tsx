@@ -18,8 +18,7 @@ import placeholderData from '@/app/lib/placeholder-images.json'
 import { CITY_DATA, getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 
 /**
- * @fileOverview Page d'accueil avec système d'alerte de nouveaux messages intégré.
- * Affiche un badge "Nouveau message" si un message est non lu depuis plus d'une minute.
+ * @fileOverview Page d'accueil avec système d'alerte multiniveaux (Immédiat / Carton Rouge).
  */
 
 export default function HomePage() {
@@ -27,16 +26,15 @@ export default function HomePage() {
   const db = useFirestore()
   const router = useRouter()
   
-  const [now, setNow] = useState<number | null>(null)
+  const [now, setNow] = useState<number>(Date.now())
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<string>('all')
   const [activeRadius, setActiveRadius] = useState<number>(150)
   const [searchQuery, setSearchQuery] = useState('')
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Gestion du temps pour la notification différée
+  // Gestion du temps
   useEffect(() => {
-    setNow(Date.now())
     const interval = setInterval(() => setNow(Date.now()), 10000)
     return () => clearInterval(interval)
   }, [])
@@ -86,20 +84,32 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  // Surveillance des messages non lus depuis plus d'une minute
+  // Surveillance des messages non lus
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, 'conversations'), where('participants', 'array-contains', user.uid))
   }, [db, user])
+  
   const { data: conversations } = useCollection(convsQuery)
   
-  const hasUnreadDelayed = useMemo(() => {
-    if (!conversations || !user || !now) return false
-    return conversations.some(conv => {
+  const unreadStats = useMemo(() => {
+    if (!conversations || !user) return { hasUnread: false, hasDelayed: false }
+    
+    let hasUnread = false
+    let hasDelayed = false
+
+    conversations.forEach(conv => {
       const count = conv.unreadCount?.[user.uid] || 0
-      const lastTime = conv.lastMessageAt?.seconds || 0
-      return count > 0 && (now / 1000 - lastTime) > 60
+      if (count > 0) {
+        hasUnread = true
+        const lastTime = conv.lastMessageAt?.seconds || (Date.now() / 1000)
+        if ((now / 1000 - lastTime) > 60) {
+          hasDelayed = true
+        }
+      }
     })
+
+    return { hasUnread, hasDelayed }
   }, [conversations, user, now])
 
   if (isUserLoading) return (
@@ -185,11 +195,16 @@ export default function HomePage() {
         </div>
 
         <div className="text-center flex flex-col items-center">
-          {hasUnreadDelayed && (
-            <Link href="/messages" className="animate-bounce mb-2">
-              <Badge className="bg-destructive text-white border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg shadow-destructive/20 flex items-center gap-2">
-                <MessageSquare className="w-3 h-3 fill-white" />
-                Nouveau message au vestiaire !
+          {unreadStats.hasUnread && (
+            <Link href="/messages" className={cn("mb-2", unreadStats.hasDelayed && "animate-bounce")}>
+              <Badge className={cn(
+                "border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg flex items-center gap-2 transition-colors duration-500",
+                unreadStats.hasDelayed 
+                  ? "bg-destructive text-white shadow-destructive/20" 
+                  : "bg-primary text-black shadow-primary/20"
+              )}>
+                <MessageSquare className={cn("w-3 h-3", unreadStats.hasDelayed ? "fill-white" : "fill-black")} />
+                {unreadStats.hasDelayed ? "Carton Rouge : Message en attente !" : "Nouveau message au vestiaire"}
               </Badge>
             </Link>
           )}

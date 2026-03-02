@@ -10,20 +10,20 @@ import { collection, query, where } from 'firebase/firestore'
 import { useMemo, useState, useEffect } from 'react'
 
 /**
- * @fileOverview Barre de navigation principale avec notification "Carton Rouge" différée.
- * L'icône devient rouge et pulse uniquement si un message est non lu depuis plus d'une minute.
+ * @fileOverview Barre de navigation principale avec système d'alerte multiniveaux.
+ * - Point de notification : Immédiat si message non lu.
+ * - Carton Rouge : Pulsation et couleur rouge si message non lu depuis > 1 min.
  */
 
 export function Navigation() {
   const pathname = usePathname()
   const { user } = useUser()
   const db = useFirestore()
-  const [now, setNow] = useState<number | null>(null)
+  const [now, setNow] = useState<number>(Date.now())
 
-  // Initialisation du temps pour éviter les erreurs d'hydratation et gérer le délai d'une minute
+  // Mise à jour régulière du temps pour la règle de la minute
   useEffect(() => {
-    setNow(Date.now())
-    const interval = setInterval(() => setNow(Date.now()), 5000) // Mise à jour toutes les 5s
+    const interval = setInterval(() => setNow(Date.now()), 5000)
     return () => clearInterval(interval)
   }, [])
 
@@ -38,22 +38,38 @@ export function Navigation() {
 
   const { data: conversations } = useCollection(convsQuery)
 
-  // Vérification des messages non lus depuis plus d'une minute
-  const hasUnreadDelayed = useMemo(() => {
-    if (!conversations || !user || !now) return false
-    return conversations.some(conv => {
+  // Analyse des messages non lus
+  const unreadStats = useMemo(() => {
+    if (!conversations || !user) return { hasUnread: false, hasDelayed: false }
+    
+    let hasUnread = false
+    let hasDelayed = false
+
+    conversations.forEach(conv => {
       const count = conv.unreadCount?.[user.uid] || 0
-      const lastTime = conv.lastMessageAt?.seconds || 0
-      const isDelayed = (now / 1000 - lastTime) > 60 // Plus de 60 secondes
-      return count > 0 && isDelayed
+      if (count > 0) {
+        hasUnread = true
+        const lastTime = conv.lastMessageAt?.seconds || (Date.now() / 1000)
+        if ((now / 1000 - lastTime) > 60) {
+          hasDelayed = true
+        }
+      }
     })
+
+    return { hasUnread, hasDelayed }
   }, [conversations, user, now])
 
   const navItems = [
     { href: '/', icon: Home, label: 'Accueil' },
     { href: '/favoris', icon: Trophy, label: 'Favoris' },
     { href: '/offres/new', icon: PlusCircle, label: 'Publier' },
-    { href: '/messages', icon: MessageSquare, label: 'Messages', hasNotification: hasUnreadDelayed },
+    { 
+      href: '/messages', 
+      icon: MessageSquare, 
+      label: 'Messages', 
+      hasNotification: unreadStats.hasUnread,
+      isDelayed: unreadStats.hasDelayed
+    },
     { href: '/profile', icon: User, label: 'Profil' },
   ]
 
@@ -61,7 +77,8 @@ export function Navigation() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t border-white/10 px-4 py-2 flex justify-around items-center h-20">
       {navItems.map((item) => {
         const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
-        const isNotified = item.hasNotification && !isActive
+        const showNotif = item.hasNotification && !isActive
+        const showDelayed = item.isDelayed && !isActive
 
         return (
           <Link
@@ -75,22 +92,27 @@ export function Navigation() {
             <div className={cn(
               "relative p-2 rounded-full transition-all duration-500",
               isActive && "bg-primary/10",
-              isNotified && "bg-destructive/10"
+              showDelayed && "bg-destructive/10"
             )}>
               <item.icon className={cn(
                 "w-6 h-6 transition-colors", 
                 isActive && "fill-primary/20",
-                isNotified && "text-destructive fill-destructive/20 animate-pulse scale-110"
+                showDelayed && "text-destructive fill-destructive/20 animate-pulse scale-110"
               )} />
               
-              {/* Point de notification (Carton Rouge) */}
-              {isNotified && (
-                <div className="absolute top-1 right-1 w-3.5 h-3.5 bg-destructive rounded-full border-2 border-background shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-in zoom-in-50 duration-300" />
+              {/* Point de notification (Immédiat) */}
+              {showNotif && (
+                <div className={cn(
+                  "absolute top-1 right-1 w-3 h-3 rounded-full border-2 border-background shadow-lg transition-colors duration-500",
+                  showDelayed 
+                    ? "bg-destructive shadow-[0_0_10px_rgba(239,68,68,0.6)]" 
+                    : "bg-primary shadow-[0_0_8px_rgba(163,230,53,0.4)]"
+                )} />
               )}
             </div>
             <span className={cn(
               "text-[10px] font-black uppercase tracking-widest transition-colors",
-              isNotified && "text-destructive"
+              showDelayed && "text-destructive"
             )}>
               {item.label}
             </span>
