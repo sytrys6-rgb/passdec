@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw, BookOpen, ChevronRight, Scale, Info, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw, Flag, ChevronRight, Info, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -160,7 +160,7 @@ export default function ProfilePage() {
     { name: "Mentions légales", icon: FileText },
     { name: "Gestion des données personnelles", icon: Database },
     { name: "Conformité Stores", icon: Smartphone },
-    { name: "Spécificité football", icon: Scale },
+    { name: "Spécificité football", icon: Flag },
   ]
 
   return (
@@ -171,13 +171,13 @@ export default function ProfilePage() {
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="ghost" size="icon" className="glass-morphism rounded-full border-white/10">
-                <BookOpen className="w-5 h-5 text-primary" />
+                <Flag className="w-5 h-5 text-primary" />
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-card border-white/10 rounded-3xl max-w-[90vw] sm:max-w-md">
               <DialogHeader>
                 <DialogTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2">
-                  <Scale className="w-5 h-5 text-primary" />
+                  <Flag className="w-5 h-5 text-primary" />
                   Lois du Jeu
                 </DialogTitle>
                 <DialogDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
