@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -12,11 +13,13 @@ import { useRouter } from 'next/navigation'
 import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
 import { doc, serverTimestamp } from 'firebase/firestore'
 import { MAIN_CITIES } from '@/app/lib/cities'
+import { useToast } from '@/hooks/use-toast'
 
 export default function EditProfilePage() {
   const router = useRouter()
   const { user, isUserLoading } = useUser()
   const db = useFirestore()
+  const { toast } = useToast()
   
   const userRef = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -68,6 +71,14 @@ export default function EditProfilePage() {
     router.push('/profile')
   }
 
+  const handlePhotoClick = () => {
+    toast({
+      variant: "warning",
+      title: "Carton Jaune !",
+      description: "La modification de la photo de profil est bloquée pour le moment."
+    })
+  }
+
   if (isUserLoading || !user) return null
 
   return (
@@ -91,7 +102,10 @@ export default function EditProfilePage() {
 
       <form onSubmit={handleSave} className="flex flex-col gap-6 pb-24">
         <div className="flex flex-col items-center gap-4 mb-4">
-          <div className="relative group cursor-pointer">
+          <div 
+            onClick={handlePhotoClick}
+            className="relative group cursor-pointer"
+          >
             <div className="w-24 h-24 rounded-3xl overflow-hidden border-2 border-primary/20 bg-card flex items-center justify-center">
               <Camera className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
