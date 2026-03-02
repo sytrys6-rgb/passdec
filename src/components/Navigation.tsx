@@ -17,10 +17,10 @@ import { useMemo } from 'react'
 
 export function Navigation() {
   const pathname = usePathname()
-  const { user, isUserLoading } = useUser()
+  const { user } = useUser()
   const db = useFirestore()
 
-  // Requête temps réel pour toutes les conversations de l'utilisateur
+  // On écoute toutes les conversations où l'utilisateur est participant
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(
@@ -31,9 +31,10 @@ export function Navigation() {
 
   const { data: conversations } = useCollection(convsQuery)
 
-  // Calcul réactif du nombre total de messages non lus pour l'utilisateur connecté
+  // Calcul du statut de notification en temps réel
   const hasUnread = useMemo(() => {
     if (!conversations || !user) return false
+    // On vérifie si au moins une conversation a un compteur de messages non lus pour MOI
     return conversations.some(conv => (conv.unreadCount?.[user.uid] || 0) > 0)
   }, [conversations, user])
 
@@ -48,8 +49,9 @@ export function Navigation() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t border-white/10 px-4 py-2 flex justify-around items-center h-20">
       {navItems.map((item) => {
-        const isActive = pathname === item.href
-        const isNotified = item.hasNotification
+        // Un item est actif si on est sur sa page ou une sous-page (ex: /messages/123)
+        const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+        const isNotified = item.hasNotification && !isActive
 
         return (
           <Link
@@ -67,17 +69,17 @@ export function Navigation() {
               <item.icon className={cn(
                 "w-6 h-6 transition-colors", 
                 isActive && "fill-primary/20",
-                isNotified && !isActive && "text-destructive animate-pulse"
+                isNotified && "text-destructive fill-destructive/10 animate-pulse"
               )} />
               
-              {/* Point de notification rouge simple */}
+              {/* Point de notification rouge vif (Carton Rouge) */}
               {isNotified && (
-                <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-background shadow-lg animate-in zoom-in-50 duration-300" />
+                <div className="absolute top-1.5 right-1.5 w-3 h-3 bg-destructive rounded-full border-2 border-background shadow-lg shadow-destructive/40 animate-in zoom-in-50 duration-300" />
               )}
             </div>
             <span className={cn(
-              "text-[10px] font-bold uppercase tracking-widest",
-              isNotified && !isActive && "text-destructive"
+              "text-[10px] font-black uppercase tracking-widest",
+              isNotified && "text-destructive font-black"
             )}>
               {item.label}
             </span>
