@@ -1,39 +1,38 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useToast } from '@/hooks/use-toast';
 
 /**
- * An invisible component that listens for globally emitted 'permission-error' events.
- * It throws any received error to be caught by Next.js's global-error.tsx.
+ * Un composant qui écoute les événements 'permission-error' émis globalement.
+ * Au lieu de lancer une erreur (ce qui bloquerait l'interface via Next.js),
+ * il affiche une notification toast et log l'erreur dans la console pour le debug.
  */
 export function FirebaseErrorListener() {
-  // Use the specific error type for the state for type safety.
-  const [error, setError] = useState<FirestorePermissionError | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // The callback now expects a strongly-typed error, matching the event payload.
     const handleError = (error: FirestorePermissionError) => {
-      // Set error in state to trigger a re-render.
-      setError(error);
+      // Affiche un toast au lieu de faire planter l'application
+      toast({
+        variant: "destructive",
+        title: "Accès refusé (Firestore)",
+        description: "Vos permissions ne permettent pas d'effectuer cette action ou de lire ces données.",
+      });
+      
+      // Log l'erreur structurée dans la console pour faciliter le débogage agentive
+      console.warn("Firestore Permission Denied Context:", error.request);
     };
 
-    // The typed emitter will enforce that the callback for 'permission-error'
-    // matches the expected payload type (FirestorePermissionError).
     errorEmitter.on('permission-error', handleError);
 
-    // Unsubscribe on unmount to prevent memory leaks.
     return () => {
       errorEmitter.off('permission-error', handleError);
     };
-  }, []);
+  }, [toast]);
 
-  // On re-render, if an error exists in state, throw it.
-  if (error) {
-    throw error;
-  }
-
-  // This component renders nothing.
+  // Ce composant ne rend rien visuellement
   return null;
 }
