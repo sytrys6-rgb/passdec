@@ -40,7 +40,7 @@ export default function ProfilePage() {
 
   const { data: profile } = useDoc(userRef)
 
-  // Chargement conditionnel : on n'interroge Firestore que si l'utilisateur est authentifié
+  // Chargement conditionnel : on n'interroge Firestore que si l'utilisateur est authentifié et prêt
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
     return query(
@@ -56,7 +56,7 @@ export default function ProfilePage() {
     signOut(auth)
   }
 
-  // Early returns pour attendre que l'auth soit prête
+  // On attend que l'utilisateur soit chargé avant d'afficher quoi que ce soit
   if (isUserLoading) return null
   if (!user) return null
 
