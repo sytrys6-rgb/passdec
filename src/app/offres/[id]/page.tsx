@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { allOffers } from '@/app/lib/offers'
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase'
 import { doc } from 'firebase/firestore'
+import { JerseyAvatar } from '@/components/JerseyAvatar'
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -188,15 +189,19 @@ export default function OfferDetailPage() {
               </div>
             </div>
 
-            {/* Avatar Central */}
+            {/* Avatar Central (Jersey style) */}
             <div className="relative">
-              <div className="w-28 h-28 rounded-full border-4 border-primary/20 overflow-hidden shadow-2xl bg-muted">
-                <Image 
-                  src={authorProfile?.photoUrl || `https://picsum.photos/seed/${offer.userNom}/200/200`} 
-                  alt={offer.userNom} 
-                  fill 
-                  className="object-cover"
-                />
+              <div className="w-28 h-28 rounded-full border-4 border-primary/20 overflow-hidden shadow-2xl bg-muted flex items-center justify-center">
+                {authorProfile?.photoUrl ? (
+                  <Image 
+                    src={authorProfile.photoUrl} 
+                    alt={offer.userNom} 
+                    fill 
+                    className="object-cover"
+                  />
+                ) : (
+                  <JerseyAvatar name={offer.userNom} userId={authorId} className="w-full h-full scale-125 mt-4" />
+                )}
               </div>
               <div className="absolute -bottom-2 -right-2 bg-primary p-1.5 rounded-full border-2 border-card shadow-lg">
                 <ShieldCheck className="w-5 h-5 text-black" />

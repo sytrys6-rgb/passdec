@@ -9,6 +9,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useUser } from '@/firebase'
 import { useRouter } from 'next/navigation'
+import { JerseyAvatar } from '@/components/JerseyAvatar'
 
 export default function MessagesPage() {
   const { user, isUserLoading } = useUser()
@@ -28,7 +29,7 @@ export default function MessagesPage() {
       lastMessage: 'Bonjour, toujours disponible ?',
       time: '12:30',
       unread: true,
-      avatar: 'https://picsum.photos/seed/user1/100/100'
+      avatar: null
     },
     {
       id: '2',
@@ -37,7 +38,7 @@ export default function MessagesPage() {
       lastMessage: 'Je peux passer ce soir.',
       time: 'Hier',
       unread: false,
-      avatar: 'https://picsum.photos/seed/user2/100/100'
+      avatar: null
     }
   ]
 
@@ -59,8 +60,12 @@ export default function MessagesPage() {
               className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-white/5 hover:border-primary/20 transition-all group shadow-lg"
             >
               <div className="relative">
-                <div className="w-14 h-14 rounded-full overflow-hidden bg-muted border-2 border-transparent group-hover:border-primary/50 transition-colors">
-                  <Image src={conv.avatar} alt={conv.userNom} width={56} height={56} className="object-cover" />
+                <div className="w-14 h-14 rounded-full overflow-hidden bg-muted border-2 border-transparent group-hover:border-primary/50 transition-colors flex items-center justify-center">
+                  {conv.avatar ? (
+                    <Image src={conv.avatar} alt={conv.userNom} width={56} height={56} className="object-cover" />
+                  ) : (
+                    <JerseyAvatar name={conv.userNom} userId={conv.id} className="w-full h-full scale-125 mt-2" />
+                  )}
                 </div>
                 {conv.unread && (
                   <div className="absolute top-0 right-0 w-4 h-4 bg-primary border-2 border-card rounded-full" />

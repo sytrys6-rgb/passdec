@@ -13,6 +13,7 @@ import { signOut } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { doc, collection, query, where } from 'firebase/firestore'
 import { useToast } from '@/hooks/use-toast'
+import { JerseyAvatar } from '@/components/JerseyAvatar'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,7 +112,7 @@ export default function ProfilePage() {
       avis: 0,
       rating: 5.0
     },
-    avatar: profile?.photoUrl || `https://picsum.photos/seed/${user.uid}/200/200`
+    avatar: profile?.photoUrl || null
   }
 
   const currentType = profileTypes[profileData.typeProfil as keyof typeof profileTypes] || profileTypes.particulier
@@ -131,7 +132,11 @@ export default function ProfilePage() {
 
       <div className="px-6 -mt-16 relative flex flex-col items-center text-center">
         <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-background bg-card shadow-2xl relative">
-          <Image src={profileData.avatar} alt={profileData.nom} width={128} height={128} className="object-cover" />
+          {profileData.avatar ? (
+            <Image src={profileData.avatar} alt={profileData.nom} width={128} height={128} className="object-cover h-full w-full" />
+          ) : (
+            <JerseyAvatar name={profileData.nom} userId={user.uid} className="w-full h-full" />
+          )}
           <div className="absolute bottom-0 right-0 p-1 bg-primary rounded-tl-xl border-t border-l border-background">
             <ShieldCheck className="w-4 h-4 text-black" />
           </div>
