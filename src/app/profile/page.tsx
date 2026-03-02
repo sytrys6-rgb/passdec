@@ -102,16 +102,6 @@ export default function ProfilePage() {
     })
   }
 
-  const handleWarningInactive = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    toast({
-      variant: "destructive",
-      title: "Carton Jaune !",
-      description: "Cette fonctionnalité (modification d'annonce) n'est pas encore active sur le terrain."
-    })
-  }
-
   if (isUserLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -213,7 +203,7 @@ export default function ProfilePage() {
                 <div className="grid gap-4">
                   {sortedMyOffers.map((offer) => (
                     <div key={offer.id} className="relative group/item">
-                      <div className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center group hover:border-primary/30 transition-all shadow-lg pr-36">
+                      <div className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center group hover:border-primary/30 transition-all shadow-lg pr-24">
                         <Link 
                           href={`/offres/${offer.id}`}
                           className="flex gap-4 items-center flex-grow overflow-hidden"
@@ -234,17 +224,6 @@ export default function ProfilePage() {
                         </Link>
 
                         <div className="absolute right-3 flex gap-1.5 items-center">
-                          {/* Carton Jaune (Avertissement : Fonctionnalité non active) */}
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={handleWarningInactive}
-                            className="h-10 w-10 text-yellow-500 hover:bg-yellow-500/10 rounded-full bg-background/50 backdrop-blur-sm border border-yellow-500/20"
-                            title="Action non disponible (Carton Jaune)"
-                          >
-                            <div className="w-2.5 h-3.5 bg-yellow-500 rounded-[2px] border border-yellow-600 shadow-sm" />
-                          </Button>
-
                           {/* Bouton Changement (Substitution / Edit) - Inactif par défaut */}
                           <Button 
                             variant="ghost" 
