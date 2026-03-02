@@ -18,7 +18,7 @@ import placeholderData from '@/app/lib/placeholder-images.json'
 import { CITY_DATA, getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 
 /**
- * @fileOverview Page d'accueil avec titre textuel et système d'alerte numérique.
+ * @fileOverview Page d'accueil avec titre textuel bicolore (Vert/Rouge) et système d'alerte numérique.
  */
 
 export default function HomePage() {
@@ -177,8 +177,8 @@ export default function HomePage() {
             </Link>
           )}
           
-          <h1 className="text-4xl font-black italic uppercase tracking-tighter text-brand-gradient">
-            100% Pass' Déc'
+          <h1 className="text-4xl font-black italic uppercase tracking-tighter">
+            <span className="text-primary">100%</span> <span className="text-secondary">Pass&apos; Déc&apos;</span>
           </h1>
           
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
