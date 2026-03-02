@@ -5,12 +5,19 @@ import { useParams, useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, Loader2 } from 'lucide-react'
+import { ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, Loader2, Info } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { allOffers } from '@/app/lib/offers'
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase'
 import { doc } from 'firebase/firestore'
+
+const profileTypes = {
+  particulier: { label: 'Footeux', emoji: '⚽' },
+  club_foot: { label: 'Team', emoji: '🏟️' },
+  club_supporter: { label: 'Ultras', emoji: '🎺' },
+  professionnel: { label: 'Pro', emoji: '🏢' },
+}
 
 export default function OfferDetailPage() {
   const params = useParams()
@@ -29,6 +36,15 @@ export default function OfferDetailPage() {
 
   const { data: firestoreOffer, isLoading: isFirestoreLoading } = useDoc(offerRef)
 
+  // 3. Charger le profil de l'auteur pour la fiche FIFA
+  const authorId = mockOffer?.id ? 'mock-user' : firestoreOffer?.userId
+  const authorRef = useMemoFirebase(() => {
+    if (!db || !authorId) return null
+    return doc(db, 'users', authorId)
+  }, [db, authorId])
+
+  const { data: authorProfile } = useDoc(authorRef)
+
   // On combine ou on choisit la source
   const offer = mockOffer || (firestoreOffer ? {
     id: firestoreOffer.id,
@@ -41,7 +57,8 @@ export default function OfferDetailPage() {
     image: firestoreOffer.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
     userNom: firestoreOffer.userNom,
     userType: firestoreOffer.userType,
-    userRating: 5.0, // Défaut pour Firestore
+    userId: firestoreOffer.userId,
+    userRating: 5.0,
     date: 'Publié récemment'
   } : null)
 
@@ -63,8 +80,10 @@ export default function OfferDetailPage() {
     )
   }
 
+  const currentType = profileTypes[offer.userType as keyof typeof profileTypes] || profileTypes.particulier
+
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-24">
+    <div className="flex flex-col min-h-screen bg-background pb-32">
       <div className="relative aspect-square w-full">
         <Image 
           src={offer.image} 
@@ -94,7 +113,7 @@ export default function OfferDetailPage() {
         </div>
       </div>
 
-      <div className="px-6 -mt-8 relative">
+      <div className="px-6 -mt-8 relative z-10">
         <div className="bg-card rounded-3xl p-6 shadow-2xl border border-white/5">
           <div className="flex justify-between items-start mb-4">
             <div className="flex flex-col gap-2">
@@ -104,7 +123,7 @@ export default function OfferDetailPage() {
                 </Badge>
                 {offer.etat && (
                   <Badge variant="outline" className="w-fit border-primary/40 text-primary font-black uppercase italic tracking-wider text-[8px] h-5">
-                    {offer.etat === 'Satisfaisant' ? 'État satisfaisant' : offer.etat}
+                    {offer.etat}
                   </Badge>
                 )}
               </div>
@@ -131,28 +150,75 @@ export default function OfferDetailPage() {
               {offer.description}
             </p>
           </div>
+        </div>
+      </div>
 
-          <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden">
-                  <Image src={`https://picsum.photos/seed/${offer.userNom}/100/100`} alt={offer.userNom} width={48} height={48} className="object-cover" />
-                </div>
-                <div className="absolute -bottom-1 -right-1 bg-primary rounded-lg p-0.5 border-2 border-card">
-                  <ShieldCheck className="w-3 h-3 text-black" />
+      {/* SECTION FICHE FIFA */}
+      <div className="px-6 mt-8">
+        <h2 className="text-lg font-black italic uppercase tracking-tighter mb-4 flex items-center gap-2">
+          <Info className="w-5 h-5 text-primary" />
+          Fiche Recrue
+        </h2>
+        
+        <div className="relative group">
+          {/* Arrière-plan de la carte FIFA */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-card to-background rounded-[2.5rem] border-2 border-primary/20 transform rotate-1 group-hover:rotate-0 transition-transform duration-500" />
+          
+          <div className="relative bg-card/80 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/10 shadow-2xl flex flex-col items-center gap-4 overflow-hidden">
+            {/* Décoration radiale */}
+            <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
+            
+            {/* Top Row: Note & Type */}
+            <div className="w-full flex justify-between items-start">
+              <div className="flex flex-col items-center">
+                <span className="text-4xl font-black italic text-primary leading-none">5.0</span>
+                <div className="flex gap-0.5 mt-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-2.5 h-2.5 fill-primary text-primary" />
+                  ))}
                 </div>
               </div>
-              <div className="flex flex-col">
-                <span className="font-black uppercase italic tracking-tighter text-sm">{offer.userNom}</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px] font-bold text-muted-foreground">{offer.userRating}</span>
-                  <Star className="w-2.5 h-2.5 fill-primary text-primary" />
-                </div>
+              <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest px-3 py-1 bg-primary/5">
+                {currentType.emoji} {currentType.label}
+              </Badge>
+            </div>
+
+            {/* Avatar Central */}
+            <div className="relative">
+              <div className="w-28 h-28 rounded-full border-4 border-primary/20 overflow-hidden shadow-2xl bg-muted">
+                <Image 
+                  src={authorProfile?.photoUrl || `https://picsum.photos/seed/${offer.userNom}/200/200`} 
+                  alt={offer.userNom} 
+                  fill 
+                  className="object-cover"
+                />
+              </div>
+              <div className="absolute -bottom-2 -right-2 bg-primary p-1.5 rounded-full border-2 border-card shadow-lg">
+                <ShieldCheck className="w-5 h-5 text-black" />
               </div>
             </div>
-            <Button variant="outline" size="sm" className="rounded-xl border-white/10 hover:bg-primary hover:text-black font-bold uppercase tracking-tighter text-[10px]">
-              Voir profil
-            </Button>
+
+            {/* Infos Joueur */}
+            <div className="text-center w-full space-y-1">
+              <h3 className="text-2xl font-black uppercase italic tracking-tighter text-foreground">{offer.userNom}</h3>
+              <div className="flex items-center justify-center gap-1.5 text-primary">
+                <MapPin className="w-3.5 h-3.5" />
+                <span className="text-[11px] font-black uppercase tracking-[0.2em]">{offer.ville}</span>
+              </div>
+            </div>
+
+            {/* Bio "Statistiques" */}
+            <div className="w-full bg-white/5 rounded-2xl p-4 mt-2 border border-white/5">
+               <p className="text-[11px] font-bold text-muted-foreground italic text-center leading-relaxed">
+                "{authorProfile?.description || "Cette recrue n'a pas encore rempli son palmarès."}"
+              </p>
+            </div>
+
+            <Link href={`/profile/${offer.userId || 'mock'}`} className="w-full">
+              <Button variant="outline" className="w-full rounded-xl border-primary/20 text-primary hover:bg-primary hover:text-black font-black uppercase italic tracking-tighter text-xs h-10 transition-all">
+                Voir le profil complet
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -160,7 +226,7 @@ export default function OfferDetailPage() {
       <div className="fixed bottom-24 left-6 right-6 z-40">
         <Button className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg shadow-2xl shadow-primary/20 gap-3 group">
           <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          Faire une offre
+          Envoyer un message
         </Button>
       </div>
 
