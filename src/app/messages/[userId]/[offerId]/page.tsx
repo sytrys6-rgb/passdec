@@ -80,12 +80,12 @@ export default function ChatPage() {
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
-    // Correction : suppression de la condition stricte sur currentOffer pour autoriser l'envoi immédiat
     if (!message.trim() || !user || !convRef || !db || !convId) return
 
     const text = message.trim()
     setMessage('')
 
+    // Lors de l'envoi d'un message, on réinitialise deletedBy pour que la conv réapparaisse pour tout le monde
     setDocumentNonBlocking(convRef, {
       participants: [user.uid, otherUserId].sort(),
       participantNames: {
@@ -96,7 +96,8 @@ export default function ChatPage() {
       offerTitle: currentOffer?.titre || 'Discussion',
       lastMessage: text,
       lastMessageAt: serverTimestamp(),
-      [`unreadCount.${otherUserId}`]: increment(1)
+      [`unreadCount.${otherUserId}`]: increment(1),
+      deletedBy: [] // Réinitialisation du statut masqué
     }, { merge: true })
 
     const messagesCol = collection(db, 'conversations', convId, 'messages')

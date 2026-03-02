@@ -3,19 +3,22 @@
 
 import { useEffect, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
-import { MessageCircle, User, Loader2, Trophy } from 'lucide-react'
+import { MessageCircle, User, Loader2, Trophy, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase'
+import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase'
 import { useRouter } from 'next/navigation'
-import { collection, query, where } from 'firebase/firestore'
+import { collection, query, where, doc, arrayUnion } from 'firebase/firestore'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
 
 export default function MessagesPage() {
   const { user, isUserLoading } = useUser()
   const db = useFirestore()
   const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -34,13 +37,32 @@ export default function MessagesPage() {
   const { data: rawConversations, isLoading: isConvsLoading } = useCollection(convsQuery)
 
   const sortedConversations = useMemo(() => {
-    if (!rawConversations) return []
-    return [...rawConversations].sort((a, b) => {
-      const timeA = a.lastMessageAt?.seconds || 0
-      const timeB = b.lastMessageAt?.seconds || 0
-      return timeB - timeA
+    if (!rawConversations || !user) return []
+    // Filtrer les conversations que l'utilisateur a supprimées (masquées)
+    return [...rawConversations]
+      .filter(conv => !conv.deletedBy?.includes(user.uid))
+      .sort((a, b) => {
+        const timeA = a.lastMessageAt?.seconds || 0
+        const timeB = b.lastMessageAt?.seconds || 0
+        return timeB - timeA
+      })
+  }, [rawConversations, user])
+
+  const handleDeleteConversation = (e: React.MouseEvent, convId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!db || !user) return
+
+    const convRef = doc(db, 'conversations', convId)
+    updateDocumentNonBlocking(convRef, {
+      deletedBy: arrayUnion(user.uid)
     })
-  }, [rawConversations])
+
+    toast({
+      title: "Vestiaire nettoyé",
+      description: "La conversation a été retirée de votre liste."
+    })
+  }
 
   if (isUserLoading || !user) return null
 
@@ -68,46 +90,55 @@ export default function MessagesPage() {
               ? formatDistanceToNow(new Date(conv.lastMessageAt.seconds * 1000), { addSuffix: true, locale: fr })
               : ''
             
-            // On construit le lien avec l'offerId stocké
             const targetOfferId = conv.offerId || 'default'
 
             return (
-              <Link 
-                key={conv.id}
-                href={`/messages/${otherId}/${targetOfferId}`}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-white/5 hover:border-primary/20 transition-all group shadow-lg relative"
-              >
-                <div className="relative">
-                  <div className="w-14 h-14 rounded-full overflow-hidden bg-muted border-2 border-transparent group-hover:border-primary/50 transition-colors flex items-center justify-center">
-                    <User className="w-6 h-6 text-muted-foreground" />
-                  </div>
-                  {unreadCount > 0 && (
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary flex items-center justify-center rounded-full border-2 border-card shadow-lg">
-                      <span className="text-[10px] font-black text-black">{unreadCount}</span>
+              <div key={conv.id} className="relative group">
+                <Link 
+                  href={`/messages/${otherId}/${targetOfferId}`}
+                  className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-white/5 hover:border-primary/20 transition-all shadow-lg relative pr-14"
+                >
+                  <div className="relative">
+                    <div className="w-14 h-14 rounded-full overflow-hidden bg-muted border-2 border-transparent group-hover:border-primary/50 transition-colors flex items-center justify-center">
+                      <User className="w-6 h-6 text-muted-foreground" />
                     </div>
-                  )}
-                </div>
-                
-                <div className="flex-grow flex flex-col gap-0.5 overflow-hidden">
-                  <div className="flex justify-between items-center">
-                    <span className="font-black uppercase italic tracking-tighter text-sm">{otherName}</span>
-                    <span className="text-[9px] text-muted-foreground font-bold uppercase">{lastMsgDate}</span>
+                    {unreadCount > 0 && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary flex items-center justify-center rounded-full border-2 border-card shadow-lg">
+                        <span className="text-[10px] font-black text-black">{unreadCount}</span>
+                      </div>
+                    )}
                   </div>
                   
-                  {conv.offerTitle && (
-                    <div className="flex items-center gap-1 mb-0.5">
-                      <Trophy className="w-2.5 h-2.5 text-primary" />
-                      <span className="text-[8px] font-black uppercase tracking-widest text-primary truncate">
-                        {conv.offerTitle}
-                      </span>
+                  <div className="flex-grow flex flex-col gap-0.5 overflow-hidden">
+                    <div className="flex justify-between items-center">
+                      <span className="font-black uppercase italic tracking-tighter text-sm">{otherName}</span>
+                      <span className="text-[9px] text-muted-foreground font-bold uppercase">{lastMsgDate}</span>
                     </div>
-                  )}
+                    
+                    {conv.offerTitle && (
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <Trophy className="w-2.5 h-2.5 text-primary" />
+                        <span className="text-[8px] font-black uppercase tracking-widest text-primary truncate">
+                          {conv.offerTitle}
+                        </span>
+                      </div>
+                    )}
 
-                  <p className={`text-xs line-clamp-1 ${unreadCount > 0 ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}`}>
-                    {conv.lastMessage || 'Démarrez la conversation...'}
-                  </p>
-                </div>
-              </Link>
+                    <p className={`text-xs line-clamp-1 ${unreadCount > 0 ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}`}>
+                      {conv.lastMessage || 'Démarrez la conversation...'}
+                    </p>
+                  </div>
+                </Link>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => handleDeleteConversation(e, conv.id)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </Button>
+              </div>
             )
           })
         ) : (

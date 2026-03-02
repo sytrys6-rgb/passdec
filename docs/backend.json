@@ -119,7 +119,8 @@
         "offerTitle": { "type": "string" },
         "lastMessage": { "type": "string" },
         "lastMessageAt": { "type": "object" },
-        "unreadCount": { "type": "object" }
+        "unreadCount": { "type": "object" },
+        "deletedBy": { "type": "array", "items": { "type": "string" }, "description": "Array of user IDs who have hidden this conversation." }
       }
     },
     "Message": {
