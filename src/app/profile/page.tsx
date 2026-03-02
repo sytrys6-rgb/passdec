@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -82,7 +82,6 @@ export default function ProfilePage() {
   }
 
   const handleDeleteOffer = (e: React.MouseEvent, offerId: string) => {
-    e.preventDefault()
     if (!db) return
 
     const offerRef = doc(db, 'offres', offerId)
@@ -91,6 +90,15 @@ export default function ProfilePage() {
     toast({
       title: "Sortie définitive !",
       description: "L'annonce a été retirée du terrain."
+    })
+  }
+
+  const handleEditInactive = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    toast({
+      title: "Changement en préparation...",
+      description: "La modification d'annonce sera disponible lors de la prochaine saison (mise à jour)."
     })
   }
 
@@ -195,53 +203,69 @@ export default function ProfilePage() {
                 <div className="grid gap-4">
                   {sortedMyOffers.map((offer) => (
                     <div key={offer.id} className="relative group/item">
-                      <Link 
-                        href={`/offres/${offer.id}`}
-                        className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center group hover:border-primary/30 transition-all shadow-lg"
-                      >
-                        <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
-                          <Image src={offer.photos?.[0] || 'https://picsum.photos/seed/foot/100/100'} alt={offer.titre} fill className="object-cover" />
-                        </div>
-                        <div className="flex flex-col text-left overflow-hidden flex-grow">
-                          <span className="text-[9px] font-black uppercase text-primary italic">{offer.typeOffre}</span>
-                          <h4 className="font-bold text-sm truncate uppercase tracking-tighter">{offer.titre}</h4>
-                          <div className="flex items-center gap-1 text-[9px] text-muted-foreground font-bold">
-                            <MapPinIcon className="w-2.5 h-2.5" />
-                            <span>{offer.ville}</span>
-                            <span className="mx-1">•</span>
-                            <span>{offer.prix > 0 ? `${offer.prix}€` : 'Gratuit'}</span>
+                      <div className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center group hover:border-primary/30 transition-all shadow-lg pr-28">
+                        <Link 
+                          href={`/offres/${offer.id}`}
+                          className="flex gap-4 items-center flex-grow overflow-hidden"
+                        >
+                          <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                            <Image src={offer.photos?.[0] || 'https://picsum.photos/seed/foot/100/100'} alt={offer.titre} fill className="object-cover" />
                           </div>
-                        </div>
-                      </Link>
+                          <div className="flex flex-col text-left overflow-hidden">
+                            <span className="text-[9px] font-black uppercase text-primary italic">{offer.typeOffre}</span>
+                            <h4 className="font-bold text-sm truncate uppercase tracking-tighter">{offer.titre}</h4>
+                            <div className="flex items-center gap-1 text-[9px] text-muted-foreground font-bold">
+                              <MapPinIcon className="w-2.5 h-2.5" />
+                              <span>{offer.ville}</span>
+                              <span className="mx-1">•</span>
+                              <span>{offer.prix > 0 ? `${offer.prix}€` : 'Gratuit'}</span>
+                            </div>
+                          </div>
+                        </Link>
 
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
+                        <div className="absolute right-3 flex gap-2 items-center">
+                          {/* Bouton Changement (Substitution / Edit) - Inactif pour le moment */}
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 text-destructive hover:bg-destructive/10 rounded-full bg-background/50 backdrop-blur-sm border border-destructive/20"
+                            onClick={handleEditInactive}
+                            className="h-10 w-10 text-primary hover:bg-primary/10 rounded-full bg-background/50 backdrop-blur-sm border border-primary/20"
+                            title="Procéder au changement (Modifier)"
                           >
-                            <ArrowDownToLine className="w-5 h-5 rotate-180" />
+                            <RefreshCcw className="w-5 h-5" />
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
-                          <AlertDialogHeader>
-                            <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter">Sortie définitive ?</AlertDialogTitle>
-                            <AlertDialogDescription className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                              Êtes-vous sûr de vouloir retirer cette annonce du terrain ? Elle disparaîtra également de l'accueil.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-xs">Annuler</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={(e) => handleDeleteOffer(e as any, offer.id)}
-                              className="bg-destructive text-white hover:bg-destructive/90 rounded-xl font-black uppercase tracking-tighter text-xs"
-                            >
-                              Confirmer la sortie
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-full bg-background/50 backdrop-blur-sm border border-destructive/20"
+                                title="Sortie définitive (Supprimer)"
+                              >
+                                <ArrowDownToLine className="w-5 h-5 rotate-180" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter">Sortie définitive ?</AlertDialogTitle>
+                                <AlertDialogDescription className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                                  Êtes-vous sûr de vouloir retirer cette annonce du terrain ? Elle disparaîtra également de l'accueil.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-xs">Annuler</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={(e) => handleDeleteOffer(e as any, offer.id)}
+                                  className="bg-destructive text-white hover:bg-destructive/90 rounded-xl font-black uppercase tracking-tighter text-xs"
+                                >
+                                  Confirmer la sortie
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
