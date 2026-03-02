@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, Loader2, Info, User } from 'lucide-react'
+import { ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, Loader2, Info, User, Mail, MessageCircle } from 'lucide-react'
 import Image from 'next/image'
 import { allOffers } from '@/app/lib/offers'
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase'
@@ -61,7 +61,7 @@ export default function OfferDetailPage() {
 
   const { data: authorProfile } = useDoc(authorRef)
 
-  const handleContact = () => {
+  const handleContactPassDec = () => {
     if (!user) {
       router.push('/login')
       return
@@ -92,8 +92,11 @@ export default function OfferDetailPage() {
   const currentType = profileTypes[offer.userType as keyof typeof profileTypes] || profileTypes.particulier
   const isOwnOffer = user?.uid === offer.userId
 
+  const whatsappLink = authorProfile?.whatsapp ? `https://wa.me/${authorProfile.whatsapp.replace(/\s+/g, '')}` : null
+  const emailLink = authorProfile?.emailPublic ? `mailto:${authorProfile.emailPublic}` : null
+
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-32">
+    <div className="flex flex-col min-h-screen bg-background pb-48">
       <div className="relative aspect-square w-full">
         <Image 
           src={offer.image} 
@@ -226,13 +229,37 @@ export default function OfferDetailPage() {
       </div>
 
       {!isOwnOffer && offer.userId && (
-        <div className="fixed bottom-24 left-6 right-6 z-40">
+        <div className="fixed bottom-24 left-6 right-6 z-40 flex flex-col gap-2">
+          {whatsappLink && (
+            <Button 
+              asChild
+              className="w-full h-12 rounded-2xl font-black italic uppercase tracking-wider text-sm shadow-xl bg-green-500 hover:bg-green-600 text-white gap-3 group"
+            >
+              <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                WhatsApp
+              </a>
+            </Button>
+          )}
+
+          {emailLink && (
+            <Button 
+              asChild
+              className="w-full h-12 rounded-2xl font-black italic uppercase tracking-wider text-sm shadow-xl bg-blue-500 hover:bg-blue-600 text-white gap-3 group"
+            >
+              <a href={emailLink}>
+                <Mail className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                Envoyer un Email
+              </a>
+            </Button>
+          )}
+
           <Button 
-            onClick={handleContact}
+            onClick={handleContactPassDec}
             className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg shadow-2xl shadow-primary/20 gap-3 group"
           >
             <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            Contacter l'auteur
+            Messagerie Pass' Déc'
           </Button>
         </div>
       )}

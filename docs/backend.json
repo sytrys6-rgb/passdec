@@ -39,6 +39,15 @@
             "type": "string"
           }
         },
+        "whatsapp": {
+          "type": "string",
+          "description": "WhatsApp phone number for contact."
+        },
+        "emailPublic": {
+          "type": "string",
+          "description": "Public email address for contact.",
+          "format": "email"
+        },
         "createdAt": {
           "type": "string",
           "description": "Timestamp indicating when the user profile was created.",

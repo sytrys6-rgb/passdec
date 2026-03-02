@@ -30,7 +30,9 @@ export default function EditProfilePage() {
     nom: '',
     typeProfil: 'particulier',
     ville: '',
-    description: ''
+    description: '',
+    whatsapp: '',
+    emailPublic: ''
   })
 
   useEffect(() => {
@@ -45,7 +47,9 @@ export default function EditProfilePage() {
         nom: profile.nom || '',
         typeProfil: profile.typeProfil || 'particulier',
         ville: profile.ville || '',
-        description: profile.description || ''
+        description: profile.description || '',
+        whatsapp: profile.whatsapp || '',
+        emailPublic: profile.emailPublic || ''
       })
     }
   }, [profile])
@@ -142,6 +146,28 @@ export default function EditProfilePage() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="uppercase text-[10px] font-black tracking-[0.2em] text-muted-foreground ml-1">WhatsApp (Optionnel)</Label>
+            <Input 
+              value={formData.whatsapp}
+              onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
+              placeholder="0612345678" 
+              className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus-visible:ring-primary/50" 
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="uppercase text-[10px] font-black tracking-[0.2em] text-muted-foreground ml-1">Email public (Optionnel)</Label>
+            <Input 
+              type="email"
+              value={formData.emailPublic}
+              onChange={(e) => setFormData({...formData, emailPublic: e.target.value})}
+              placeholder="coach@team.fr" 
+              className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus-visible:ring-primary/50" 
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
