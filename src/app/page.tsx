@@ -36,7 +36,7 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // Chargement conditionnel : on ne charge les offres que si l'utilisateur est authentifié
+  // On ne charge les offres que si l'utilisateur est authentifié et que le chargement est fini
   const offersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
     return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
@@ -44,7 +44,7 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  // On attend que l'utilisateur soit chargé avant d'afficher quoi que ce soit
+  // Garde de sécurité : on n'affiche rien tant que l'utilisateur n'est pas prêt
   if (isUserLoading) return null
   if (!user) return null
 
@@ -127,14 +127,6 @@ export default function HomePage() {
             placeholder="Rechercher une annonce..." 
             className="pl-10 h-12 bg-card border-none ring-1 ring-white/10 focus-visible:ring-primary/50 rounded-xl shadow-inner"
           />
-          {searchQuery && (
-            <button 
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-primary transition-colors"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          )}
         </div>
       </header>
 
