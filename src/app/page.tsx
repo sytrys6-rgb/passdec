@@ -45,7 +45,11 @@ export default function HomePage() {
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
   // Garde de sécurité : on n'affiche rien tant que l'utilisateur n'est pas prêt
-  if (isUserLoading) return null
+  if (isUserLoading) return (
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    </div>
+  )
   if (!user) return null
 
   const combinedOffers = [
