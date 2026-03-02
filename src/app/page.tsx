@@ -1,21 +1,26 @@
 
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2 } from 'lucide-react'
+import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2, MessageSquare } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase'
 import { allOffers } from '@/app/lib/offers'
-import { doc, collection, query, orderBy } from 'firebase/firestore'
+import { doc, collection, query, orderBy, where } from 'firebase/firestore'
 import placeholderData from '@/app/lib/placeholder-images.json'
 import { CITY_DATA, getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
+
+/**
+ * @fileOverview Page d'accueil avec système d'alerte de nouveaux messages intégré.
+ * Affiche un badge "Nouveau message" dans le header si des messages non lus existent.
+ */
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
@@ -41,14 +46,12 @@ export default function HomePage() {
     setActiveFilter(savedFilter === 'null' ? null : savedFilter)
     setSearchQuery(savedSearch)
     
-    // On marque l'initialisation comme terminée
     setTimeout(() => setIsInitialized(true), 100)
   }, [])
 
-  // Sauvegarder les filtres à chaque changement (uniquement après initialisation)
+  // Sauvegarder les filtres
   useEffect(() => {
     if (!isInitialized) return
-    
     sessionStorage.setItem('last_city', activeLocation)
     sessionStorage.setItem('last_radius', activeRadius.toString())
     sessionStorage.setItem('last_filter', activeFilter || 'null')
@@ -75,6 +78,17 @@ export default function HomePage() {
   }, [db, isUserLoading, user])
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
+
+  // Surveillance des messages non lus pour l'alerte Accueil
+  const convsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return query(collection(db, 'conversations'), where('participants', 'array-contains', user.uid))
+  }, [db, user])
+  const { data: conversations } = useCollection(convsQuery)
+  const hasUnread = useMemo(() => {
+    if (!conversations || !user) return false
+    return conversations.some(conv => (conv.unreadCount?.[user.uid] || 0) > 0)
+  }, [conversations, user])
 
   if (isUserLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -106,7 +120,6 @@ export default function HomePage() {
 
   const filteredOffers = combinedOffers.filter(offer => {
     const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
-    
     const searchCityMatch = MAIN_CITIES.find(c => c.toLowerCase() === searchQuery.trim().toLowerCase())
     const targetCityName = activeLocation !== 'all' ? activeLocation : searchCityMatch
     
@@ -131,7 +144,6 @@ export default function HomePage() {
   const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
     e.preventDefault()
     if (!userRef || !user) return
-
     const newFavorites = favorites.includes(offerId)
       ? favorites.filter((id: string) => id !== offerId)
       : [...favorites, offerId]
@@ -160,7 +172,15 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
         </div>
 
-        <div className="text-center">
+        <div className="text-center flex flex-col items-center">
+          {hasUnread && (
+            <Link href="/messages" className="animate-bounce mb-2">
+              <Badge className="bg-destructive text-white border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg shadow-destructive/20 flex items-center gap-2">
+                <MessageSquare className="w-3 h-3 fill-white" />
+                Nouveau message au vestiaire !
+              </Badge>
+            </Link>
+          )}
           <h1 className="text-4xl font-black uppercase tracking-tighter">
             <span className="italic text-primary">100%</span>{" "}
             <span className="text-destructive">Pass' Déc'</span>
@@ -271,6 +291,7 @@ export default function HomePage() {
                     alt={offer.titre} 
                     fill 
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    unoptimized
                   />
                   <div className="absolute top-3 left-3 flex gap-2">
                     <Badge className="bg-primary text-black text-[10px] uppercase font-black tracking-wider px-2 py-0.5">

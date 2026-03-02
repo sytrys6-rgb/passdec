@@ -10,9 +10,8 @@ import { collection, query, where } from 'firebase/firestore'
 import { useMemo } from 'react'
 
 /**
- * @fileOverview Barre de navigation principale avec notification "Carton Rouge".
- * L'icône devient rouge et un point apparaît lorsqu'il y a au moins un message non lu.
- * Système 100% temps réel pour chaque utilisateur.
+ * @fileOverview Barre de navigation principale avec notification "Carton Rouge" amplifiée.
+ * L'icône devient rouge vif et pulse, et un point de notification brillant apparaît.
  */
 
 export function Navigation() {
@@ -31,7 +30,7 @@ export function Navigation() {
 
   const { data: conversations } = useCollection(convsQuery)
 
-  // On vérifie si n'importe laquelle des conversations a un compteur de non lu pour l'utilisateur actuel
+  // Vérification des messages non lus
   const hasUnread = useMemo(() => {
     if (!conversations || !user) return false
     return conversations.some(conv => (conv.unreadCount?.[user.uid] || 0) > 0)
@@ -49,7 +48,6 @@ export function Navigation() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t border-white/10 px-4 py-2 flex justify-around items-center h-20">
       {navItems.map((item) => {
         const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
-        // On affiche la notification seulement si on n'est pas déjà sur la page des messages
         const isNotified = item.hasNotification && !isActive
 
         return (
@@ -63,22 +61,23 @@ export function Navigation() {
           >
             <div className={cn(
               "relative p-2 rounded-full transition-all duration-500",
-              isActive && "bg-primary/10"
+              isActive && "bg-primary/10",
+              isNotified && "bg-destructive/10"
             )}>
               <item.icon className={cn(
                 "w-6 h-6 transition-colors", 
                 isActive && "fill-primary/20",
-                isNotified && "text-destructive fill-destructive/10 animate-pulse"
+                isNotified && "text-destructive fill-destructive/20 animate-pulse scale-110"
               )} />
               
-              {/* Point de notification (Carton Rouge) */}
+              {/* Point de notification (Carton Rouge) - Plus visible */}
               {isNotified && (
-                <div className="absolute top-1.5 right-1.5 w-3 h-3 bg-destructive rounded-full border-2 border-background shadow-lg shadow-destructive/40 animate-in zoom-in-50 duration-300" />
+                <div className="absolute top-1 right-1 w-3.5 h-3.5 bg-destructive rounded-full border-2 border-background shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-in zoom-in-50 duration-300" />
               )}
             </div>
             <span className={cn(
-              "text-[10px] font-black uppercase tracking-widest",
-              isNotified && "text-destructive font-black"
+              "text-[10px] font-black uppercase tracking-widest transition-colors",
+              isNotified && "text-destructive"
             )}>
               {item.label}
             </span>
