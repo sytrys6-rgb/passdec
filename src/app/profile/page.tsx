@@ -106,8 +106,9 @@ export default function ProfilePage() {
     e.preventDefault()
     e.stopPropagation()
     toast({
+      variant: "destructive",
       title: "Carton Jaune !",
-      description: "Le système d'avertissement et de fair-play sera déployé prochainement pour garantir un terrain propre."
+      description: "Cette fonctionnalité (modification d'annonce) n'est pas encore active sur le terrain."
     })
   }
 
@@ -233,18 +234,18 @@ export default function ProfilePage() {
                         </Link>
 
                         <div className="absolute right-3 flex gap-1.5 items-center">
-                          {/* Carton Jaune (Avertissement) - Inactif */}
+                          {/* Carton Jaune (Avertissement : Fonctionnalité non active) */}
                           <Button 
                             variant="ghost" 
                             size="icon" 
                             onClick={handleWarningInactive}
                             className="h-10 w-10 text-yellow-500 hover:bg-yellow-500/10 rounded-full bg-background/50 backdrop-blur-sm border border-yellow-500/20"
-                            title="Signaler un problème (Carton Jaune)"
+                            title="Action non disponible (Carton Jaune)"
                           >
                             <div className="w-2.5 h-3.5 bg-yellow-500 rounded-[2px] border border-yellow-600 shadow-sm" />
                           </Button>
 
-                          {/* Bouton Changement (Substitution / Edit) - Inactif */}
+                          {/* Bouton Changement (Substitution / Edit) - Inactif par défaut */}
                           <Button 
                             variant="ghost" 
                             size="icon" 
