@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -63,7 +64,7 @@ export default function LoginPage() {
       console.error(error);
       toast({
         variant: "destructive",
-        title: "Carton rouge !",
+        title: "Hors-jeu !",
         description: "L'adresse mail ou le mot de passe n'existe pas ou est incorrect. Veuillez redemander l'adresse mail et le mot de passe."
       })
     } finally {

@@ -114,7 +114,7 @@ export default function ProfilePage() {
     signOut(auth).then(() => {
       toast({
         variant: "destructive",
-        title: "Carton Rouge !",
+        title: "Hors-jeu !",
         description: "Vous avez quitté le stade définitivement. Vos données ont été supprimées."
       })
       router.push('/login')
