@@ -213,12 +213,6 @@ export default function OfferDetailPage() {
                 "{authorProfile?.description || "Cette recrue n'a pas encore rempli son palmarès."}"
               </p>
             </div>
-
-            <Link href={`/profile/${offer.userId || 'mock'}`} className="w-full">
-              <Button variant="outline" className="w-full rounded-xl border-primary/20 text-primary hover:bg-primary hover:text-black font-black uppercase italic tracking-tighter text-xs h-10 transition-all">
-                Voir le profil complet
-              </Button>
-            </Link>
           </div>
         </div>
       </div>
