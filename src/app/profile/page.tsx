@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Package, Loader2, Trophy, MapPin as MapPinIcon } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase'
@@ -38,7 +38,7 @@ export default function ProfilePage() {
     return doc(db, 'users', user.uid)
   }, [db, user])
 
-  const { data: profile, isLoading: isProfileLoading } = useDoc(userRef)
+  const { data: profile } = useDoc(userRef)
 
   // Chargement conditionnel : on n'interroge Firestore que si l'utilisateur est authentifié
   const myOffersQuery = useMemoFirebase(() => {
