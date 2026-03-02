@@ -1,8 +1,20 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Règles de sécurité pour le projet pass-dc4-06880870-d7efa
-    // Autorise la lecture et l'écriture pour tout utilisateur authentifié.
+    // Profils utilisateurs : Tout utilisateur connecté peut lire, seul le propriétaire peut modifier
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Annonces : Tout utilisateur connecté peut lire et créer, seul l'auteur peut modifier ou supprimer
+    match /offres/{offreId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // Règle par défaut pour le reste du projet
     match /{document=**} {
       allow read, write: if request.auth != null;
     }

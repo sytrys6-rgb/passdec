@@ -1,11 +1,10 @@
-
 "use client"
 
 import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, Trash2, ArrowDownToLine } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -66,7 +65,7 @@ export default function ProfilePage() {
 
   const { data: myOffers, isLoading: isMyOffersLoading } = useCollection(myOffersQuery)
 
-  // Tri manuel côté client pour plus de robustesse
+  // Tri manuel côté client
   const sortedMyOffers = useMemo(() => {
     if (!myOffers) return []
     return [...myOffers].sort((a, b) => {
@@ -82,19 +81,17 @@ export default function ProfilePage() {
 
   const handleDeleteOffer = (e: React.MouseEvent, offerId: string) => {
     e.preventDefault()
-    e.stopPropagation()
     if (!db) return
 
     const offerRef = doc(db, 'offres', offerId)
     deleteDocumentNonBlocking(offerRef)
     
     toast({
-      title: "Changement effectué !",
-      description: "Sortie définitive du terrain : l'annonce a été supprimée."
+      title: "Sortie définitive !",
+      description: "L'annonce a été retirée du terrain."
     })
   }
 
-  // Garde de rendu au début
   if (isUserLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -191,10 +188,10 @@ export default function ProfilePage() {
               ) : sortedMyOffers.length > 0 ? (
                 <div className="grid gap-4">
                   {sortedMyOffers.map((offer) => (
-                    <div key={offer.id} className="relative">
+                    <div key={offer.id} className="relative group/item">
                       <Link 
                         href={`/offres/${offer.id}`}
-                        className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center group hover:border-primary/30 transition-all"
+                        className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center group hover:border-primary/30 transition-all shadow-lg"
                       >
                         <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
                           <Image src={offer.photos?.[0] || 'https://picsum.photos/seed/foot/100/100'} alt={offer.titre} fill className="object-cover" />
@@ -216,16 +213,16 @@ export default function ProfilePage() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 text-destructive hover:bg-destructive/10 rounded-full"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 text-destructive hover:bg-destructive/10 rounded-full bg-background/50 backdrop-blur-sm border border-destructive/20"
                           >
                             <ArrowDownToLine className="w-5 h-5 rotate-180" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter">Sortie du terrain ?</AlertDialogTitle>
+                            <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter">Sortie définitive ?</AlertDialogTitle>
                             <AlertDialogDescription className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                              Êtes-vous sûr de vouloir retirer cette annonce définitivement du terrain ?
+                              Êtes-vous sûr de vouloir retirer cette annonce du terrain ? Elle disparaîtra également de l'accueil.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -243,7 +240,7 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <div className="py-10 text-muted-foreground italic text-xs">Vous n'avez pas encore fait de passes décisives.</div>
+                <div className="py-10 text-muted-foreground italic text-xs">Aucune passe décisive enregistrée pour le moment.</div>
               )}
             </div>
           )}
