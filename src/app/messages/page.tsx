@@ -13,6 +13,22 @@ import { fr } from 'date-fns/locale'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
+/**
+ * @fileOverview Page de la liste des conversations (Le Vestiaire).
+ * Permet de voir ses échanges par annonce et de supprimer (masquer) des fils de discussion avec confirmation.
+ */
 
 export default function MessagesPage() {
   const { user, isUserLoading } = useUser()
@@ -48,9 +64,7 @@ export default function MessagesPage() {
       })
   }, [rawConversations, user])
 
-  const handleDeleteConversation = (e: React.MouseEvent, convId: string) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const handleDeleteConversation = (convId: string) => {
     if (!db || !user) return
 
     const convRef = doc(db, 'conversations', convId)
@@ -128,14 +142,37 @@ export default function MessagesPage() {
                   </div>
                 </Link>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => handleDeleteConversation(e, conv.id)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </Button>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Sortie définitive (Supprimer)"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter">Sortie définitive ?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                          Voulez-vous retirer cette conversation de votre vestiaire ? L'autre joueur pourra toujours voir l'historique de son côté.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-xs">Annuler</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => handleDeleteConversation(conv.id)}
+                          className="bg-destructive text-white hover:bg-destructive/90 rounded-xl font-black uppercase tracking-tighter text-xs"
+                        >
+                          Confirmer la sortie
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             )
           })
