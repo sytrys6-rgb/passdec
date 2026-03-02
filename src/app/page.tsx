@@ -7,7 +7,7 @@ import { Navigation } from '@/components/Navigation'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2, MessageSquare, Plus, Activity } from 'lucide-react'
+import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2, MessageSquare, Plus, Activity, Globe } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -100,6 +100,8 @@ export default function HomePage() {
       }))
   }, [firestoreOffers])
 
+  const totalActiveOffers = combinedOffers.length
+
   if (isUserLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -172,8 +174,8 @@ export default function HomePage() {
             )}
             
             <Badge variant="outline" className="border-primary/50 text-primary font-black uppercase italic tracking-tighter px-4 py-1.5 bg-primary/5 flex items-center gap-2 shadow-lg shadow-primary/5">
-              <Activity className="w-3 h-3 animate-pulse" />
-              <span>Mercato : {combinedOffers.length} passes</span>
+              <Activity className="w-3 h-3 animate-pulse text-primary" />
+              <span>Mercato : {totalActiveOffers} {totalActiveOffers > 1 ? 'offres' : 'offre'} en ligne</span>
             </Badge>
           </div>
           
