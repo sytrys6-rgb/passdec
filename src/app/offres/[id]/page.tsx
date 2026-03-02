@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useParams, useRouter } from 'next/navigation'
@@ -220,7 +219,7 @@ export default function OfferDetailPage() {
                 <span className="text-4xl font-black italic text-primary leading-none">5.0</span>
                 <div className="flex gap-0.5 mt-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star key(i) className="w-2.5 h-2.5 fill-primary text-primary" />
+                    <Star key={i} className="w-2.5 h-2.5 fill-primary text-primary" />
                   ))}
                 </div>
               </div>
