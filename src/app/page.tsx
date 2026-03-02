@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -186,7 +185,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FILTRE PAR VILLE ET RAYON - ALIGNÉS SUR LA MÊME LIGNE */}
       <div className="px-6 py-4 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-muted-foreground">
           <MapPin className={cn("w-3.5 h-3.5 flex-shrink-0 transition-colors", activeLocation !== 'all' ? "text-primary" : "text-muted-foreground")} />
@@ -217,6 +215,7 @@ export default function HomePage() {
               <SelectValue placeholder="Rayon" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="0">0 km</SelectItem>
               <SelectItem value="25">25 km</SelectItem>
               <SelectItem value="50">50 km</SelectItem>
               <SelectItem value="100">100 km</SelectItem>
