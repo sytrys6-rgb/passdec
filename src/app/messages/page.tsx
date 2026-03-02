@@ -114,7 +114,12 @@ export default function MessagesPage() {
           sortedConversations.map((conv) => {
             const otherId = conv.participants.find((id: string) => id !== user.uid)
             const otherName = conv.participantNames?.[otherId] || 'Recrue'
-            const unreadCount = conv.unreadCount?.[user.uid] || 0
+            
+            // Détection robuste des messages non lus
+            const unreadCount = (conv.unreadCount && typeof conv.unreadCount === 'object')
+              ? (conv.unreadCount[user.uid] || 0)
+              : (conv[`unreadCount.${user.uid}`] || 0)
+            
             const isUnread = unreadCount > 0
 
             const lastMsgDate = conv.lastMessageAt?.seconds 
@@ -130,7 +135,7 @@ export default function MessagesPage() {
                   className={cn(
                     "flex flex-col p-4 rounded-3xl bg-card border transition-all shadow-xl relative pr-14",
                     isUnread 
-                      ? "border-orange-500 bg-orange-500/5" 
+                      ? "border-orange-500 bg-orange-500/5 shadow-orange-500/10" 
                       : "border-white/5 hover:border-primary/20"
                   )}
                 >

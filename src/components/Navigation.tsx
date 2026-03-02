@@ -10,7 +10,7 @@ import { collection, query, where } from 'firebase/firestore'
 import { useMemo } from 'react'
 
 /**
- * @fileOverview Barre de navigation principale avec système d'alerte binaire (Lu / Non lu).
+ * @fileOverview Barre de navigation principale avec détection robuste des messages non lus.
  */
 
 export function Navigation() {
@@ -29,7 +29,7 @@ export function Navigation() {
 
   const { data: conversations } = useCollection(convsQuery)
 
-  // Analyse simple des messages non lus
+  // Analyse robuste des messages non lus
   const unreadCount = useMemo(() => {
     if (!conversations || !user) return 0
     
@@ -37,7 +37,12 @@ export function Navigation() {
     conversations.forEach(conv => {
       // Ne pas compter si la conversation est masquée par l'utilisateur
       if (conv.deletedBy?.includes(user.uid)) return;
-      count += (conv.unreadCount?.[user.uid] || 0)
+      
+      const convUnread = (conv.unreadCount && typeof conv.unreadCount === 'object')
+        ? (conv.unreadCount[user.uid] || 0)
+        : (conv[`unreadCount.${user.uid}`] || 0)
+        
+      count += convUnread
     })
 
     return count

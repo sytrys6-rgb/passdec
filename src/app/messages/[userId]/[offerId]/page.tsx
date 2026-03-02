@@ -73,11 +73,18 @@ export default function ChatPage() {
     }
   }, [messages])
 
+  // Nettoyage robuste des messages non lus lors de l'ouverture
   useEffect(() => {
-    if (convRef && user && (conversation?.unreadCount?.[user.uid] || 0) > 0) {
-      updateDocumentNonBlocking(convRef, {
-        [`unreadCount.${user.uid}`]: 0
-      })
+    if (convRef && user) {
+      const currentUnread = (conversation?.unreadCount && typeof conversation.unreadCount === 'object')
+        ? (conversation.unreadCount[user.uid] || 0)
+        : (conversation?.[`unreadCount.${user.uid}`] || 0)
+
+      if (currentUnread > 0) {
+        updateDocumentNonBlocking(convRef, {
+          [`unreadCount.${user.uid}`]: 0
+        })
+      }
     }
   }, [conversation, user, convRef])
 
@@ -88,7 +95,7 @@ export default function ChatPage() {
     const text = message.trim()
     setMessage('')
 
-    // Mise à jour ou création de la conversation
+    // Mise à jour ou création de la conversation avec incrémentation forcée
     setDocumentNonBlocking(convRef, {
       participants: [user.uid, otherUserId].sort(),
       participantNames: {
