@@ -154,7 +154,7 @@ export default function MessagesPage() {
                     </div>
                     {unreadCount > 0 && (
                       <div className={cn(
-                        "absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center rounded-full border-2 border-card shadow-lg z-10",
+                        "absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center rounded-full border-2 border-background px-1 z-10 shadow-lg transition-all duration-500",
                         isDelayed ? "bg-destructive animate-bounce" : "bg-primary"
                       )}>
                         <span className="text-[10px] font-black text-black italic">{unreadCount}</span>
@@ -169,7 +169,7 @@ export default function MessagesPage() {
                           "font-black uppercase italic tracking-tighter text-sm truncate max-w-[150px]",
                           unreadCount > 0 
                             ? isDelayed ? "text-destructive" : "text-primary" 
-                            : "text-muted-foreground"
+                            : "text-foreground"
                         )}>{otherName}</span>
                         {unreadCount > 0 && (
                           <WhistleIcon className={cn("w-4 h-4 shrink-0", isDelayed ? "text-destructive" : "text-primary")} />
@@ -184,10 +184,10 @@ export default function MessagesPage() {
                         ? isDelayed ? "bg-destructive/20 border-destructive/40" : "bg-primary/20 border-primary/40"
                         : "bg-white/5 border-white/5"
                     )}>
-                      <Trophy className={cn("w-3 h-3 shrink-0", unreadCount > 0 ? isDelayed ? "text-destructive" : "text-primary" : "text-muted-foreground")} />
+                      <Trophy className={cn("w-3 h-3 shrink-0", unreadCount > 0 ? (isDelayed ? "text-destructive" : "text-primary") : "text-primary")} />
                       <span className={cn(
                         "text-[10px] font-black uppercase tracking-widest truncate",
-                        unreadCount > 0 ? isDelayed ? "text-destructive" : "text-primary" : "text-muted-foreground"
+                        unreadCount > 0 ? (isDelayed ? "text-destructive" : "text-primary") : "text-primary"
                       )}>
                         {conv.offerTitle || 'Discussion tactique'}
                       </span>
