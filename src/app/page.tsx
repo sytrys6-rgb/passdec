@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -12,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase'
 import { allOffers } from '@/app/lib/offers'
 import { doc, collection, query, orderBy } from 'firebase/firestore'
+import placeholderData from '@/app/lib/placeholder-images.json'
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
@@ -62,7 +64,7 @@ export default function HomePage() {
     }))
   ]
 
-  const heroImage = "https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1200&auto=format&fit=crop"
+  const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
   const controllerFilters = [
     { id: 'vendre', label: 'Vendre', icon: X, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
@@ -110,6 +112,7 @@ export default function HomePage() {
             className="object-cover"
             priority
             unoptimized
+            data-ai-hint="football action"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
         </div>
