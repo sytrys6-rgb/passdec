@@ -4,14 +4,18 @@
 import { useEffect } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Badge } from '@/components/ui/badge'
-import { MessageCircle, User } from 'lucide-react'
+import { MessageCircle, User, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useUser } from '@/firebase'
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase'
 import { useRouter } from 'next/navigation'
+import { collection, query, where, orderBy } from 'firebase/firestore'
+import { formatDistanceToNow } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
 export default function MessagesPage() {
   const { user, isUserLoading } = useUser()
+  const db = useFirestore()
   const router = useRouter()
 
   useEffect(() => {
@@ -20,26 +24,16 @@ export default function MessagesPage() {
     }
   }, [user, isUserLoading, router])
 
-  const mockConversations = [
-    {
-      id: '1',
-      userNom: 'FC Etoile',
-      offreTitre: 'Maillot OL 2024',
-      lastMessage: 'Bonjour, toujours disponible ?',
-      time: '12:30',
-      unread: true,
-      avatar: null
-    },
-    {
-      id: '2',
-      userNom: 'Jean Foot',
-      offreTitre: 'Crampons Adidas Predator',
-      lastMessage: 'Je peux passer ce soir.',
-      time: 'Hier',
-      unread: false,
-      avatar: null
-    }
-  ]
+  const convsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return query(
+      collection(db, 'conversations'),
+      where('participants', 'array-contains', user.uid),
+      orderBy('lastMessageAt', 'desc')
+    )
+  }, [db, user])
+
+  const { data: conversations, isLoading: isConvsLoading } = useCollection(convsQuery)
 
   if (isUserLoading || !user) return null
 
@@ -48,45 +42,61 @@ export default function MessagesPage() {
       <header className="p-6">
         <h1 className="text-3xl font-black italic uppercase tracking-tighter">Vestiaires</h1>
         <div className="h-1 w-12 bg-primary mt-1 rounded-full" />
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-2">
+          Vos échanges tactiques
+        </p>
       </header>
 
-      <div className="flex-grow flex flex-col px-6 gap-3">
-        {mockConversations.length > 0 ? (
-          mockConversations.map((conv) => (
-            <Link 
-              key={conv.id}
-              href={`/messages/${conv.id}`}
-              className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-white/5 hover:border-primary/20 transition-all group shadow-lg"
-            >
-              <div className="relative">
-                <div className="w-14 h-14 rounded-full overflow-hidden bg-muted border-2 border-transparent group-hover:border-primary/50 transition-colors flex items-center justify-center">
-                  {conv.avatar ? (
-                    <Image src={conv.avatar} alt={conv.userNom} width={56} height={56} className="object-cover" />
-                  ) : (
+      <div className="flex-grow flex flex-col px-6 gap-3 pb-32">
+        {isConvsLoading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : conversations && conversations.length > 0 ? (
+          conversations.map((conv) => {
+            const otherId = conv.participants.find((id: string) => id !== user.uid)
+            const otherName = conv.participantNames?.[otherId] || 'Recrue Inconnue'
+            const unreadCount = conv.unreadCount?.[user.uid] || 0
+            const lastMsgDate = conv.lastMessageAt?.seconds 
+              ? formatDistanceToNow(new Date(conv.lastMessageAt.seconds * 1000), { addSuffix: true, locale: fr })
+              : ''
+
+            return (
+              <Link 
+                key={conv.id}
+                href={`/messages/${otherId}`}
+                className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-white/5 hover:border-primary/20 transition-all group shadow-lg relative"
+              >
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-full overflow-hidden bg-muted border-2 border-transparent group-hover:border-primary/50 transition-colors flex items-center justify-center">
                     <User className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  {unreadCount > 0 && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary flex items-center justify-center rounded-full border-2 border-card shadow-lg">
+                      <span className="text-[10px] font-black text-black">{unreadCount}</span>
+                    </div>
                   )}
                 </div>
-                {conv.unread && (
-                  <div className="absolute top-0 right-0 w-4 h-4 bg-primary border-2 border-card rounded-full" />
-                )}
-              </div>
-              
-              <div className="flex-grow flex flex-col gap-0.5">
-                <div className="flex justify-between items-center">
-                  <span className="font-black uppercase italic tracking-tighter text-sm">{conv.userNom}</span>
-                  <span className="text-[10px] text-muted-foreground font-bold">{conv.time}</span>
+                
+                <div className="flex-grow flex flex-col gap-0.5">
+                  <div className="flex justify-between items-center">
+                    <span className="font-black uppercase italic tracking-tighter text-sm">{otherName}</span>
+                    <span className="text-[9px] text-muted-foreground font-bold uppercase">{lastMsgDate}</span>
+                  </div>
+                  <p className={`text-xs line-clamp-1 mt-0.5 ${unreadCount > 0 ? 'text-foreground font-bold' : 'text-muted-foreground font-medium'}`}>
+                    {conv.lastMessage || 'Démarrez la conversation...'}
+                  </p>
                 </div>
-                <span className="text-xs font-bold text-primary italic uppercase tracking-tighter line-clamp-1">{conv.offreTitre}</span>
-                <p className={`text-xs line-clamp-1 mt-0.5 ${conv.unread ? 'text-foreground font-semibold' : 'text-muted-foreground'}`}>
-                  {conv.lastMessage}
-                </p>
-              </div>
-            </Link>
-          ))
+              </Link>
+            )
+          })
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-4">
-            <MessageCircle className="w-12 h-12 text-primary/20" />
-            <p className="text-sm font-black uppercase tracking-widest italic">Aucune conversation</p>
+            <MessageCircle className="w-12 h-12 text-primary/10" />
+            <div className="text-center">
+              <p className="text-sm font-black uppercase tracking-widest italic">Vestiaire vide</p>
+              <p className="text-[10px] font-bold mt-2">Contactez un joueur sur une annonce pour discuter.</p>
+            </div>
           </div>
         )}
       </div>

@@ -73,10 +73,6 @@
           "type": "string",
           "description": "The type of offer (e.g., 'vendre', 'echanger', 'evenement', 'matcher')."
         },
-        "categorieMatcher": {
-          "type": "string",
-          "description": "Specific category for 'matcher' type offers."
-        },
         "titre": {
           "type": "string",
           "description": "The title or short summary of the offer."
@@ -85,86 +81,45 @@
           "type": "string",
           "description": "A detailed description of the offer."
         },
-        "etat": {
-          "type": "string",
-          "description": "The condition of the item (for sales/exchanges).",
-          "enum": ["Neuf", "Très bon", "Bon", "Satisfaisant"]
-        },
         "ville": {
           "type": "string",
           "description": "The city associated with the offer's location."
         },
-        "commune": {
-          "type": "string",
-          "description": "The commune (sub-locality) associated with the offer."
-        },
-        "latitude": {
-          "type": "number",
-          "description": "The geographical latitude coordinate."
-        },
-        "longitude": {
-          "type": "number",
-          "description": "The geographical longitude coordinate."
-        },
-        "prix": {
-          "type": "number",
-          "description": "The price of the item or service."
-        },
-        "dateEvenement": {
-          "type": "string",
-          "description": "The specific date and time for 'evenement' type offers.",
-          "format": "date-time"
-        },
-        "photos": {
-          "type": "array",
-          "description": "An array of URLs to photos associated with the offer.",
-          "items": {
-            "type": "string"
-          }
-        },
         "userId": {
           "type": "string",
           "description": "Reference to the User who created this offer."
-        },
-        "userNom": {
-          "type": "string",
-          "description": "Denormalized name of the user."
-        },
-        "userType": {
-          "type": "string",
-          "description": "Denormalized type of the user."
         },
         "createdAt": {
           "type": "string",
           "description": "Timestamp indicating when the offer was created.",
           "format": "date-time"
         },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the offer was last updated.",
-          "format": "date-time"
-        },
         "isActive": {
           "type": "boolean",
           "description": "A flag indicating if the offer is currently active."
         }
-      },
-      "required": [
-        "id",
-        "typeOffre",
-        "titre",
-        "description",
-        "ville",
-        "latitude",
-        "longitude",
-        "photos",
-        "userId",
-        "userNom",
-        "userType",
-        "createdAt",
-        "updatedAt",
-        "isActive"
-      ]
+      }
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "type": "object",
+      "properties": {
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "participantNames": { "type": "object" },
+        "lastMessage": { "type": "string" },
+        "lastMessageAt": { "type": "object" },
+        "unreadCount": { "type": "object" }
+      }
+    },
+    "Message": {
+      "title": "Message",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "object" },
+        "read": { "type": "boolean" }
+      }
     }
   },
   "auth": {
@@ -179,20 +134,32 @@
         "path": "/users/{userId}",
         "definition": {
           "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profiles including their favorites list."
+          "schema": { "$ref": "#/backend/entities/User" },
+          "description": "User profiles."
         }
       },
       {
         "path": "/offres/{offreId}",
         "definition": {
           "entityName": "Offer",
-          "schema": {
-            "$ref": "#/backend/entities/Offer"
-          },
-          "description": "Contains publicly discoverable offers."
+          "schema": { "$ref": "#/backend/entities/Offer" },
+          "description": "Public offers."
+        }
+      },
+      {
+        "path": "/conversations/{convId}",
+        "definition": {
+          "entityName": "Conversation",
+          "schema": { "$ref": "#/backend/entities/Conversation" },
+          "description": "Messaging conversations."
+        }
+      },
+      {
+        "path": "/conversations/{convId}/messages/{msgId}",
+        "definition": {
+          "entityName": "Message",
+          "schema": { "$ref": "#/backend/entities/Message" },
+          "description": "Messages within a conversation."
         }
       }
     ]

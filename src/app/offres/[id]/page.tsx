@@ -7,9 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, Loader2, Info, User } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { allOffers } from '@/app/lib/offers'
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase'
+import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase'
 import { doc } from 'firebase/firestore'
 
 const profileTypes = {
@@ -24,6 +23,7 @@ export default function OfferDetailPage() {
   const router = useRouter()
   const id = params.id as string
   const db = useFirestore()
+  const { user } = useUser()
 
   // 1. Chercher d'abord dans les données mockées
   const mockOffer = allOffers.find(o => o.id === id)
@@ -36,7 +36,7 @@ export default function OfferDetailPage() {
 
   const { data: firestoreOffer, isLoading: isFirestoreLoading } = useDoc(offerRef)
 
-  // 3. Charger le profil de l'auteur pour la fiche FIFA
+  // 3. Charger le profil de l'auteur
   const authorId = mockOffer?.id ? 'mock-user' : firestoreOffer?.userId
   const authorRef = useMemoFirebase(() => {
     if (!db || !authorId) return null
@@ -45,7 +45,6 @@ export default function OfferDetailPage() {
 
   const { data: authorProfile } = useDoc(authorRef)
 
-  // On combine ou on choisit la source
   const offer = mockOffer || (firestoreOffer ? {
     id: firestoreOffer.id,
     titre: firestoreOffer.titre,
@@ -61,6 +60,16 @@ export default function OfferDetailPage() {
     userRating: 5.0,
     date: 'Publié récemment'
   } : null)
+
+  const handleContact = () => {
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    if (offer?.userId) {
+      router.push(`/messages/${offer.userId}`)
+    }
+  }
 
   if (isFirestoreLoading) {
     return (
@@ -81,6 +90,7 @@ export default function OfferDetailPage() {
   }
 
   const currentType = profileTypes[offer.userType as keyof typeof profileTypes] || profileTypes.particulier
+  const isOwnOffer = user?.uid === offer.userId
 
   return (
     <div className="flex flex-col min-h-screen bg-background pb-32">
@@ -161,14 +171,11 @@ export default function OfferDetailPage() {
         </h2>
         
         <div className="relative group">
-          {/* Arrière-plan de la carte FIFA */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-card to-background rounded-[2.5rem] border-2 border-primary/20 transform rotate-1 group-hover:rotate-0 transition-transform duration-500" />
           
           <div className="relative bg-card/80 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/10 shadow-2xl flex flex-col items-center gap-4 overflow-hidden">
-            {/* Décoration radiale */}
             <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
             
-            {/* Top Row: Note & Type */}
             <div className="w-full flex justify-between items-start">
               <div className="flex flex-col items-center">
                 <span className="text-4xl font-black italic text-primary leading-none">5.0</span>
@@ -188,16 +195,10 @@ export default function OfferDetailPage() {
               </div>
             </div>
 
-            {/* Avatar Central */}
             <div className="relative">
               <div className="w-28 h-28 rounded-full border-4 border-primary/20 overflow-hidden shadow-2xl bg-muted flex items-center justify-center">
                 {authorProfile?.photoUrl ? (
-                  <Image 
-                    src={authorProfile.photoUrl} 
-                    alt={offer.userNom} 
-                    fill 
-                    className="object-cover"
-                  />
+                  <Image src={authorProfile.photoUrl} alt={offer.userNom} fill className="object-cover" unoptimized />
                 ) : (
                   <User className="w-12 h-12 text-muted-foreground" />
                 )}
@@ -207,7 +208,6 @@ export default function OfferDetailPage() {
               </div>
             </div>
 
-            {/* Infos Joueur */}
             <div className="text-center w-full space-y-1">
               <h3 className="text-2xl font-black uppercase italic tracking-tighter text-foreground">{offer.userNom}</h3>
               <div className="flex items-center justify-center gap-1.5 text-primary">
@@ -216,7 +216,6 @@ export default function OfferDetailPage() {
               </div>
             </div>
 
-            {/* Bio "Statistiques" */}
             <div className="w-full bg-white/5 rounded-2xl p-4 mt-2 border border-white/5">
                <p className="text-[11px] font-bold text-muted-foreground italic text-center leading-relaxed">
                 "{authorProfile?.description || "Cette recrue n'a pas encore rempli son palmarès."}"
@@ -226,12 +225,17 @@ export default function OfferDetailPage() {
         </div>
       </div>
 
-      <div className="fixed bottom-24 left-6 right-6 z-40">
-        <Button className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg shadow-2xl shadow-primary/20 gap-3 group">
-          <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          Envoyer un message
-        </Button>
-      </div>
+      {!isOwnOffer && offer.userId && (
+        <div className="fixed bottom-24 left-6 right-6 z-40">
+          <Button 
+            onClick={handleContact}
+            className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg shadow-2xl shadow-primary/20 gap-3 group"
+          >
+            <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            Contacter l&apos;auteur
+          </Button>
+        </div>
+      )}
 
       <Navigation />
     </div>
