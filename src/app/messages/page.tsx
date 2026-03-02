@@ -139,7 +139,7 @@ export default function MessagesPage() {
                     unreadCount > 0 
                       ? isDelayed 
                         ? "border-destructive bg-destructive/10 shadow-destructive/20 border-2" 
-                        : "border-primary bg-primary/10 shadow-primary/20 border-2"
+                        : "border-warning bg-warning/10 shadow-warning/20 border-2"
                       : "border-white/5 hover:border-primary/20"
                   )}
                 >
@@ -147,7 +147,7 @@ export default function MessagesPage() {
                     <div className={cn(
                       "w-14 h-14 rounded-full overflow-hidden bg-muted border-2 flex items-center justify-center transition-colors",
                       unreadCount > 0 
-                        ? isDelayed ? "border-destructive" : "border-primary" 
+                        ? isDelayed ? "border-destructive" : "border-warning" 
                         : "border-transparent group-hover:border-primary/50"
                     )}>
                       <User className="w-6 h-6 text-muted-foreground" />
@@ -155,7 +155,7 @@ export default function MessagesPage() {
                     {unreadCount > 0 && (
                       <div className={cn(
                         "absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center rounded-full border-2 border-background px-1 z-10 shadow-lg transition-all duration-500",
-                        isDelayed ? "bg-destructive animate-bounce" : "bg-primary"
+                        isDelayed ? "bg-destructive animate-bounce" : "bg-warning"
                       )}>
                         <span className="text-[10px] font-black text-black italic">{unreadCount}</span>
                       </div>
@@ -168,11 +168,11 @@ export default function MessagesPage() {
                         <span className={cn(
                           "font-black uppercase italic tracking-tighter text-sm truncate max-w-[150px]",
                           unreadCount > 0 
-                            ? isDelayed ? "text-destructive" : "text-primary" 
+                            ? isDelayed ? "text-destructive" : "text-warning" 
                             : "text-foreground"
                         )}>{otherName}</span>
                         {unreadCount > 0 && (
-                          <WhistleIcon className={cn("w-4 h-4 shrink-0", isDelayed ? "text-destructive" : "text-primary")} />
+                          <WhistleIcon className={cn("w-4 h-4 shrink-0", isDelayed ? "text-destructive" : "text-warning")} />
                         )}
                       </div>
                       <span className="text-[9px] text-muted-foreground font-bold uppercase shrink-0">{lastMsgDate}</span>
@@ -181,13 +181,20 @@ export default function MessagesPage() {
                     <div className={cn(
                       "flex items-center gap-1.5 mb-1.5 px-2 py-1 rounded-md w-fit max-w-full border transition-colors shadow-sm",
                       unreadCount > 0 
-                        ? isDelayed ? "bg-destructive/20 border-destructive/40" : "bg-primary/20 border-primary/40"
+                        ? isDelayed ? "bg-destructive/20 border-destructive/40" : "bg-warning/20 border-warning/40"
                         : "bg-white/5 border-white/5"
                     )}>
-                      <Trophy className={cn("w-3 h-3 shrink-0", unreadCount > 0 ? (isDelayed ? "text-destructive" : "text-primary") : "text-primary")} />
+                      <Trophy className={cn(
+                        "w-3 h-3 shrink-0", 
+                        unreadCount > 0 
+                          ? (isDelayed ? "text-destructive" : "text-warning") 
+                          : "text-primary"
+                      )} />
                       <span className={cn(
                         "text-[10px] font-black uppercase tracking-widest truncate",
-                        unreadCount > 0 ? (isDelayed ? "text-destructive" : "text-primary") : "text-primary"
+                        unreadCount > 0 
+                          ? (isDelayed ? "text-destructive" : "text-warning") 
+                          : "text-primary"
                       )}>
                         {conv.offerTitle || 'Discussion tactique'}
                       </span>
