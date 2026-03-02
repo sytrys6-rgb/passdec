@@ -34,7 +34,7 @@ export default function ChatPage() {
     return `${ids[0]}_${ids[1]}`
   }, [user, otherUserId])
 
-  // Références Firestore
+  // Références Firestore mémoïsées
   const convRef = useMemoFirebase(() => db && convId ? doc(db, 'conversations', convId) : null, [db, convId])
   
   const messagesQuery = useMemoFirebase(() => {
@@ -47,12 +47,17 @@ export default function ChatPage() {
   }, [db, convId])
 
   const otherUserRef = useMemoFirebase(() => db && otherUserId ? doc(db, 'users', otherUserId) : null, [db, otherUserId])
+  
+  const myUserRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, 'users', user.uid)
+  }, [db, user])
 
   // Données Firestore en temps réel
   const { data: conversation, isLoading: isConvLoading } = useDoc(convRef)
   const { data: messages } = useCollection(messagesQuery)
   const { data: otherProfile } = useDoc(otherUserRef)
-  const { data: myProfile } = useDoc(user ? doc(db!, 'users', user.uid) : null)
+  const { data: myProfile } = useDoc(myUserRef)
 
   // Auto-scroll vers le bas lors de l'arrivée de nouveaux messages
   useEffect(() => {
@@ -78,7 +83,6 @@ export default function ChatPage() {
     setMessage('')
 
     // 1. On met d'abord à jour (ou on crée) le document de conversation parent
-    // pour s'assurer que les règles de sécurité autorisent l'écriture du message.
     setDocumentNonBlocking(convRef, {
       participants: [user.uid, otherUserId].sort(),
       participantNames: {
