@@ -116,7 +116,10 @@ export default function OfferDetailPage() {
   const currentType = profileTypes[offer.userType as keyof typeof profileTypes] || profileTypes.particulier
   const isOwnOffer = user?.uid === offer.userId
 
-  const whatsappLink = authorProfile?.whatsapp ? `https://wa.me/${authorProfile.whatsapp.replace(/\s+/g, '')}` : null
+  // Pour wa.me, on garde seulement les chiffres (le + est retiré)
+  const whatsappLink = authorProfile?.whatsapp 
+    ? `https://wa.me/${authorProfile.whatsapp.replace(/\D/g, '')}` 
+    : null
   const emailLink = authorProfile?.emailPublic ? `mailto:${authorProfile.emailPublic}` : null
 
   return (

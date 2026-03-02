@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -150,11 +149,11 @@ export default function EditProfilePage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="uppercase text-[10px] font-black tracking-[0.2em] text-muted-foreground ml-1">WhatsApp (Optionnel)</Label>
+            <Label className="uppercase text-[10px] font-black tracking-[0.2em] text-muted-foreground ml-1">WhatsApp (+33...)</Label>
             <Input 
               value={formData.whatsapp}
               onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
-              placeholder="0612345678" 
+              placeholder="+33612345678" 
               className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus-visible:ring-primary/50" 
             />
           </div>
