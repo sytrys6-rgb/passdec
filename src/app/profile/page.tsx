@@ -5,13 +5,25 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, Trash2, ArrowDownToLine } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase'
+import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
 import { signOut } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { doc, collection, query, where } from 'firebase/firestore'
+import { useToast } from '@/hooks/use-toast'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -25,6 +37,7 @@ export default function ProfilePage() {
   const db = useFirestore()
   const auth = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
   const [showMyOffers, setShowMyOffers] = useState(false)
 
   // Redirection si non connecté
@@ -43,7 +56,6 @@ export default function ProfilePage() {
   const { data: profile } = useDoc(userRef)
 
   // Chargement des offres de l'utilisateur. 
-  // Note: On retire l'orderBy ici pour éviter le besoin d'un index composite Firestore manuel.
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
     return query(
@@ -66,6 +78,20 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     signOut(auth)
+  }
+
+  const handleDeleteOffer = (e: React.MouseEvent, offerId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!db) return
+
+    const offerRef = doc(db, 'offres', offerId)
+    deleteDocumentNonBlocking(offerRef)
+    
+    toast({
+      title: "Changement effectué !",
+      description: "Sortie définitive du terrain : l'annonce a été supprimée."
+    })
   }
 
   // Garde de rendu au début
@@ -165,25 +191,55 @@ export default function ProfilePage() {
               ) : sortedMyOffers.length > 0 ? (
                 <div className="grid gap-4">
                   {sortedMyOffers.map((offer) => (
-                    <Link 
-                      key={offer.id} 
-                      href={`/offres/${offer.id}`}
-                      className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center group hover:border-primary/30 transition-all"
-                    >
-                      <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
-                        <Image src={offer.photos?.[0] || 'https://picsum.photos/seed/foot/100/100'} alt={offer.titre} fill className="object-cover" />
-                      </div>
-                      <div className="flex flex-col text-left overflow-hidden">
-                        <span className="text-[9px] font-black uppercase text-primary italic">{offer.typeOffre}</span>
-                        <h4 className="font-bold text-sm truncate uppercase tracking-tighter">{offer.titre}</h4>
-                        <div className="flex items-center gap-1 text-[9px] text-muted-foreground font-bold">
-                          <MapPinIcon className="w-2.5 h-2.5" />
-                          <span>{offer.ville}</span>
-                          <span className="mx-1">•</span>
-                          <span>{offer.prix > 0 ? `${offer.prix}€` : 'Gratuit'}</span>
+                    <div key={offer.id} className="relative">
+                      <Link 
+                        href={`/offres/${offer.id}`}
+                        className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center group hover:border-primary/30 transition-all"
+                      >
+                        <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                          <Image src={offer.photos?.[0] || 'https://picsum.photos/seed/foot/100/100'} alt={offer.titre} fill className="object-cover" />
                         </div>
-                      </div>
-                    </Link>
+                        <div className="flex flex-col text-left overflow-hidden flex-grow">
+                          <span className="text-[9px] font-black uppercase text-primary italic">{offer.typeOffre}</span>
+                          <h4 className="font-bold text-sm truncate uppercase tracking-tighter">{offer.titre}</h4>
+                          <div className="flex items-center gap-1 text-[9px] text-muted-foreground font-bold">
+                            <MapPinIcon className="w-2.5 h-2.5" />
+                            <span>{offer.ville}</span>
+                            <span className="mx-1">•</span>
+                            <span>{offer.prix > 0 ? `${offer.prix}€` : 'Gratuit'}</span>
+                          </div>
+                        </div>
+                      </Link>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 text-destructive hover:bg-destructive/10 rounded-full"
+                          >
+                            <ArrowDownToLine className="w-5 h-5 rotate-180" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter">Sortie du terrain ?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                              Êtes-vous sûr de vouloir retirer cette annonce définitivement du terrain ?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-xs">Annuler</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={(e) => handleDeleteOffer(e as any, offer.id)}
+                              className="bg-destructive text-white hover:bg-destructive/90 rounded-xl font-black uppercase tracking-tighter text-xs"
+                            >
+                              Confirmer la sortie
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   ))}
                 </div>
               ) : (
