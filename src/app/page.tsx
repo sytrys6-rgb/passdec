@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -22,6 +23,7 @@ export default function HomePage() {
   const router = useRouter()
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<string>('all')
+  const [activeRadius, setActiveRadius] = useState<number>(150)
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
@@ -78,8 +80,7 @@ export default function HomePage() {
     // 1. Filtre par catégorie
     const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
     
-    // 2. Filtre géographique (Rayon de 150km)
-    // On essaie de voir si la recherche textuelle correspond à une ville connue
+    // 2. Filtre géographique (Rayon dynamique)
     const searchCityMatch = MAIN_CITIES.find(c => c.toLowerCase() === searchQuery.trim().toLowerCase())
     const targetCityName = activeLocation !== 'all' ? activeLocation : searchCityMatch
     
@@ -89,7 +90,7 @@ export default function HomePage() {
       const distance = getDistanceBetweenCities(targetCityName, offer.ville);
       
       if (distance !== null) {
-        matchesLocation = distance <= 150;
+        matchesLocation = distance <= activeRadius;
       } else {
         // Fallback : si la ville de l'offre n'est pas dans notre catalogue, on fait une égalité stricte
         matchesLocation = offer.ville.toLowerCase() === targetCityName.toLowerCase()
@@ -185,26 +186,45 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FILTRE PAR VILLE (Menu déroulant dynamique) */}
-      <div className="px-6 py-4 flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-muted-foreground mb-1">
+      {/* FILTRE PAR VILLE ET RAYON */}
+      <div className="px-6 py-4 flex flex-col gap-3">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation !== 'all' ? "text-primary" : "text-muted-foreground")} />
-          <span className="text-[10px] font-black uppercase tracking-widest">Rayon de 150km autour de :</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Rayon de recherche autour de :</span>
         </div>
-        <Select 
-          value={activeLocation} 
-          onValueChange={(val) => setActiveLocation(val)}
-        >
-          <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus:ring-primary/50">
-            <SelectValue placeholder="Toute la France" />
-          </SelectTrigger>
-          <SelectContent className="max-h-[300px]">
-            <SelectItem value="all">Toute la France (Pas de filtre)</SelectItem>
-            {MAIN_CITIES.map((city) => (
-              <SelectItem key={city} value={city}>{city}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Select 
+            value={activeLocation} 
+            onValueChange={(val) => setActiveLocation(val)}
+          >
+            <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus:ring-primary/50">
+              <SelectValue placeholder="Toute la France" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              <SelectItem value="all">Toute la France</SelectItem>
+              {MAIN_CITIES.map((city) => (
+                <SelectItem key={city} value={city}>{city}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select 
+            value={activeRadius.toString()} 
+            onValueChange={(val) => setActiveRadius(parseInt(val))}
+          >
+            <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus:ring-primary/50">
+              <SelectValue placeholder="Rayon" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="25">Rayon : 25 km</SelectItem>
+              <SelectItem value="50">Rayon : 50 km</SelectItem>
+              <SelectItem value="100">Rayon : 100 km</SelectItem>
+              <SelectItem value="150">Rayon : 150 km</SelectItem>
+              <SelectItem value="200">Rayon : 200 km</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <section className="px-6 py-4 flex flex-col gap-6 pb-24">
