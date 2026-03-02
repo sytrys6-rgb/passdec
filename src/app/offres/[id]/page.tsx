@@ -121,7 +121,7 @@ export default function OfferDetailPage() {
   const emailLink = authorProfile?.emailPublic ? `mailto:${authorProfile.emailPublic}` : null
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-48">
+    <div className="flex flex-col min-h-screen bg-background pb-64">
       <div className="relative aspect-square w-full">
         <Image 
           src={offer.image} 
@@ -220,7 +220,7 @@ export default function OfferDetailPage() {
                 <span className="text-4xl font-black italic text-primary leading-none">5.0</span>
                 <div className="flex gap-0.5 mt-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-2.5 h-2.5 fill-primary text-primary" />
+                    <Star key(i) className="w-2.5 h-2.5 fill-primary text-primary" />
                   ))}
                 </div>
               </div>
@@ -265,14 +265,14 @@ export default function OfferDetailPage() {
       </div>
 
       {!isOwnOffer && offer.userId && (
-        <div className="fixed bottom-24 left-6 right-6 z-40 flex flex-col gap-2">
+        <div className="fixed bottom-24 left-6 right-6 z-40 flex flex-col gap-3 animate-in slide-in-from-bottom-8 duration-500">
           {whatsappLink && (
             <Button 
               asChild
-              className="w-full h-12 rounded-2xl font-black italic uppercase tracking-wider text-sm shadow-xl bg-green-500 hover:bg-green-600 text-white gap-3 group"
+              className="w-full h-12 rounded-2xl font-black italic uppercase tracking-wider text-xs shadow-lg bg-green-500/10 border border-green-500/30 text-green-500 hover:bg-green-500 hover:text-white transition-all gap-3 group"
             >
               <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <MessageCircle className="w-4 h-4 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
                 WhatsApp
               </a>
             </Button>
@@ -281,10 +281,10 @@ export default function OfferDetailPage() {
           {emailLink && (
             <Button 
               asChild
-              className="w-full h-12 rounded-2xl font-black italic uppercase tracking-wider text-sm shadow-xl bg-blue-500 hover:bg-blue-600 text-white gap-3 group"
+              className="w-full h-12 rounded-2xl font-black italic uppercase tracking-wider text-xs shadow-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white transition-all gap-3 group"
             >
               <a href={emailLink}>
-                <Mail className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <Mail className="w-4 h-4 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
                 Envoyer un Email
               </a>
             </Button>
@@ -292,9 +292,9 @@ export default function OfferDetailPage() {
 
           <Button 
             onClick={handleContactPassDec}
-            className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg shadow-2xl shadow-primary/20 gap-3 group"
+            className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg shadow-2xl shadow-primary/20 gap-3 group bg-primary text-black hover:bg-primary/90"
           >
-            <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
             Messagerie Pass' Déc'
           </Button>
         </div>
