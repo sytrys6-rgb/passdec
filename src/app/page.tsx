@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -14,14 +15,14 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@
 import { allOffers } from '@/app/lib/offers'
 import { doc, collection, query, orderBy } from 'firebase/firestore'
 import placeholderData from '@/app/lib/placeholder-images.json'
-import { CITY_DATA, calculateDistance } from '@/app/lib/cities'
+import { CITY_DATA, calculateDistance, MAIN_CITIES } from '@/app/lib/cities'
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
   const db = useFirestore()
   const router = useRouter()
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
-  const [activeLocation, setActiveLocation] = useState<string | null>(null)
+  const [activeLocation, setActiveLocation] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
@@ -52,7 +53,6 @@ export default function HomePage() {
   )
   if (!user) return null
 
-  // On injecte des coordonnées par défaut aux offres mockées pour le calcul
   const combinedOffers = [
     ...allOffers.map(o => ({
       ...o,
@@ -75,26 +75,21 @@ export default function HomePage() {
     { id: 'matcher', label: 'Matcher', icon: Square, color: 'text-pink-500', bgColor: 'bg-pink-500/10' },
   ]
 
-  const cities = ['Lyon', 'Paris', 'Marseille', 'Lille', 'Bordeaux']
-
   const filteredOffers = combinedOffers.filter(offer => {
     const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
     
-    // Détection si la recherche correspond à une ville
     const searchCity = Object.keys(CITY_DATA).find(c => c.toLowerCase() === searchQuery.toLowerCase())
-    const targetCityData = searchCity ? CITY_DATA[searchCity] : (activeLocation ? CITY_DATA[activeLocation] : null)
+    const targetCityName = activeLocation !== 'all' ? activeLocation : (searchCity || null)
+    const targetCityData = targetCityName ? CITY_DATA[targetCityName] : null
 
     let matchesLocation = true;
     if (targetCityData) {
       if (offer.latitude && offer.longitude) {
         const dist = calculateDistance(targetCityData.lat, targetCityData.lng, offer.latitude, offer.longitude)
-        matchesLocation = dist <= 150; // Filtre 150km
+        matchesLocation = dist <= 150;
       } else {
-        // Fallback si pas de coordonnées
-        matchesLocation = offer.ville === (searchCity || activeLocation)
+        matchesLocation = offer.ville === targetCityName
       }
-    } else if (activeLocation) {
-        matchesLocation = offer.ville === activeLocation
     }
 
     const matchesSearch = !searchQuery || 
@@ -184,25 +179,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="px-6 py-4 flex items-center gap-2 text-muted-foreground overflow-x-auto no-scrollbar">
-        <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation ? "text-primary" : "text-muted-foreground")} />
-        <div className="flex gap-2">
-          {cities.map((city) => (
-            <Badge 
-              key={city}
-              variant={activeLocation === city ? "default" : "outline"}
-              onClick={() => setActiveLocation(prev => prev === city ? null : city)}
-              className={cn(
-                "rounded-full px-4 py-1.5 cursor-pointer transition-all font-black uppercase tracking-tighter text-[10px]",
-                activeLocation === city 
-                  ? "bg-primary text-black border-primary" 
-                  : "border-white/10 hover:border-primary/50 text-muted-foreground"
-              )}
-            >
-              {city}
-            </Badge>
-          ))}
+      <div className="px-6 py-4 flex flex-col gap-2">
+        <div className="flex items-center gap-2 text-muted-foreground mb-1">
+          <MapPin className={cn("w-4 h-4 flex-shrink-0 transition-colors", activeLocation !== 'all' ? "text-primary" : "text-muted-foreground")} />
+          <span className="text-[10px] font-black uppercase tracking-widest">Rayon de 150km autour de :</span>
         </div>
+        <Select 
+          value={activeLocation} 
+          onValueChange={(val) => setActiveLocation(val)}
+        >
+          <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus:ring-primary/50">
+            <SelectValue placeholder="Toute la France" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[300px]">
+            <SelectItem value="all">Toute la France (Pas de filtre)</SelectItem>
+            {MAIN_CITIES.map((city) => (
+              <SelectItem key={city} value={city}>{city}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <section className="px-6 py-4 flex flex-col gap-6 pb-24">
