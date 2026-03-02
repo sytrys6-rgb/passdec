@@ -6,18 +6,27 @@ import { useParams, useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ArrowLeft, Send, User, Loader2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, Send, User, Loader2, Star, ShieldCheck, MapPin, MessageCircle, Mail, Info } from 'lucide-react'
 import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase'
 import { doc, collection, query, orderBy, serverTimestamp, limit, increment } from 'firebase/firestore'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import Image from 'next/image'
 
 /**
  * @fileOverview Page de chat privée entre deux utilisateurs.
  * Gère l'envoi et la réception de messages en temps réel via Firestore.
- * Utilise 'increment' pour assurer la fiabilité des notifications pour le destinataire.
+ * Intègre désormais la "Fiche Recrue" au bas de la discussion.
  */
+
+const profileTypes = {
+  particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
+  club_foot: { label: 'Team', complement: 'Club de foot', emoji: '🏟️' },
+  club_supporter: { label: 'Ultras', complement: 'Club de supporters', emoji: '🎺' },
+  professionnel: { label: 'Pro', complement: 'Professionnel / Entreprise', emoji: '🏢' },
+}
 
 export default function ChatPage() {
   const params = useParams()
@@ -100,6 +109,12 @@ export default function ChatPage() {
 
   if (isUserLoading || !user) return null
 
+  const currentType = otherProfile ? (profileTypes[otherProfile.typeProfil as keyof typeof profileTypes] || profileTypes.particulier) : profileTypes.particulier
+  const whatsappLink = otherProfile?.whatsapp 
+    ? `https://wa.me/${otherProfile.whatsapp.replace(/\D/g, '')}` 
+    : null
+  const emailLink = otherProfile?.emailPublic ? `mailto:${otherProfile.emailPublic}` : null
+
   return (
     <div className="flex flex-col h-screen bg-background">
       <header className="p-4 glass-morphism border-b border-white/10 flex items-center gap-4 sticky top-0 z-50">
@@ -107,8 +122,12 @@ export default function ChatPage() {
           <ArrowLeft className="w-6 h-6" />
         </Button>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border border-primary/20">
-            <User className="w-5 h-5 text-muted-foreground" />
+          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center border border-primary/20 overflow-hidden relative">
+            {otherProfile?.photoUrl ? (
+              <Image src={otherProfile.photoUrl} alt={otherProfile.nom} fill className="object-cover" unoptimized />
+            ) : (
+              <User className="w-5 h-5 text-muted-foreground" />
+            )}
           </div>
           <div className="flex flex-col text-left">
             <span className="font-black italic uppercase tracking-tighter text-sm">
@@ -121,7 +140,7 @@ export default function ChatPage() {
 
       <div 
         ref={scrollRef}
-        className="flex-grow overflow-y-auto p-6 flex flex-col gap-4 pb-32"
+        className="flex-grow overflow-y-auto p-6 flex flex-col gap-4 pb-48"
       >
         {isConvLoading ? (
           <div className="flex justify-center py-10">
@@ -160,6 +179,87 @@ export default function ChatPage() {
           <div className="flex flex-col items-center justify-center py-20 text-center opacity-30">
             <Send className="w-12 h-12 mb-4" />
             <p className="text-xs font-black uppercase tracking-widest italic">Engagez le jeu !</p>
+          </div>
+        )}
+
+        {/* Fiche Recrue FIFA au bas de la conversation */}
+        {otherProfile && (
+          <div className="mt-12 mb-8 animate-in slide-in-from-bottom-8 duration-700">
+            <h2 className="text-[10px] font-black italic uppercase tracking-widest mb-4 flex items-center justify-center gap-2 text-muted-foreground">
+              <Info className="w-3 h-3 text-primary" />
+              Changer de canal tactique ?
+            </h2>
+            
+            <div className="relative group max-w-sm mx-auto">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-card to-background rounded-[2.5rem] border-2 border-primary/20 transform rotate-1 group-hover:rotate-0 transition-transform duration-500" />
+              
+              <div className="relative bg-card/80 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/10 shadow-2xl flex flex-col items-center gap-4 overflow-hidden">
+                <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
+                
+                <div className="w-full flex justify-between items-start">
+                  <div className="flex flex-col items-center">
+                    <span className="text-4xl font-black italic text-primary leading-none">5.0</span>
+                    <div className="flex gap-0.5 mt-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-2.5 h-2.5 fill-primary text-primary" />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest px-3 py-1 bg-primary/5">
+                      {currentType.emoji} {currentType.label}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full border-4 border-primary/20 overflow-hidden shadow-2xl bg-muted flex items-center justify-center">
+                    {otherProfile?.photoUrl ? (
+                      <Image src={otherProfile.photoUrl} alt={otherProfile.nom} fill className="object-cover" unoptimized />
+                    ) : (
+                      <User className="w-10 h-10 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 bg-primary p-1 rounded-full border-2 border-card shadow-lg">
+                    <ShieldCheck className="w-4 h-4 text-black" />
+                  </div>
+                </div>
+
+                <div className="text-center w-full space-y-1">
+                  <h3 className="text-xl font-black uppercase italic tracking-tighter text-foreground">{otherProfile.nom}</h3>
+                  <div className="flex items-center justify-center gap-1.5 text-primary">
+                    <MapPin className="w-3 h-3" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">{otherProfile.ville}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col w-full gap-2 mt-2">
+                  {whatsappLink && (
+                    <Button 
+                      asChild
+                      className="w-full h-10 rounded-xl font-black italic uppercase tracking-wider text-[10px] shadow-lg bg-green-500/10 border border-green-500/30 text-green-500 hover:bg-green-500 hover:text-white transition-all gap-2 group"
+                    >
+                      <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                        <MessageCircle className="w-4 h-4 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+                        WhatsApp
+                      </a>
+                    </Button>
+                  )}
+
+                  {emailLink && (
+                    <Button 
+                      asChild
+                      className="w-full h-10 rounded-xl font-black italic uppercase tracking-wider text-[10px] shadow-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white transition-all gap-2 group"
+                    >
+                      <a href={emailLink}>
+                        <Mail className="w-4 h-4 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+                        Envoyer Email
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
