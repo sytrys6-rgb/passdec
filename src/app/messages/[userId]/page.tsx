@@ -16,6 +16,7 @@ import { fr } from 'date-fns/locale'
 /**
  * @fileOverview Page de chat privée entre deux utilisateurs.
  * Gère l'envoi et la réception de messages en temps réel via Firestore.
+ * Assure la mise à jour des compteurs de messages non lus pour les notifications.
  */
 
 export default function ChatPage() {
@@ -34,7 +35,7 @@ export default function ChatPage() {
     return `${ids[0]}_${ids[1]}`
   }, [user, otherUserId])
 
-  // Références Firestore mémoïsées pour éviter les boucles de rendu
+  // Références Firestore mémoïsées
   const convRef = useMemoFirebase(() => db && convId ? doc(db, 'conversations', convId) : null, [db, convId])
   
   const messagesQuery = useMemoFirebase(() => {
@@ -59,14 +60,14 @@ export default function ChatPage() {
   const { data: otherProfile } = useDoc(otherUserRef)
   const { data: myProfile } = useDoc(myUserRef)
 
-  // Auto-scroll vers le bas lors de l'arrivée de nouveaux messages
+  // Auto-scroll vers le bas
   useEffect(() => {
     if (scrollRef.current && messages) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
 
-  // Marquer la conversation comme lue pour l'utilisateur actuel
+  // Marquer la conversation comme lue pour l'utilisateur actuel dès l'ouverture
   useEffect(() => {
     if (convRef && user && conversation?.unreadCount?.[user.uid] > 0) {
       updateDocumentNonBlocking(convRef, {
@@ -82,8 +83,7 @@ export default function ChatPage() {
     const text = message.trim()
     setMessage('')
 
-    // 1. On met d'abord à jour (ou on crée) le document de conversation parent
-    // On utilise merge: true pour être sûr de ne pas écraser les autres données
+    // 1. Mise à jour de la conversation parente (incrémente le non lu pour l'autre)
     setDocumentNonBlocking(convRef, {
       participants: [user.uid, otherUserId].sort(),
       participantNames: {
@@ -95,7 +95,7 @@ export default function ChatPage() {
       [`unreadCount.${otherUserId}`]: (conversation?.unreadCount?.[otherUserId] || 0) + 1
     }, { merge: true })
 
-    // 2. On ajoute le message dans la sous-collection
+    // 2. Ajout du message
     const messagesCol = collection(db, 'conversations', convId, 'messages')
     addDocumentNonBlocking(messagesCol, {
       senderId: user.uid,
@@ -109,7 +109,6 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      {/* Header du Chat */}
       <header className="p-4 glass-morphism border-b border-white/10 flex items-center gap-4 sticky top-0 z-50">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
           <ArrowLeft className="w-6 h-6" />
@@ -127,7 +126,6 @@ export default function ChatPage() {
         </div>
       </header>
 
-      {/* Zone de Messages */}
       <div 
         ref={scrollRef}
         className="flex-grow overflow-y-auto p-6 flex flex-col gap-4 pb-32"
@@ -173,7 +171,6 @@ export default function ChatPage() {
         )}
       </div>
 
-      {/* Input de Message */}
       <form 
         onSubmit={handleSend}
         className="fixed bottom-0 left-0 right-0 p-4 pb-10 glass-morphism border-t border-white/10 flex gap-2 z-50"
@@ -193,8 +190,6 @@ export default function ChatPage() {
           <Send className="w-5 h-5" />
         </Button>
       </form>
-      
-      {/* Spacer pour la barre de navigation si nécessaire, bien que le chat soit souvent full screen */}
     </div>
   )
 }

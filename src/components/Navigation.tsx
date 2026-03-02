@@ -12,11 +12,12 @@ import { useMemo } from 'react'
 /**
  * @fileOverview Barre de navigation principale avec notification visuelle rouge.
  * L'icône devient rouge et un point apparaît lorsqu'il y a des messages non lus.
+ * Persiste après actualisation car basé sur les données réelles de Firestore.
  */
 
 export function Navigation() {
   const pathname = usePathname()
-  const { user } = useUser()
+  const { user, isUserLoading } = useUser()
   const db = useFirestore()
 
   // Requête temps réel pour toutes les conversations de l'utilisateur
@@ -31,19 +32,16 @@ export function Navigation() {
   const { data: conversations } = useCollection(convsQuery)
 
   // Calcul réactif du nombre total de messages non lus pour l'utilisateur connecté
-  const totalUnread = useMemo(() => {
-    if (!conversations || !user) return 0
-    return conversations.reduce((acc, conv) => {
-      const count = conv.unreadCount?.[user.uid] || 0
-      return acc + count
-    }, 0)
+  const hasUnread = useMemo(() => {
+    if (!conversations || !user) return false
+    return conversations.some(conv => (conv.unreadCount?.[user.uid] || 0) > 0)
   }, [conversations, user])
 
   const navItems = [
     { href: '/', icon: Home, label: 'Accueil' },
     { href: '/favoris', icon: Trophy, label: 'Favoris' },
     { href: '/offres/new', icon: PlusCircle, label: 'Publier' },
-    { href: '/messages', icon: MessageSquare, label: 'Messages', hasNotification: totalUnread > 0 },
+    { href: '/messages', icon: MessageSquare, label: 'Messages', hasNotification: hasUnread },
     { href: '/profile', icon: User, label: 'Profil' },
   ]
 
