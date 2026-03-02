@@ -10,8 +10,8 @@ import { collection, query, where } from 'firebase/firestore'
 import { useMemo } from 'react'
 
 /**
- * @fileOverview Barre de navigation principale avec notifications en temps réel.
- * Calcule le total des messages non lus pour afficher un badge sur l'icône Messages.
+ * @fileOverview Barre de navigation principale avec notifications visuelles en temps réel.
+ * L'icône des messages s'illumine en cas de messages non lus (sans compteur numérique).
  */
 
 export function Navigation() {
@@ -19,7 +19,7 @@ export function Navigation() {
   const { user } = useUser()
   const db = useFirestore()
 
-  // On écoute toutes les conversations de l'utilisateur pour compter les non-lus
+  // On écoute toutes les conversations de l'utilisateur pour détecter les non-lus
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(
@@ -30,19 +30,17 @@ export function Navigation() {
 
   const { data: conversations } = useCollection(convsQuery)
 
-  // Calcul du total des messages non lus
-  const totalUnread = useMemo(() => {
-    if (!conversations || !user) return 0
-    return conversations.reduce((acc, conv) => {
-      return acc + (conv.unreadCount?.[user.uid] || 0)
-    }, 0)
+  // Vérifie s'il y a au moins un message non lu
+  const hasUnread = useMemo(() => {
+    if (!conversations || !user) return false
+    return conversations.some(conv => (conv.unreadCount?.[user.uid] || 0) > 0)
   }, [conversations, user])
 
   const navItems = [
     { href: '/', icon: Home, label: 'Accueil' },
     { href: '/favoris', icon: Trophy, label: 'Favoris' },
     { href: '/offres/new', icon: PlusCircle, label: 'Publier' },
-    { href: '/messages', icon: MessageSquare, label: 'Messages', badge: totalUnread },
+    { href: '/messages', icon: MessageSquare, label: 'Messages', isNotify: hasUnread },
     { href: '/profile', icon: User, label: 'Profil' },
   ]
 
@@ -50,6 +48,8 @@ export function Navigation() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass-morphism border-t border-white/10 px-4 py-2 flex justify-around items-center h-20">
       {navItems.map((item) => {
         const isActive = pathname === item.href
+        const isMessageNotify = item.label === 'Messages' && item.isNotify
+
         return (
           <Link
             key={item.href}
@@ -59,15 +59,19 @@ export function Navigation() {
               isActive ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            <div className="relative">
+            <div className={cn(
+              "relative p-2 rounded-full transition-all duration-500",
+              isMessageNotify && !isActive && "bg-primary/20 animate-pulse shadow-[0_0_15px_rgba(var(--primary),0.2)]",
+              isMessageNotify && isActive && "bg-primary/10"
+            )}>
               <item.icon className={cn("w-6 h-6", isActive && "fill-primary/20")} />
-              {item.badge && item.badge > 0 && (
-                <div className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-primary text-black flex items-center justify-center rounded-full border-2 border-background animate-pulse">
-                  <span className="text-[9px] font-black px-1">{item.badge > 9 ? '9+' : item.badge}</span>
-                </div>
+              
+              {/* Point de notification discret au lieu du nombre */}
+              {isMessageNotify && (
+                <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border border-background shadow-lg" />
               )}
             </div>
-            <span className="text-[10px] font-medium uppercase tracking-widest">{item.label}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
           </Link>
         )
       })}
