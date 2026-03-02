@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw, Flag, ChevronRight, Info, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw, Flag, ChevronRight, Info, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, ShieldAlert } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -39,6 +39,8 @@ const profileTypes = {
   club_supporter: { label: 'Ultras', complement: 'Club de supporters', emoji: '🎺' },
   professionnel: { label: 'Pro', complement: 'Professionnel / Entreprise', emoji: '🏢' },
 }
+
+const ADMIN_UID = "OvtBOwidg7dc4lHw5rR56yqLlIT2"
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser()
@@ -373,14 +375,28 @@ export default function ProfilePage() {
           )}
 
           {!showMyOffers && (
-            <Button 
-              variant="ghost" 
-              onClick={handleLogout}
-              className="w-full text-accent hover:text-accent hover:bg-accent/10 rounded-xl h-12 font-black uppercase tracking-widest text-xs"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Déconnexion
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button 
+                variant="ghost" 
+                onClick={handleLogout}
+                className="w-full text-accent hover:text-accent hover:bg-accent/10 rounded-xl h-12 font-black uppercase tracking-widest text-xs"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Déconnexion
+              </Button>
+
+              {user?.uid === ADMIN_UID && (
+                <Link href="/admin" className="w-full mt-4">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-xl h-10 font-black uppercase tracking-widest text-[9px] opacity-50 hover:opacity-100 transition-opacity"
+                  >
+                    <Shield className="w-3.5 h-3.5 mr-2" />
+                    Panel Arbitre (Admin)
+                  </Button>
+                </Link>
+              )}
+            </div>
           )}
         </div>
       </div>
