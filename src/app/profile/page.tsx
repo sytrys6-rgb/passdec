@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -13,7 +13,6 @@ import { signOut } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { doc, collection, query, where } from 'firebase/firestore'
 import { useToast } from '@/hooks/use-toast'
-import { JerseyAvatar } from '@/components/JerseyAvatar'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -131,11 +130,11 @@ export default function ProfilePage() {
       </div>
 
       <div className="px-6 -mt-16 relative flex flex-col items-center text-center">
-        <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-background bg-card shadow-2xl relative">
+        <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-background bg-card shadow-2xl relative flex items-center justify-center">
           {profileData.avatar ? (
             <Image src={profileData.avatar} alt={profileData.nom} width={128} height={128} className="object-cover h-full w-full" />
           ) : (
-            <JerseyAvatar name={profileData.nom} userId={user.uid} className="w-full h-full" />
+            <UserIcon className="w-12 h-12 text-muted-foreground" />
           )}
           <div className="absolute bottom-0 right-0 p-1 bg-primary rounded-tl-xl border-t border-l border-background">
             <ShieldCheck className="w-4 h-4 text-black" />

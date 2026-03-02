@@ -5,13 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, Loader2, Info } from 'lucide-react'
+import { ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, Loader2, Info, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { allOffers } from '@/app/lib/offers'
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase'
 import { doc } from 'firebase/firestore'
-import { JerseyAvatar } from '@/components/JerseyAvatar'
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -189,7 +188,7 @@ export default function OfferDetailPage() {
               </div>
             </div>
 
-            {/* Avatar Central (Jersey style) */}
+            {/* Avatar Central */}
             <div className="relative">
               <div className="w-28 h-28 rounded-full border-4 border-primary/20 overflow-hidden shadow-2xl bg-muted flex items-center justify-center">
                 {authorProfile?.photoUrl ? (
@@ -200,7 +199,7 @@ export default function OfferDetailPage() {
                     className="object-cover"
                   />
                 ) : (
-                  <JerseyAvatar name={offer.userNom} userId={authorId} className="w-full h-full scale-125 mt-4" />
+                  <User className="w-12 h-12 text-muted-foreground" />
                 )}
               </div>
               <div className="absolute -bottom-2 -right-2 bg-primary p-1.5 rounded-full border-2 border-card shadow-lg">

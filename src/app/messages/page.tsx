@@ -4,12 +4,11 @@
 import { useEffect } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Badge } from '@/components/ui/badge'
-import { MessageCircle } from 'lucide-react'
+import { MessageCircle, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useUser } from '@/firebase'
 import { useRouter } from 'next/navigation'
-import { JerseyAvatar } from '@/components/JerseyAvatar'
 
 export default function MessagesPage() {
   const { user, isUserLoading } = useUser()
@@ -64,7 +63,7 @@ export default function MessagesPage() {
                   {conv.avatar ? (
                     <Image src={conv.avatar} alt={conv.userNom} width={56} height={56} className="object-cover" />
                   ) : (
-                    <JerseyAvatar name={conv.userNom} userId={conv.id} className="w-full h-full scale-125 mt-2" />
+                    <User className="w-6 h-6 text-muted-foreground" />
                   )}
                 </div>
                 {conv.unread && (
