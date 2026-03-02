@@ -28,10 +28,11 @@ export default function HomePage() {
     }
   }, [user, isUserLoading, router])
 
+  // Garde de sécurité : on n'interroge rien tant que l'utilisateur n'est pas prêt
   const userRef = useMemoFirebase(() => {
-    if (!db || !user) return null
+    if (!db || !user || isUserLoading) return null
     return doc(db, 'users', user.uid)
-  }, [db, user])
+  }, [db, user, isUserLoading])
 
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
@@ -44,7 +45,7 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  // Garde de sécurité : on n'affiche rien tant que l'utilisateur n'est pas prêt
+  // Garde de rendu : on n'affiche rien au début du composant si pas prêt
   if (isUserLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />

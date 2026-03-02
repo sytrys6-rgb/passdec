@@ -32,15 +32,16 @@ export default function ProfilePage() {
       router.push('/login')
     }
   }, [user, isUserLoading, router])
-  
+
+  // On attend que l'utilisateur soit prêt avant tout
   const userRef = useMemoFirebase(() => {
-    if (!db || !user) return null
+    if (!db || !user || isUserLoading) return null
     return doc(db, 'users', user.uid)
-  }, [db, user])
+  }, [db, user, isUserLoading])
 
   const { data: profile } = useDoc(userRef)
 
-  // Chargement conditionnel : on n'interroge Firestore que si l'utilisateur est authentifié et prêt
+  // Chargement conditionnel : on n'interroge Firestore que si l'utilisateur est prêt
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
     return query(
@@ -56,7 +57,7 @@ export default function ProfilePage() {
     signOut(auth)
   }
 
-  // On attend que l'utilisateur soit chargé avant d'afficher quoi que ce soit
+  // Garde de rendu au début
   if (isUserLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
