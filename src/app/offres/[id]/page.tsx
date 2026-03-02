@@ -10,7 +10,6 @@ import {
   Loader2, Info, User, Mail, MessageCircle, Trophy, Flag, AlertTriangle, Shield, Trash2 
 } from 'lucide-react'
 import Image from 'next/image'
-import { allOffers } from '@/app/lib/offers'
 import { 
   useFirestore, useDoc, useMemoFirebase, useUser, 
   updateDocumentNonBlocking, addDocumentNonBlocking, useCollection, deleteDocumentNonBlocking 
@@ -79,9 +78,6 @@ export default function OfferDetailPage() {
   const [reportDetails, setReportDetails] = useState("")
   const [isSendingReport, setIsSendingReport] = useState(false)
 
-  const mockOffer = allOffers.find(o => o.id === id)
-
-  // Toujours créer une référence si l'ID est présent pour permettre l'arbitrage
   const offerRef = useMemoFirebase(() => {
     if (!db || !id) return null
     return doc(db, 'offres', id)
@@ -89,7 +85,7 @@ export default function OfferDetailPage() {
 
   const { data: firestoreOffer, isLoading: isFirestoreLoading } = useDoc(offerRef)
 
-  const offer = mockOffer || (firestoreOffer ? {
+  const offer = firestoreOffer ? {
     id: firestoreOffer.id,
     titre: firestoreOffer.titre,
     description: firestoreOffer.description,
@@ -102,8 +98,8 @@ export default function OfferDetailPage() {
     userType: firestoreOffer.userType,
     userId: firestoreOffer.userId,
     userRating: 5.0,
-    date: 'Publié récemment'
-  } : null)
+    date: 'En ligne'
+  } : null
 
   const userRef = useMemoFirebase(() => {
     if (!db || !user) return null

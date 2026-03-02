@@ -7,15 +7,14 @@ import { Trophy, MapPin, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import { allOffers } from '@/app/lib/offers'
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, updateDocumentNonBlocking } from '@/firebase'
 import { useRouter } from 'next/navigation'
-import { doc, collection, query, orderBy } from 'firebase/firestore'
+import { doc, collection, query, where, orderBy } from 'firebase/firestore'
 import { cn } from '@/lib/utils'
 
 /**
  * @fileOverview Page des favoris de l'utilisateur (Mes Trophées).
- * Affiche les annonces mockées ET les annonces Firestore marquées comme favoris.
+ * Affiche les annonces Firestore marquées comme favoris.
  */
 
 export default function FavoritesPage() {
@@ -31,11 +30,10 @@ export default function FavoritesPage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // Charger également toutes les annonces Firestore pour vérifier lesquelles sont en favoris
   const offersQuery = useMemoFirebase(() => {
-    if (!db) return null
-    return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
-  }, [db])
+    if (!db || favorites.length === 0) return null
+    return query(collection(db, 'offres'), where('isActive', '==', true), orderBy('createdAt', 'desc'))
+  }, [db, favorites])
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
@@ -45,18 +43,15 @@ export default function FavoritesPage() {
     }
   }, [user, isUserLoading, router])
 
-  // Combiner les offres mockées et Firestore qui sont dans les favoris
   const favoriteOffersList = useMemo(() => {
-    const mockFavs = allOffers.filter(offer => favorites.includes(offer.id))
-    const fsFavs = (firestoreOffers || [])
+    if (!firestoreOffers) return []
+    return firestoreOffers
       .filter(offer => favorites.includes(offer.id))
       .map(o => ({
         ...o,
         image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
-        date: 'Publié récemment'
+        date: 'Favori'
       }))
-    
-    return [...mockFavs, ...fsFavs]
   }, [favorites, firestoreOffers])
 
   const toggleFavorite = (e: React.MouseEvent, id: string) => {

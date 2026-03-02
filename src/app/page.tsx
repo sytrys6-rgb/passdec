@@ -7,19 +7,15 @@ import { Navigation } from '@/components/Navigation'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2, MessageSquare } from 'lucide-react'
+import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2, MessageSquare, Plus } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase'
-import { allOffers } from '@/app/lib/offers'
 import { doc, collection, query, orderBy, where } from 'firebase/firestore'
 import placeholderData from '@/app/lib/placeholder-images.json'
 import { CITY_DATA, getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
-
-/**
- * @fileOverview Page d'accueil avec titre textuel bicolore (Vert/Rouge) et système d'alerte numérique.
- */
+import { Button } from '@/components/ui/button'
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
@@ -70,7 +66,7 @@ export default function HomePage() {
 
   const offersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
-    return query(collection(db, 'offres'), orderBy('createdAt', 'desc'))
+    return query(collection(db, 'offres'), where('isActive', '==', true), orderBy('createdAt', 'desc'))
   }, [db, isUserLoading, user])
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
@@ -99,17 +95,11 @@ export default function HomePage() {
   )
   if (!user) return null
 
-  const combinedOffers = [
-    ...allOffers.map(o => ({
-      ...o,
-      image: o.image || 'https://picsum.photos/seed/foot/600/400',
-    })),
-    ...(firestoreOffers || []).map(o => ({
-      ...o,
-      image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
-      date: 'Publié récemment'
-    }))
-  ]
+  const combinedOffers = (firestoreOffers || []).map(o => ({
+    ...o,
+    image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
+    date: 'En ligne'
+  }))
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
@@ -320,8 +310,13 @@ export default function HomePage() {
               </Link>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <p className="text-sm font-bold uppercase italic tracking-widest">Aucun résultat trouvé</p>
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-4 border-2 border-dashed border-white/5 rounded-3xl">
+              <p className="text-sm font-bold uppercase italic tracking-widest">Le terrain est vide...</p>
+              <Link href="/offres/new">
+                <Button className="rounded-xl font-black uppercase italic text-xs h-10 gap-2">
+                  <Plus className="w-4 h-4" /> Publier la 1ère annonce
+                </Button>
+              </Link>
             </div>
           )}
         </div>
