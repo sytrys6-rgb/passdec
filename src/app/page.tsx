@@ -27,27 +27,33 @@ export default function HomePage() {
   const [activeLocation, setActiveLocation] = useState<string>('all')
   const [activeRadius, setActiveRadius] = useState<number>(150)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isInitialized, setIsInitialized] = useState(false)
 
   // Charger les filtres sauvegardés au montage
   useEffect(() => {
-    const savedCity = sessionStorage.getItem('last_city')
-    const savedRadius = sessionStorage.getItem('last_radius')
-    const savedFilter = sessionStorage.getItem('last_filter')
-    const savedSearch = sessionStorage.getItem('last_search')
+    const savedCity = sessionStorage.getItem('last_city') || 'all'
+    const savedRadius = sessionStorage.getItem('last_radius') || '150'
+    const savedFilter = sessionStorage.getItem('last_filter') || 'null'
+    const savedSearch = sessionStorage.getItem('last_search') || ''
     
-    if (savedCity) setActiveLocation(savedCity)
-    if (savedRadius) setActiveRadius(parseInt(savedRadius))
-    if (savedFilter && savedFilter !== 'null') setActiveFilter(savedFilter)
-    if (savedSearch) setSearchQuery(savedSearch)
+    setActiveLocation(savedCity)
+    setActiveRadius(parseInt(savedRadius))
+    setActiveFilter(savedFilter === 'null' ? null : savedFilter)
+    setSearchQuery(savedSearch)
+    
+    // On marque l'initialisation comme terminée
+    setTimeout(() => setIsInitialized(true), 100)
   }, [])
 
-  // Sauvegarder les filtres à chaque changement
+  // Sauvegarder les filtres à chaque changement (uniquement après initialisation)
   useEffect(() => {
+    if (!isInitialized) return
+    
     sessionStorage.setItem('last_city', activeLocation)
     sessionStorage.setItem('last_radius', activeRadius.toString())
     sessionStorage.setItem('last_filter', activeFilter || 'null')
     sessionStorage.setItem('last_search', searchQuery)
-  }, [activeLocation, activeRadius, activeFilter, searchQuery])
+  }, [activeLocation, activeRadius, activeFilter, searchQuery, isInitialized])
 
   useEffect(() => {
     if (!isUserLoading && !user) {
