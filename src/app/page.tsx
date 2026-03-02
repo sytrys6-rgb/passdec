@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -20,10 +21,33 @@ export default function HomePage() {
   const { user, isUserLoading } = useUser()
   const db = useFirestore()
   const router = useRouter()
+  
+  // États des filtres
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<string>('all')
   const [activeRadius, setActiveRadius] = useState<number>(150)
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Charger les filtres sauvegardés au montage
+  useEffect(() => {
+    const savedCity = sessionStorage.getItem('last_city')
+    const savedRadius = sessionStorage.getItem('last_radius')
+    const savedFilter = sessionStorage.getItem('last_filter')
+    const savedSearch = sessionStorage.getItem('last_search')
+    
+    if (savedCity) setActiveLocation(savedCity)
+    if (savedRadius) setActiveRadius(parseInt(savedRadius))
+    if (savedFilter && savedFilter !== 'null') setActiveFilter(savedFilter)
+    if (savedSearch) setSearchQuery(savedSearch)
+  }, [])
+
+  // Sauvegarder les filtres à chaque changement
+  useEffect(() => {
+    sessionStorage.setItem('last_city', activeLocation)
+    sessionStorage.setItem('last_radius', activeRadius.toString())
+    sessionStorage.setItem('last_filter', activeFilter || 'null')
+    sessionStorage.setItem('last_search', searchQuery)
+  }, [activeLocation, activeRadius, activeFilter, searchQuery])
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -53,7 +77,6 @@ export default function HomePage() {
   )
   if (!user) return null
 
-  // On combine toutes les offres (locales et firestore)
   const combinedOffers = [
     ...allOffers.map(o => ({
       ...o,
@@ -76,27 +99,21 @@ export default function HomePage() {
   ]
 
   const filteredOffers = combinedOffers.filter(offer => {
-    // 1. Filtre par catégorie
     const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
     
-    // 2. Filtre géographique (Rayon dynamique)
     const searchCityMatch = MAIN_CITIES.find(c => c.toLowerCase() === searchQuery.trim().toLowerCase())
     const targetCityName = activeLocation !== 'all' ? activeLocation : searchCityMatch
     
     let matchesLocation = true;
     if (targetCityName) {
-      // Calcul de distance fiable basé sur les noms de villes master-list
       const distance = getDistanceBetweenCities(targetCityName, offer.ville);
-      
       if (distance !== null) {
         matchesLocation = distance <= activeRadius;
       } else {
-        // Fallback : si la ville de l'offre n'est pas dans notre catalogue, on fait une égalité stricte
         matchesLocation = offer.ville.toLowerCase() === targetCityName.toLowerCase()
       }
     }
 
-    // 3. Filtre de recherche textuelle globale (titre, ville, description)
     const matchesSearch = !searchQuery || 
       offer.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
       offer.ville.toLowerCase().includes(searchQuery.toLowerCase()) ||
