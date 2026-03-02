@@ -54,7 +54,7 @@ export default function MessagesPage() {
   const [now, setNow] = useState(Date.now())
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 10000)
+    const interval = setInterval(() => setNow(Date.now()), 5000)
     return () => clearInterval(interval)
   }, [])
 
@@ -111,7 +111,7 @@ export default function MessagesPage() {
         </p>
       </header>
 
-      <div className="flex-grow flex flex-col px-6 gap-3 pb-32">
+      <div className="flex-grow flex flex-col px-6 gap-4 pb-32">
         {isConvsLoading ? (
           <div className="flex justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -135,11 +135,11 @@ export default function MessagesPage() {
                 <Link 
                   href={`/messages/${otherId}/${targetOfferId}`}
                   className={cn(
-                    "flex items-center gap-4 p-4 rounded-2xl bg-card border transition-all shadow-lg relative pr-14",
+                    "flex items-center gap-4 p-4 rounded-2xl bg-card border transition-all shadow-xl relative pr-14",
                     unreadCount > 0 
                       ? isDelayed 
-                        ? "border-destructive bg-destructive/5 shadow-destructive/10" 
-                        : "border-primary bg-primary/5 shadow-primary/10"
+                        ? "border-destructive bg-destructive/10 shadow-destructive/20 border-2" 
+                        : "border-primary bg-primary/10 shadow-primary/20 border-2"
                       : "border-white/5 hover:border-primary/20"
                   )}
                 >
@@ -167,7 +167,9 @@ export default function MessagesPage() {
                       <div className="flex items-center gap-2 overflow-hidden">
                         <span className={cn(
                           "font-black uppercase italic tracking-tighter text-sm truncate max-w-[150px]",
-                          unreadCount > 0 ? "text-foreground" : "text-muted-foreground"
+                          unreadCount > 0 
+                            ? isDelayed ? "text-destructive" : "text-primary" 
+                            : "text-muted-foreground"
                         )}>{otherName}</span>
                         {unreadCount > 0 && (
                           <WhistleIcon className={cn("w-4 h-4 shrink-0", isDelayed ? "text-destructive" : "text-primary")} />
@@ -177,9 +179,9 @@ export default function MessagesPage() {
                     </div>
                     
                     <div className={cn(
-                      "flex items-center gap-1.5 mb-1.5 px-2 py-1 rounded-md w-fit max-w-full border transition-colors",
+                      "flex items-center gap-1.5 mb-1.5 px-2 py-1 rounded-md w-fit max-w-full border transition-colors shadow-sm",
                       unreadCount > 0 
-                        ? isDelayed ? "bg-destructive/10 border-destructive/20" : "bg-primary/10 border-primary/20"
+                        ? isDelayed ? "bg-destructive/20 border-destructive/40" : "bg-primary/20 border-primary/40"
                         : "bg-white/5 border-white/5"
                     )}>
                       <Trophy className={cn("w-3 h-3 shrink-0", unreadCount > 0 ? isDelayed ? "text-destructive" : "text-primary" : "text-muted-foreground")} />
@@ -193,7 +195,7 @@ export default function MessagesPage() {
 
                     <p className={cn(
                       "text-xs line-clamp-1",
-                      unreadCount > 0 ? "text-foreground font-black" : "text-muted-foreground font-medium"
+                      unreadCount > 0 ? "text-foreground font-black italic" : "text-muted-foreground font-medium"
                     )}>
                       {conv.lastMessage || 'Démarrez la conversation...'}
                     </p>
