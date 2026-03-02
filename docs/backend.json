@@ -98,6 +98,16 @@
           "type": "string",
           "description": "Reference to the User who created this offer."
         },
+        "photos": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of Cloudinary URLs."
+        },
+        "photoIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of Cloudinary Public IDs for deletion."
+        },
         "createdAt": {
           "type": "string",
           "description": "Timestamp indicating when the offer was created.",

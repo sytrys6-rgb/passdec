@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useRef } from 'react'
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Camera, ArrowLeft, Loader2, Lock, X, CheckCircle2 } from 'lucide-react'
+import { Camera, ArrowLeft, Loader2, Lock, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase'
 import { collection, addDoc, serverTimestamp, doc } from 'firebase/firestore'
@@ -46,6 +47,7 @@ export default function NewOfferPage() {
   })
 
   const [uploadedPhotos, setUploadedPhotos] = useState<(string | null)[]>([null, null])
+  const [uploadedPhotoIds, setUploadedPhotoIds] = useState<(string | null)[]>([null, null])
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -78,6 +80,11 @@ export default function NewOfferPage() {
         const newPhotos = [...uploadedPhotos]
         newPhotos[activeSlot] = data.secure_url
         setUploadedPhotos(newPhotos)
+
+        const newPhotoIds = [...uploadedPhotoIds]
+        newPhotoIds[activeSlot] = data.public_id
+        setUploadedPhotoIds(newPhotoIds)
+
         toast({
           title: "Photo validée !",
           description: activeSlot === 0 ? "Photo principale enregistrée." : "Photo secondaire ajoutée."
@@ -99,6 +106,10 @@ export default function NewOfferPage() {
     const newPhotos = [...uploadedPhotos]
     newPhotos[index] = null
     setUploadedPhotos(newPhotos)
+
+    const newPhotoIds = [...uploadedPhotoIds]
+    newPhotoIds[index] = null
+    setUploadedPhotoIds(newPhotoIds)
   }
 
   const triggerUpload = (index: number) => {
@@ -148,6 +159,7 @@ export default function NewOfferPage() {
         userNom: profile?.nom || user.email?.split('@')[0] || 'Inconnu',
         userType: profile?.typeProfil || 'particulier',
         photos: uploadedPhotos.filter(p => p !== null), 
+        photoIds: uploadedPhotoIds.filter(id => id !== null),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         isActive: true,
@@ -194,7 +206,6 @@ export default function NewOfferPage() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6 pb-24">
         <div className="grid grid-cols-2 gap-4">
-          {/* Photo 1: Obligatoire */}
           <div 
             onClick={() => triggerUpload(0)}
             className={cn(
@@ -223,7 +234,6 @@ export default function NewOfferPage() {
             )}
           </div>
 
-          {/* Photo 2: Optionnelle */}
           <div 
             onClick={() => triggerUpload(1)}
             className={cn(
@@ -251,13 +261,11 @@ export default function NewOfferPage() {
             )}
           </div>
 
-          {/* Photo 3: Bloquée Premium */}
           <div className="relative aspect-square rounded-2xl border-2 border-white/5 bg-card/40 flex flex-col items-center justify-center gap-2 opacity-50 grayscale">
             <Lock className="w-4 h-4 text-muted-foreground" />
             <span className="text-[8px] font-black uppercase tracking-widest text-primary">Premium</span>
           </div>
 
-          {/* Photo 4: Bloquée Premium */}
           <div className="relative aspect-square rounded-2xl border-2 border-white/5 bg-card/40 flex flex-col items-center justify-center gap-2 opacity-50 grayscale">
             <Lock className="w-4 h-4 text-muted-foreground" />
             <span className="text-[8px] font-black uppercase tracking-widest text-primary">Premium</span>
