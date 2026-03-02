@@ -80,7 +80,8 @@ export default function ChatPage() {
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!message.trim() || !user || !convRef || !db || !convId || !currentOffer) return
+    // Correction : suppression de la condition stricte sur currentOffer pour autoriser l'envoi immédiat
+    if (!message.trim() || !user || !convRef || !db || !convId) return
 
     const text = message.trim()
     setMessage('')
@@ -92,7 +93,7 @@ export default function ChatPage() {
         [otherUserId]: otherProfile?.nom || 'Recrue'
       },
       offerId: offerId,
-      offerTitle: currentOffer.titre,
+      offerTitle: currentOffer?.titre || 'Discussion',
       lastMessage: text,
       lastMessageAt: serverTimestamp(),
       [`unreadCount.${otherUserId}`]: increment(1)
