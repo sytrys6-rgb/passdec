@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw, BookOpen, ChevronRight, Scale, Info, Shield, Cookie, FileText, Database, Smartphone, Trophy } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw, BookOpen, ChevronRight, Scale, Info, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -96,6 +96,31 @@ export default function ProfilePage() {
     })
   }
 
+  const handleDeleteAccount = () => {
+    if (!db || !user) return
+
+    // 1. Supprimer toutes les annonces
+    myOffers?.forEach((offer) => {
+      const oRef = doc(db, 'offres', offer.id)
+      deleteDocumentNonBlocking(oRef)
+    })
+
+    // 2. Supprimer le profil
+    if (userRef) {
+      deleteDocumentNonBlocking(userRef)
+    }
+
+    // 3. Déconnexion et feedback
+    signOut(auth).then(() => {
+      toast({
+        variant: "destructive",
+        title: "Carton Rouge !",
+        description: "Vous avez quitté le stade définitivement. Vos données ont été supprimées."
+      })
+      router.push('/login')
+    })
+  }
+
   const handleInactiveFeature = (e: React.MouseEvent, featureName: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -176,6 +201,31 @@ export default function ProfilePage() {
               </div>
             </DialogContent>
           </Dialog>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="glass-morphism rounded-full border-white/10 hover:bg-destructive/20 hover:text-destructive">
+                <UserX className="w-5 h-5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter text-destructive">Carton Rouge !</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                  Attention ! Vous êtes sur le point de quitter définitivement le stade. Cela supprimera votre profil et TOUTES vos annonces en cours. Cette action est irréversible.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-xs">Rester sur le terrain</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDeleteAccount}
+                  className="bg-destructive text-white hover:bg-destructive/90 rounded-xl font-black uppercase tracking-tighter text-xs"
+                >
+                  Confirmer la sortie (Supprimer)
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           <Link href="/profile/edit">
             <Button variant="ghost" size="icon" className="glass-morphism rounded-full border-white/10">
