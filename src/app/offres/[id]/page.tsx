@@ -13,10 +13,10 @@ import { useFirestore, useDoc, useMemoFirebase } from '@/firebase'
 import { doc } from 'firebase/firestore'
 
 const profileTypes = {
-  particulier: { label: 'Footeux', emoji: '⚽' },
-  club_foot: { label: 'Team', emoji: '🏟️' },
-  club_supporter: { label: 'Ultras', emoji: '🎺' },
-  professionnel: { label: 'Pro', emoji: '🏢' },
+  particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
+  club_foot: { label: 'Team', complement: 'Club de foot', emoji: '🏟️' },
+  club_supporter: { label: 'Ultras', complement: 'Club de supporters', emoji: '🎺' },
+  professionnel: { label: 'Pro', complement: 'Professionnel / Entreprise', emoji: '🏢' },
 }
 
 export default function OfferDetailPage() {
@@ -178,9 +178,14 @@ export default function OfferDetailPage() {
                   ))}
                 </div>
               </div>
-              <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest px-3 py-1 bg-primary/5">
-                {currentType.emoji} {currentType.label}
-              </Badge>
+              <div className="flex flex-col items-end gap-1">
+                <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest px-3 py-1 bg-primary/5">
+                  {currentType.emoji} {currentType.label}
+                </Badge>
+                <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">
+                  {currentType.complement}
+                </span>
+              </div>
             </div>
 
             {/* Avatar Central */}
