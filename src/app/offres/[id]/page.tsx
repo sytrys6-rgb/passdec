@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, 
-  Loader2, Info, User, Mail, MessageCircle, Trophy, Flag, AlertTriangle, Shield, Trash2 
+  Loader2, Info, User, Mail, MessageCircle, Trophy, Flag, AlertTriangle, Shield, Trash2, Heart 
 } from 'lucide-react'
 import Image from 'next/image'
 import { 
@@ -38,7 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/dialog"
 import {
   Select,
   SelectContent,
@@ -350,6 +350,14 @@ export default function OfferDetailPage() {
 
             <div className="text-center w-full space-y-1">
               <h3 className="text-2xl font-black uppercase italic tracking-tighter text-foreground">{offer.userNom}</h3>
+              
+              {authorProfile?.clubPrefere && authorProfile?.typeProfil === 'particulier' && (
+                <div className="flex items-center justify-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full border border-primary/20 w-fit mx-auto mb-1">
+                  <Heart className="w-3 h-3 text-primary fill-primary" />
+                  <span className="text-[9px] font-black uppercase tracking-tighter text-primary">Fan de : {authorProfile.clubPrefere}</span>
+                </div>
+              )}
+
               <div className="flex items-center justify-center gap-1.5 text-primary">
                 <MapPin className="w-3.5 h-3.5" />
                 <span className="text-[11px] font-black uppercase tracking-[0.2em]">{offer.ville}</span>

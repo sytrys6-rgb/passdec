@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, Heart } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -147,6 +147,7 @@ export default function ProfilePage() {
     typeProfil: profile?.typeProfil || 'particulier',
     ville: profile?.ville || 'Inconnue',
     description: profile?.description || 'Passionné de football.',
+    clubPrefere: profile?.clubPrefere || '',
     stats: {
       offres: sortedMyOffers.length,
       avis: 0,
@@ -266,6 +267,13 @@ export default function ProfilePage() {
                 {currentType.complement}
              </span>
           </div>
+
+          {profileData.clubPrefere && profileData.typeProfil === 'particulier' && (
+            <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1 rounded-full border border-primary/20 mt-1">
+              <Heart className="w-3 h-3 text-primary fill-primary" />
+              <span className="text-[10px] font-black uppercase tracking-tighter text-primary">Fan de : {profileData.clubPrefere}</span>
+            </div>
+          )}
 
           <div className="flex items-center gap-1 text-muted-foreground mt-0.5">
             <MapPin className="w-3 h-3 text-primary" />

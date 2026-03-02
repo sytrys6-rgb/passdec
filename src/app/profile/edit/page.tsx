@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, Check, Camera } from 'lucide-react'
+import { ArrowLeft, Check, Camera, Heart } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
 import { doc, serverTimestamp } from 'firebase/firestore'
@@ -34,7 +34,8 @@ export default function EditProfilePage() {
     ville: '',
     description: '',
     whatsapp: '',
-    emailPublic: ''
+    emailPublic: '',
+    clubPrefere: ''
   })
 
   useEffect(() => {
@@ -51,7 +52,8 @@ export default function EditProfilePage() {
         ville: profile.ville || '',
         description: profile.description || '',
         whatsapp: profile.whatsapp || '',
-        emailPublic: profile.emailPublic || ''
+        emailPublic: profile.emailPublic || '',
+        clubPrefere: profile.clubPrefere || ''
       })
     }
   }, [profile])
@@ -143,6 +145,20 @@ export default function EditProfilePage() {
             </SelectContent>
           </Select>
         </div>
+
+        {formData.typeProfil === 'particulier' && (
+          <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+            <Label className="uppercase text-[10px] font-black tracking-[0.2em] text-primary ml-1 flex items-center gap-1.5">
+              <Heart className="w-3 h-3 fill-primary" /> Mon Club de cœur
+            </Label>
+            <Input 
+              value={formData.clubPrefere}
+              onChange={(e) => setFormData({...formData, clubPrefere: e.target.value})}
+              placeholder="Ex: Olympique Lyonnais, Real Madrid..." 
+              className="bg-card border-none ring-1 ring-primary/30 rounded-xl h-12 font-bold italic focus-visible:ring-primary/50" 
+            />
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label className="uppercase text-[10px] font-black tracking-[0.2em] text-muted-foreground ml-1">Ma Ville</Label>

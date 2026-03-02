@@ -48,6 +48,10 @@
           "description": "Public email address for contact.",
           "format": "email"
         },
+        "clubPrefere": {
+          "type": "string",
+          "description": "The favorite football club for individuals."
+        },
         "createdAt": {
           "type": "string",
           "description": "Timestamp indicating when the user profile was created.",
