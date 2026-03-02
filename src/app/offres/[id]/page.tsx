@@ -81,10 +81,11 @@ export default function OfferDetailPage() {
 
   const mockOffer = allOffers.find(o => o.id === id)
 
+  // Toujours créer une référence si l'ID est présent pour permettre l'arbitrage
   const offerRef = useMemoFirebase(() => {
-    if (!db || !id || mockOffer) return null
+    if (!db || !id) return null
     return doc(db, 'offres', id)
-  }, [db, id, mockOffer])
+  }, [db, id])
 
   const { data: firestoreOffer, isLoading: isFirestoreLoading } = useDoc(offerRef)
 
