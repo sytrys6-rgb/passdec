@@ -300,7 +300,7 @@ export default function ProfilePage() {
 
           <div className="flex items-center gap-1 text-muted-foreground mt-2">
             <MapPin className="w-3 h-3 text-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{profileData.ville}</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{profileData.ville}</span>
           </div>
         </div>
 
@@ -339,7 +339,7 @@ export default function ProfilePage() {
                   {sortedMyOffers.map((offer) => (
                     <div key={offer.id} className="relative group/item">
                       <div className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center shadow-lg pr-24">
-                        <Link href={`/offres/${offer.id}`} className="flex gap-4 items-center flex-grow overflow-hidden">
+                        <Link href={`/offres/details/?id=${offer.id}`} className="flex gap-4 items-center flex-grow overflow-hidden">
                           <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
                             <Image src={offer.photos?.[0] || 'https://picsum.photos/seed/foot/100/100'} alt={offer.titre} fill className="object-cover" unoptimized />
                           </div>

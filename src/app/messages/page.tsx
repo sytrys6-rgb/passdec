@@ -128,7 +128,7 @@ export default function MessagesPage() {
             return (
               <div key={conv.id} className="relative group">
                 <Link 
-                  href={`/messages/${otherId}/${targetOfferId}`}
+                  href={`/messages/chat/?userId=${otherId}&offerId=${targetOfferId}`}
                   className={cn(
                     "flex flex-col p-4 rounded-3xl bg-card border transition-all shadow-xl relative pr-14",
                     isUnread 

@@ -197,7 +197,7 @@ export default function AdminPage() {
         {!isHistory && (
           <div className="grid grid-cols-3 gap-2 mt-2">
             <Button asChild variant="outline" className="rounded-xl font-black uppercase italic text-[10px] h-11">
-              <Link href={`/offres/${report.offreId}`}><Eye className="w-4 h-4 mr-2" />Voir</Link>
+              <Link href={`/offres/details/?id=${report.offreId}`}><Eye className="w-4 h-4 mr-2" />Voir</Link>
             </Button>
             <Button variant="outline" onClick={() => handleIgnoreReport(report.id)} className="rounded-xl font-black uppercase italic text-[10px] h-11">
               <CheckCircle className="w-4 h-4 mr-2" />Ignorer

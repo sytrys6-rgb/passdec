@@ -32,7 +32,7 @@ export default function FavoritesPage() {
 
   const offersQuery = useMemoFirebase(() => {
     if (!db || !user) return null
-    // Récupère toutes les offres pour filtrage client, évitant les erreurs d'index
+    // Récupère toutes les offres pour filtrage client
     return collection(db, 'offres')
   }, [db, user])
 
@@ -87,7 +87,7 @@ export default function FavoritesPage() {
           <div className="grid gap-6">
             {favoriteOffersList.map((offer) => (
               <Link 
-                href={`/offres/${offer.id}`}
+                href={`/offres/details/?id=${offer.id}`}
                 key={offer.id} 
                 className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all duration-300 relative"
               >

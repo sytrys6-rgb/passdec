@@ -278,7 +278,7 @@ export default function HomePage() {
           {filteredOffers.length > 0 ? (
             filteredOffers.map((offer) => (
               <Link 
-                href={`/offres/${offer.id}`}
+                href={`/offres/details/?id=${offer.id}`}
                 key={offer.id} 
                 className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all duration-300 relative"
               >
