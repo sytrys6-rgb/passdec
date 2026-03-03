@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [dob, setDob] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const auth = useAuth()
   const db = useFirestore()
@@ -30,8 +31,20 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router])
 
+  const calculateAge = (birthDateString: string) => {
+    const today = new Date();
+    const birthDate = new Date(birthDateString);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
     if (!email || !password) {
       toast({
         variant: "destructive",
@@ -39,6 +52,28 @@ export default function LoginPage() {
         description: "Veuillez remplir tous les champs."
       })
       return
+    }
+
+    if (!isLogin && !dob) {
+      toast({
+        variant: "destructive",
+        title: "Date manquante",
+        description: "Veuillez indiquer votre date de naissance."
+      })
+      return
+    }
+
+    // Validation de l'âge (min 15 ans)
+    if (!isLogin) {
+      const age = calculateAge(dob);
+      if (age < 15) {
+        toast({
+          variant: "destructive",
+          title: "Carton Rouge !",
+          description: "Vous devez avoir au moins 15 ans pour entrer sur le terrain."
+        })
+        return
+      }
     }
 
     // Validation des domaines autorisés
@@ -68,6 +103,7 @@ export default function LoginPage() {
           typeProfil: 'particulier',
           ville: 'Non renseignée',
           description: 'Nouveau membre de la team Pass\' Déc\'.',
+          dateNaissance: dob,
           createdAt: serverTimestamp(),
           isActive: true,
           favoris: []
@@ -132,7 +168,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex justify-between items-center px-1">
                   <Label className="text-[10px] uppercase font-black tracking-widest">Email</Label>
-                  <span className="text-[8px] font-bold text-primary uppercase">Gmail, Microsoft, Yahoo, Orange, Free</span>
+                  <span className="text-[8px] font-bold text-primary uppercase">Validé par la ligue</span>
                 </div>
                 <Input 
                   type="email" 
@@ -143,6 +179,20 @@ export default function LoginPage() {
                   className="bg-background/50 border-none ring-1 ring-white/10 focus-visible:ring-primary rounded-xl h-12"
                 />
               </div>
+
+              {!isLogin && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest ml-1 text-primary">Date de naissance (+15 ans requis)</Label>
+                  <Input 
+                    type="date" 
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                    disabled={isLoading}
+                    className="bg-background/50 border-none ring-1 ring-primary/30 focus-visible:ring-primary rounded-xl h-12"
+                  />
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-black tracking-widest ml-1">Mot de passe</Label>
                 <Input 

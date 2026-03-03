@@ -52,6 +52,11 @@
           "type": "string",
           "description": "The favorite football club for individuals."
         },
+        "dateNaissance": {
+          "type": "string",
+          "format": "date",
+          "description": "User's date of birth for age validation."
+        },
         "createdAt": {
           "type": "string",
           "description": "Timestamp indicating when the user profile was created.",
@@ -193,7 +198,7 @@
           "entityName": "Conversation",
           "schema": { "$ref": "#/backend/entities/Conversation" },
           "description": "Messaging conversations."
-        }
+"        }
       },
       {
         "path": "/conversations/{convId}/messages/{msgId}",
