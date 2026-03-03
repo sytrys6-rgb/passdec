@@ -30,7 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/dialog"
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -56,7 +56,6 @@ export default function ProfilePage() {
   // Gestion de l'installation PWA
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
-      console.log('beforeinstallprompt event fired');
       e.preventDefault()
       setDeferredPrompt(e)
     }
