@@ -1,6 +1,6 @@
 
-const CACHE_NAME = 'passdec-v1';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'pass-dec-v1';
+const urlsToCache = [
   '/',
   '/manifest.json',
   'https://res.cloudinary.com/dfincejqz/image/upload/v1772489336/logo_fec345.jpg'
@@ -8,9 +8,7 @@ const ASSETS_TO_CACHE = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
 });
 
