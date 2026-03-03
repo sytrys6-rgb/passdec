@@ -292,7 +292,7 @@ export default function ProfilePage() {
 
           <div className="flex flex-col items-center gap-2 mt-2">
             {profileData.clubPrefere && profileData.typeProfil === 'particulier' && (
-              <div className="flex items-center gap-1.5 bg-primary/10 px-6 py-2 rounded-full border border-primary/20">
+              <div className="flex items-center gap-1.5 bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20">
                 <span className="text-xs font-black uppercase tracking-tighter text-primary">Club de 💛 {profileData.clubPrefere}</span>
               </div>
             )}
@@ -388,13 +388,16 @@ export default function ProfilePage() {
           {!showMyOffers && (
             <div className="flex flex-col gap-2">
               {deferredPrompt && !isInstalled && (
-                <Button 
-                  onClick={handleInstallClick}
-                  className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase tracking-widest text-xs italic shadow-lg shadow-primary/20 animate-bounce mb-2"
-                >
-                  <PhoneIcon className="w-4 h-4 mr-2" />
-                  📲 Installer l'app
-                </Button>
+                <div className="w-full flex flex-col gap-2 bg-primary/10 p-4 rounded-2xl border border-primary/20 mb-2">
+                  <p className="text-[10px] font-black uppercase italic text-primary text-center">Ajoutez Pass&apos;Déc&apos; à votre écran d&apos;accueil</p>
+                  <Button 
+                    onClick={handleInstallClick}
+                    className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase tracking-widest text-xs italic shadow-lg shadow-primary/20 animate-pulse"
+                  >
+                    <PhoneIcon className="w-4 h-4 mr-2" />
+                    📲 Installer l&apos;app
+                  </Button>
+                </div>
               )}
               
               <Button variant="ghost" onClick={handleLogout} className="w-full text-accent hover:bg-accent/10 rounded-xl h-12 font-black uppercase tracking-widest text-xs">
