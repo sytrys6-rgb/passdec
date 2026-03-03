@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, User } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, User, Pencil } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -95,6 +95,14 @@ export default function ProfilePage() {
     toast({
       title: "Sortie définitive !",
       description: "L'annonce a été retirée du terrain."
+    })
+  }
+
+  const handleEditOfferClick = () => {
+    toast({
+      variant: "warning",
+      title: "Carton Jaune !",
+      description: "La modification d'annonce n'est pas encore disponible sur le terrain."
     })
   }
 
@@ -311,6 +319,14 @@ export default function ProfilePage() {
                         </Link>
 
                         <div className="absolute right-3 flex gap-1.5 items-center">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={handleEditOfferClick}
+                            className="h-10 w-10 text-primary hover:bg-primary/10 rounded-full bg-background/50"
+                          >
+                            <Pencil className="w-5 h-5" />
+                          </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-full bg-background/50">
