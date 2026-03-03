@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -234,7 +234,7 @@ export default function ProfilePage() {
           {profileData.avatar ? (
             <Image src={profileData.avatar} alt={profileData.nom} width={128} height={128} className="object-cover h-full w-full" unoptimized />
           ) : (
-            <UserIcon className="w-12 h-12 text-muted-foreground" />
+            <User className="w-12 h-12 text-muted-foreground" />
           )}
           <div className="absolute bottom-0 right-0 p-1 bg-primary rounded-tl-xl border-t border-l border-background">
             <ShieldCheck className="w-4 h-4 text-black" />
