@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, User, Pencil } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, User, Pencil, Smartphone as PhoneIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -48,13 +48,42 @@ export default function ProfilePage() {
   const auth = useAuth()
   const router = useRouter()
   const { toast } = useToast()
+  
   const [showMyOffers, setShowMyOffers] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [isInstalled, setIsInstalled] = useState(false)
 
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login')
     }
   }, [user, isUserLoading, router])
+
+  // Gestion de l'installation PWA
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true)
+    }
+
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+  }, [])
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return
+    deferredPrompt.prompt()
+    const { outcome } = await deferredPrompt.userChoice
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null)
+      setIsInstalled(true)
+    }
+  }
 
   const userRef = useMemoFirebase(() => {
     if (!db || !user || isUserLoading) return null
@@ -356,10 +385,21 @@ export default function ProfilePage() {
 
           {!showMyOffers && (
             <div className="flex flex-col gap-2">
+              {deferredPrompt && !isInstalled && (
+                <Button 
+                  onClick={handleInstallClick}
+                  className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase tracking-widest text-xs italic shadow-lg shadow-primary/20 animate-bounce"
+                >
+                  <PhoneIcon className="w-4 h-4 mr-2" />
+                  📲 Installer l'app
+                </Button>
+              )}
+              
               <Button variant="ghost" onClick={handleLogout} className="w-full text-accent hover:bg-accent/10 rounded-xl h-12 font-black uppercase tracking-widest text-xs">
                 <LogOut className="w-4 h-4 mr-2" />
                 Déconnexion
               </Button>
+              
               {user?.uid === ADMIN_UID && (
                 <Link href="/admin" className="w-full mt-4">
                   <Button variant="ghost" className="w-full text-muted-foreground hover:text-primary rounded-xl h-10 font-black uppercase tracking-widest text-[9px] opacity-50">
