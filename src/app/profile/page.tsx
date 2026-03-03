@@ -291,14 +291,9 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex flex-col items-center gap-2 mt-2">
-            <div className="flex items-center gap-1.5 bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20">
-              <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[10px] font-black uppercase tracking-tighter text-primary">Âge Certifié (+15 ans)</span>
-            </div>
-
             {profileData.clubPrefere && profileData.typeProfil === 'particulier' && (
               <div className="flex items-center gap-1.5 bg-primary/10 px-6 py-2 rounded-full border border-primary/20">
-                <span className="text-sm font-black uppercase tracking-tighter text-primary">Club de 💛 {profileData.clubPrefere}</span>
+                <span className="text-xs font-black uppercase tracking-tighter text-primary">Club de 💛 {profileData.clubPrefere}</span>
               </div>
             )}
           </div>
