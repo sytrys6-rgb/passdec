@@ -1,27 +1,24 @@
-
-"use client"
-
-import { useParams, useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-
 /**
- * @fileOverview Redirection de l'ancienne route de messagerie vers la nouvelle structure par annonce.
+ * @fileOverview Redirection de l'ancienne route de messagerie.
  */
-export default function RedirectChatPage() {
-  const params = useParams()
-  const router = useRouter()
-  const userId = params.userId as string
 
-  useEffect(() => {
-    if (userId) {
-      // Redirection vers une conversation par défaut pour cet utilisateur
-      router.replace(`/messages/${userId}/default`)
-    }
-  }, [userId, router])
+export function generateStaticParams() {
+  return [{ userId: 'redirect' }]
+}
 
+export default function RedirectUserMessagesPage() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-    </div>
+    <html>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.location.href = '/messages';
+          `
+        }} />
+      </head>
+      <body className="bg-background flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </body>
+    </html>
   )
 }

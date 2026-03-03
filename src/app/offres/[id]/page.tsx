@@ -1,32 +1,32 @@
-
-"use client"
-
-import { useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-
 /**
- * @fileOverview Redirection de l'ancienne route dynamique vers la nouvelle route statique compatible export.
- * generateStaticParams est requis par Next.js pour l'exportation statique.
+ * @fileOverview Redirection de l'ancienne route dynamique vers la nouvelle route statique.
+ * Ce fichier est un Server Component pour être compatible avec generateStaticParams en mode export.
  */
 
 export function generateStaticParams() {
+  // On génère une route statique "redirect" pour que le build passe.
   return [{ id: 'redirect' }]
 }
 
 export default function RedirectOfferPage() {
-  const router = useRouter()
-  const params = useParams()
-  const id = params.id as string
-
-  useEffect(() => {
-    if (id) {
-      router.replace(`/offres/details/?id=${id}`)
-    }
-  }, [id, router])
-
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-    </div>
+    <html>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            const params = new URLSearchParams(window.location.search);
+            const id = window.location.pathname.split('/').filter(Boolean).pop();
+            if (id && id !== 'redirect') {
+              window.location.href = '/offres/details/?id=' + id;
+            } else {
+              window.location.href = '/';
+            }
+          `
+        }} />
+      </head>
+      <body className="bg-background flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </body>
+    </html>
   )
 }
