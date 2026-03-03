@@ -2,8 +2,7 @@
 const CACHE_NAME = 'passdec-v1';
 const ASSETS_TO_CACHE = [
   '/',
-  '/manifest.json',
-  '/globals.css'
+  '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {

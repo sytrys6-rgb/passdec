@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Script from 'next/script';
 
 export const metadata: Metadata = {
-  title: "100% Pass' Déc' - Le réseau social qui fait marquer",
+  title: "100% Pass'Déc' - Le réseau social qui fait marquer",
   description: 'La marketplace et le réseau social définitif pour les clubs de football et leurs fans.',
   manifest: '/manifest.json',
   appleWebApp: {
