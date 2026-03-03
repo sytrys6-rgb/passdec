@@ -2,7 +2,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* Mode Export Statique pour Firebase Hosting Gratuit */
+  /* Mode Export Statique pour Firebase Hosting Gratuit (Forfait Spark) */
   output: 'export',
   trailingSlash: true,
   typescript: {
@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    /* Requis pour le mode export statique */
     unoptimized: true,
     remotePatterns: [
       {
@@ -38,6 +39,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/v0/b/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
+      }
     ],
   },
 };

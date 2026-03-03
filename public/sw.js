@@ -1,9 +1,9 @@
 
-const CACHE_NAME = 'passdec-v1';
+const CACHE_NAME = 'pass-dec-v1';
 const ASSETS_TO_CACHE = [
   '/',
-  '/manifest.json',
-  'https://res.cloudinary.com/dfincejqz/image/upload/v1772489336/logo_fec345.jpg'
+  '/index.html',
+  '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {

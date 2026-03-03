@@ -6,7 +6,6 @@
   "theme_color": "#000000",
   "background_color": "#000000",
   "display": "standalone",
-  "orientation": "portrait",
   "start_url": "/",
   "icons": [
     {
@@ -18,8 +17,7 @@
     {
       "src": "https://res.cloudinary.com/dfincejqz/image/upload/w_512,h_512,c_pad/v1772489336/logo_fec345.jpg",
       "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "type": "image/jpeg"
     }
   ]
 }
