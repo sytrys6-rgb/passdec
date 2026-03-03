@@ -1,8 +1,9 @@
+
 const CACHE_NAME = 'passdec-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap'
+  'https://res.cloudinary.com/dfincejqz/image/upload/v1772489336/logo_fec345.jpg'
 ];
 
 self.addEventListener('install', (event) => {

@@ -395,7 +395,7 @@ export default function ProfilePage() {
               {deferredPrompt && !isInstalled && (
                 <Button 
                   onClick={handleInstallClick}
-                  className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase tracking-widest text-xs italic shadow-lg shadow-primary/20 animate-bounce"
+                  className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase tracking-widest text-xs italic shadow-lg shadow-primary/20 animate-bounce mb-2"
                 >
                   <PhoneIcon className="w-4 h-4 mr-2" />
                   📲 Installer l'app
