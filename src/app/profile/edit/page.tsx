@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, Check, Camera, Heart, Calendar } from 'lucide-react'
+import { ArrowLeft, Check, Camera } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase'
 import { doc, serverTimestamp } from 'firebase/firestore'
@@ -35,8 +35,7 @@ export default function EditProfilePage() {
     description: '',
     whatsapp: '',
     emailPublic: '',
-    clubPrefere: '',
-    dateNaissance: ''
+    clubPrefere: ''
   })
 
   useEffect(() => {
@@ -54,38 +53,14 @@ export default function EditProfilePage() {
         description: profile.description || '',
         whatsapp: profile.whatsapp || '',
         emailPublic: profile.emailPublic || '',
-        clubPrefere: profile.clubPrefere || '',
-        dateNaissance: profile.dateNaissance || ''
+        clubPrefere: profile.clubPrefere || ''
       })
     }
   }, [profile])
 
-  const calculateAge = (birthDateString: string) => {
-    const today = new Date();
-    const birthDate = new Date(birthDateString);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
     if (!userRef) return
-
-    if (formData.dateNaissance) {
-      const age = calculateAge(formData.dateNaissance);
-      if (age < 15) {
-        toast({
-          variant: "destructive",
-          title: "Carton Rouge !",
-          description: "L'âge minimum requis sur le terrain est de 15 ans."
-        })
-        return
-      }
-    }
 
     setDocumentNonBlocking(userRef, {
       ...formData,
@@ -153,16 +128,6 @@ export default function EditProfilePage() {
             value={formData.nom}
             onChange={(e) => setFormData({...formData, nom: e.target.value})}
             placeholder="Ex: FC Etoile" 
-            className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus-visible:ring-primary/50" 
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="uppercase text-[10px] font-black tracking-[0.2em] text-muted-foreground ml-1">Date de naissance (Min. 15 ans)</Label>
-          <Input 
-            type="date"
-            value={formData.dateNaissance}
-            onChange={(e) => setFormData({...formData, dateNaissance: e.target.value})}
             className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold focus-visible:ring-primary/50" 
           />
         </div>

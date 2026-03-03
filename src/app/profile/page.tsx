@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, MapPin as MapPinIcon, ArrowDownToLine, User as UserIcon, RefreshCcw, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, Heart } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -27,7 +27,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -87,7 +86,7 @@ export default function ProfilePage() {
     signOut(auth)
   }
 
-  const handleDeleteOffer = async (e: React.MouseEvent, offerId: string, photoIds?: string[]) => {
+  const handleDeleteOffer = async (e: React.MouseEvent, offerId: string) => {
     if (!db) return
 
     const offerRef = doc(db, 'offres', offerId)
@@ -118,16 +117,6 @@ export default function ProfilePage() {
         description: "Vous avez quitté le stade définitivement."
       })
       router.push('/login')
-    })
-  }
-
-  const handleInactiveFeature = (e: React.MouseEvent, featureName: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-    toast({
-      variant: "warning",
-      title: "Carton jaune !",
-      description: `La section "${featureName}" est en cours de validation.`
     })
   }
 
@@ -322,18 +311,10 @@ export default function ProfilePage() {
                         </Link>
 
                         <div className="absolute right-3 flex gap-1.5 items-center">
-                          <Button 
-                            variant="ghost" size="icon" 
-                            onClick={(e) => handleInactiveFeature(e, "Modification")}
-                            className="h-10 w-10 text-primary hover:bg-primary/10 rounded-full bg-background/50"
-                          >
-                            <RefreshCcw className="w-5 h-5" />
-                          </Button>
-
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-full bg-background/50">
-                                <ArrowDownToLine className="w-5 h-5 rotate-180" />
+                                <Trophy className="w-5 h-5 rotate-180" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
@@ -342,7 +323,7 @@ export default function ProfilePage() {
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-xs">Annuler</AlertDialogCancel>
-                                <AlertDialogAction onClick={(e) => handleDeleteOffer(e as any, offer.id, offer.photoIds)} className="bg-destructive text-white rounded-xl font-black uppercase tracking-tighter text-xs">Confirmer</AlertDialogAction>
+                                <AlertDialogAction onClick={(e) => handleDeleteOffer(e as any, offer.id)} className="bg-destructive text-white rounded-xl font-black uppercase tracking-tighter text-xs">Confirmer</AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
