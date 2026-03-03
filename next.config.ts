@@ -2,7 +2,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* Mode Export Statique pour Firebase Hosting Gratuit (Forfait Spark) */
+  /* Mode Export Statique pour Firebase Hosting Classique (Gratuit) */
   output: 'export',
   trailingSlash: true,
   typescript: {

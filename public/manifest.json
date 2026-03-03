@@ -3,10 +3,10 @@
   "name": "100% Pass'Déc'",
   "short_name": "Pass'Déc'",
   "description": "Le réseau social qui fait marquer",
-  "theme_color": "#000000",
-  "background_color": "#000000",
-  "display": "standalone",
   "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "https://res.cloudinary.com/dfincejqz/image/upload/w_192,h_192,c_pad/v1772489336/logo_fec345.jpg",
