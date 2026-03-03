@@ -53,15 +53,10 @@ export default function ProfilePage() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [isInstalled, setIsInstalled] = useState(false)
 
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login')
-    }
-  }, [user, isUserLoading, router])
-
   // Gestion de l'installation PWA
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
+      console.log('beforeinstallprompt event fired');
       e.preventDefault()
       setDeferredPrompt(e)
     }
@@ -84,6 +79,12 @@ export default function ProfilePage() {
       setIsInstalled(true)
     }
   }
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isUserLoading, router])
 
   const userRef = useMemoFirebase(() => {
     if (!db || !user || isUserLoading) return null

@@ -1,2 +1,3 @@
 
-# App Hosting désactivé au profit de Firebase Hosting Classique
+# App Hosting désactivé au profit de Firebase Hosting Classique (Gratuit)
+# Pour déployer : firebase deploy --only hosting
