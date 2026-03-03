@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth, useUser, useFirestore } from '@/firebase'
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,9 +12,10 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import Image from 'next/image'
+import { ArrowLeft } from 'lucide-react'
 
 export default function LoginPage() {
-  const [isLogin, setIsLogin] = useState(true)
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [dob, setDob] = useState('')
@@ -42,9 +43,44 @@ export default function LoginPage() {
     return age;
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) {
+      toast({
+        variant: "destructive",
+        title: "Email manquant",
+        description: "Veuillez entrer votre adresse email pour recevoir le lien."
+      })
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      await sendPasswordResetEmail(auth, email)
+      toast({
+        title: "Lien envoyé !",
+        description: "Vérifiez votre boîte mail (et les spams) pour réinitialiser votre mot de passe."
+      })
+      setMode('login')
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible d'envoyer l'email. Vérifiez l'adresse saisie."
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (mode === 'forgot') {
+      handleResetPassword(e)
+      return
+    }
+
     if (!email || !password) {
       toast({
         variant: "destructive",
@@ -54,7 +90,7 @@ export default function LoginPage() {
       return
     }
 
-    if (!isLogin && !dob) {
+    if (mode === 'signup' && !dob) {
       toast({
         variant: "destructive",
         title: "Date manquante",
@@ -64,7 +100,7 @@ export default function LoginPage() {
     }
 
     // Validation de l'âge (min 15 ans)
-    if (!isLogin) {
+    if (mode === 'signup') {
       const age = calculateAge(dob);
       if (age < 15) {
         toast({
@@ -92,7 +128,7 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      if (isLogin) {
+      if (mode === 'login') {
         await signInWithEmailAndPassword(auth, email, password)
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password)
@@ -156,11 +192,19 @@ export default function LoginPage() {
 
         <Card className="bg-card/80 backdrop-blur-xl border-white/10 shadow-2xl rounded-3xl overflow-hidden">
           <CardHeader className="pb-4">
+            {mode === 'forgot' && (
+              <button 
+                onClick={() => setMode('login')}
+                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary mb-2 hover:translate-x-[-2px] transition-transform"
+              >
+                <ArrowLeft className="w-3 h-3" /> Retour
+              </button>
+            )}
             <CardTitle className="text-2xl font-black italic uppercase tracking-tighter text-center">
-              {isLogin ? 'Connexion' : 'Créer un compte'}
+              {mode === 'login' ? 'Connexion' : mode === 'signup' ? 'Créer un compte' : 'Mot de passe oublié'}
             </CardTitle>
             <CardDescription className="text-center text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
-              {isLogin ? 'Heureux de vous revoir sur le terrain' : 'Rejoignez la plus grande team de passionnés'}
+              {mode === 'login' ? 'Heureux de vous revoir sur le terrain' : mode === 'signup' ? 'Rejoignez la plus grande team de passionnés' : 'Recevez un lien de réinitialisation'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -180,7 +224,7 @@ export default function LoginPage() {
                 />
               </div>
 
-              {!isLogin && (
+              {mode === 'signup' && (
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                   <Label className="text-[10px] uppercase font-black tracking-widest ml-1 text-primary">Date de naissance (+15 ans requis)</Label>
                   <Input 
@@ -193,23 +237,37 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest ml-1">Mot de passe</Label>
-                <Input 
-                  type="password" 
-                  placeholder="••••••••" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  className="bg-background/50 border-none ring-1 ring-white/10 focus-visible:ring-primary rounded-xl h-12"
-                />
-              </div>
+              {mode !== 'forgot' && (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center px-1">
+                    <Label className="text-[10px] uppercase font-black tracking-widest">Mot de passe</Label>
+                    {mode === 'login' && (
+                      <button 
+                        type="button"
+                        onClick={() => setMode('forgot')}
+                        className="text-[8px] font-bold text-primary uppercase hover:underline"
+                      >
+                        Oublié ?
+                      </button>
+                    )}
+                  </div>
+                  <Input 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    className="bg-background/50 border-none ring-1 ring-white/10 focus-visible:ring-primary rounded-xl h-12"
+                  />
+                </div>
+              )}
+
               <Button 
                 type="submit" 
                 disabled={isLoading}
                 className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg shadow-xl shadow-primary/20 mt-4"
               >
-                {isLoading ? 'Action en cours...' : (isLogin ? 'Entrer sur le terrain' : 'Signer au club')}
+                {isLoading ? 'Action en cours...' : (mode === 'login' ? 'Entrer sur le terrain' : mode === 'signup' ? 'Signer au club' : 'Envoyer le lien')}
               </Button>
             </form>
           </CardContent>
@@ -222,13 +280,24 @@ export default function LoginPage() {
                 <span className="bg-transparent px-2 text-muted-foreground">OU</span>
               </div>
             </div>
-            <button 
-              onClick={() => setIsLogin(!isLogin)}
-              disabled={isLoading}
-              className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
-            >
-              {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
-            </button>
+            
+            {mode !== 'forgot' ? (
+              <button 
+                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                disabled={isLoading}
+                className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+              >
+                {mode === 'login' ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
+              </button>
+            ) : (
+              <button 
+                onClick={() => setMode('login')}
+                disabled={isLoading}
+                className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+              >
+                Retour à la connexion
+              </button>
+            )}
           </CardFooter>
         </Card>
       </div>
