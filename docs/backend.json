@@ -65,6 +65,10 @@
         "isActive": {
           "type": "boolean",
           "description": "A flag indicating if the user account is currently active."
+        },
+        "isBlocked": {
+          "type": "boolean",
+          "description": "Indicates if the user is blocked from the platform."
         }
       },
       "required": [
@@ -198,7 +202,7 @@
           "entityName": "Conversation",
           "schema": { "$ref": "#/backend/entities/Conversation" },
           "description": "Messaging conversations."
-"        }
+        }
       },
       {
         "path": "/conversations/{convId}/messages/{msgId}",

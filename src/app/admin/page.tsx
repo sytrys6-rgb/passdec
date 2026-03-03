@@ -7,19 +7,19 @@ import {
   useUser, useFirestore, useCollection, useMemoFirebase, 
   updateDocumentNonBlocking, deleteDocumentNonBlocking 
 } from '@/firebase'
-import { collection, query, where, getDoc, doc, getDocs } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, writeBatch } from 'firebase/firestore'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   ShieldAlert, Loader2, Eye, Trash2, CheckCircle, 
-  ArrowLeft, Calendar, User, AlertCircle, History, ListFilter, Users, UserX
+  ArrowLeft, Calendar, User, History, ListFilter, Users, UserX, Ban, Unlock
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { cn } from '@/lib/utils'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -101,13 +101,10 @@ export default function AdminPage() {
 
   const handleDeleteOffer = async (reportId: string, offerId: string) => {
     if (!db) return
-    
     const offerRef = doc(db, 'offres', offerId)
     const reportRef = doc(db, 'signalements', reportId)
-    
     deleteDocumentNonBlocking(offerRef)
     updateDocumentNonBlocking(reportRef, { statut: 'traité' })
-    
     toast({ 
       variant: "destructive",
       title: "Arbitrage effectué",
@@ -115,25 +112,51 @@ export default function AdminPage() {
     })
   }
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleToggleBlockUser = (userId: string, currentlyBlocked: boolean) => {
+    if (!db || userId === ADMIN_UID) return
+    const userRef = doc(db, 'users', userId)
+    updateDocumentNonBlocking(userRef, { isBlocked: !currentlyBlocked })
+    toast({ 
+      title: currentlyBlocked ? "Joueur débloqué" : "Joueur suspendu",
+      description: currentlyBlocked ? "Il peut de nouveau entrer sur le terrain." : "Son accès est désormais interdit."
+    })
+  }
+
+  const handleDeleteUserPermanently = async (userId: string) => {
     if (!db || userId === ADMIN_UID) return
 
-    // Supprimer les annonces de l'utilisateur d'abord
-    const userOffersQuery = query(collection(db, 'offres'), where('userId', '==', userId))
-    const userOffersSnap = await getDocs(userOffersQuery)
-    userOffersSnap.forEach(offerDoc => {
-      deleteDocumentNonBlocking(offerDoc.ref)
-    })
+    try {
+      // 1. Supprimer ses offres
+      const offersQuery = query(collection(db, 'offres'), where('userId', '==', userId))
+      const offersSnap = await getDocs(offersQuery)
+      offersSnap.forEach(d => deleteDocumentNonBlocking(d.ref))
 
-    // Supprimer le profil
-    const userRef = doc(db, 'users', userId)
-    deleteDocumentNonBlocking(userRef)
+      // 2. Supprimer ses conversations
+      const convsQuery = query(collection(db, 'conversations'), where('participants', 'array-contains', userId))
+      const convsSnap = await getDocs(convsQuery)
+      convsSnap.forEach(d => deleteDocumentNonBlocking(d.ref))
 
-    toast({
-      variant: "destructive",
-      title: "Compte supprimé",
-      description: "Le joueur et ses annonces ont été évincés du stade."
-    })
+      // 3. Supprimer ses signalements (ceux qu'il a fait)
+      const reportsQuery = query(collection(db, 'signalements'), where('signalePar', '==', userId))
+      const reportsSnap = await getDocs(reportsQuery)
+      reportsSnap.forEach(d => deleteDocumentNonBlocking(d.ref))
+
+      // 4. Supprimer le document utilisateur
+      const userRef = doc(db, 'users', userId)
+      deleteDocumentNonBlocking(userRef)
+
+      toast({
+        variant: "destructive",
+        title: "Exclusion Définitive",
+        description: "Le joueur et toutes ses données ont été effacés du stade."
+      })
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Erreur d'arbitrage",
+        description: "Impossible de finaliser l'exclusion."
+      })
+    }
   }
 
   if (isUserLoading || !isAdmin) {
@@ -188,45 +211,76 @@ export default function AdminPage() {
     </div>
   )
 
-  const UserRow = ({ profile }: { profile: any }) => (
-    <div className="flex items-center justify-between p-4 bg-card rounded-2xl border border-white/5 mb-3">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-primary/20 overflow-hidden relative">
-          {profile.photoUrl ? (
-            <Image src={profile.photoUrl} alt={profile.nom} fill className="object-cover" unoptimized />
-          ) : (
-            <User className="w-6 h-6 text-muted-foreground" />
+  const UserRow = ({ profile }: { profile: any }) => {
+    const isBlocked = profile.isBlocked === true
+    const regDate = profile.createdAt?.seconds 
+      ? format(new Date(profile.createdAt.seconds * 1000), 'dd/MM/yyyy', { locale: fr }) 
+      : 'Inconnue'
+
+    return (
+      <div className="flex items-center justify-between p-4 bg-card rounded-2xl border border-white/5 mb-3 gap-4">
+        <div className="flex items-center gap-4 flex-grow overflow-hidden">
+          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-primary/20 overflow-hidden relative shrink-0">
+            {profile.photoUrl ? (
+              <Image src={profile.photoUrl} alt={profile.nom} fill className="object-cover" unoptimized />
+            ) : (
+              <User className="w-6 h-6 text-muted-foreground" />
+            )}
+            {isBlocked && (
+              <div className="absolute inset-0 bg-destructive/40 flex items-center justify-center">
+                <Ban className="w-6 h-6 text-white" />
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col overflow-hidden">
+            <div className="flex items-center gap-2">
+              <span className="font-black uppercase italic tracking-tighter text-sm truncate">{profile.nom}</span>
+              {isBlocked && <Badge className="bg-destructive text-[8px] h-4 font-black px-1.5 uppercase italic">Suspendu</Badge>}
+            </div>
+            <span className="text-[9px] font-bold uppercase text-primary tracking-widest">{profile.typeProfil} • Inscrit le {regDate}</span>
+            <span className="text-[9px] font-medium text-muted-foreground truncate italic">{profile.emailPublic || "Pas d'email public"}</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2 shrink-0">
+          {profile.id !== ADMIN_UID && (
+            <>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => handleToggleBlockUser(profile.id, isBlocked)}
+                className={isBlocked ? "text-primary border-primary/20" : "text-warning border-warning/20"}
+              >
+                {isBlocked ? <Unlock className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+              </Button>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter text-destructive">Sortie Définitive ?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Voulez-vous supprimer définitivement <strong>{profile.nom}</strong> ? <br/> 
+                      Toutes ses annonces, messages et signalements seront effacés. <br/><br/>
+                      <span className="text-destructive font-black">ACTION IRRÉVERSIBLE</span>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-[10px]">Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleDeleteUserPermanently(profile.id)} className="bg-destructive text-white rounded-xl font-black uppercase tracking-tighter text-[10px]">Confirmer l'arbitrage</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
           )}
         </div>
-        <div className="flex flex-col">
-          <span className="font-black uppercase italic tracking-tighter text-sm">{profile.nom}</span>
-          <span className="text-[9px] font-bold uppercase text-primary tracking-widest">{profile.typeProfil} • {profile.ville}</span>
-        </div>
       </div>
-      
-      {profile.id !== ADMIN_UID && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 rounded-full h-10 w-10">
-              <UserX className="w-5 h-5" />
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter text-destructive">Sortie Définitive ?</AlertDialogTitle>
-              <AlertDialogDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Voulez-vous supprimer le compte de <strong>{profile.nom}</strong> ? Cette action supprimera également toutes ses annonces.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-[10px]">Annuler</AlertDialogCancel>
-              <AlertDialogAction onClick={() => handleDeleteUser(profile.id)} className="bg-destructive text-white rounded-xl font-black uppercase tracking-tighter text-[10px]">Confirmer l'arbitrage</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-    </div>
-  )
+    )
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background p-6">

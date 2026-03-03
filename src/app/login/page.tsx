@@ -4,8 +4,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth, useUser, useFirestore } from '@/firebase'
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from 'firebase/auth'
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -28,9 +28,24 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !isUserLoading) {
-      router.push('/')
+      // Check if user is blocked before letting them in
+      const checkBlockStatus = async () => {
+        const userRef = doc(db, 'users', user.uid)
+        const snap = await getDoc(userRef)
+        if (snap.exists() && snap.data().isBlocked === true) {
+          await signOut(auth)
+          toast({
+            variant: "destructive",
+            title: "Carton Rouge !",
+            description: "Votre accès au terrain a été suspendu par l'arbitre."
+          })
+        } else {
+          router.push('/')
+        }
+      }
+      checkBlockStatus()
     }
-  }, [user, isUserLoading, router])
+  }, [user, isUserLoading, router, db, auth, toast])
 
   const calculateAge = (birthDateString: string) => {
     const today = new Date();
@@ -99,7 +114,6 @@ export default function LoginPage() {
       return
     }
 
-    // Validation de l'âge (min 15 ans)
     if (mode === 'signup') {
       const age = calculateAge(dob);
       if (age < 15) {
@@ -112,7 +126,6 @@ export default function LoginPage() {
       }
     }
 
-    // Validation des domaines autorisés
     const allowedDomains = ['gmail.com', 'outlook.fr', 'hotmail.fr', 'hotmail.com', 'yahoo.fr', 'orange.fr', 'free.fr'];
     const emailDomain = email.split('@')[1]?.toLowerCase();
 
@@ -142,6 +155,7 @@ export default function LoginPage() {
           dateNaissance: dob,
           createdAt: serverTimestamp(),
           isActive: true,
+          isBlocked: false,
           favoris: []
         })
       }
