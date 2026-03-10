@@ -50,12 +50,6 @@ export default function HomePage() {
     sessionStorage.setItem('last_search', searchQuery)
   }, [activeLocation, activeRadius, activeFilter, searchQuery, isInitialized])
 
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login')
-    }
-  }, [user, isUserLoading, router])
-
   const userRef = useMemoFirebase(() => {
     if (!db || !user || isUserLoading) return null
     return doc(db, 'users', user.uid)
@@ -65,9 +59,9 @@ export default function HomePage() {
   const favorites = profile?.favoris || []
 
   const offersQuery = useMemoFirebase(() => {
-    if (!db || isUserLoading || !user) return null
+    if (!db) return null
     return collection(db, 'offres')
-  }, [db, isUserLoading, user])
+  }, [db])
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
@@ -107,7 +101,7 @@ export default function HomePage() {
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>
   )
-  if (!user) return null
+  if (!user && isUserLoading) return null
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
@@ -136,7 +130,10 @@ export default function HomePage() {
 
   const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
     e.preventDefault()
-    if (!userRef || !user) return
+    if (!userRef || !user) {
+      router.push('/login')
+      return
+    }
     const newFavorites = favorites.includes(offerId)
       ? favorites.filter((id: string) => id !== offerId)
       : [...favorites, offerId]
@@ -166,7 +163,7 @@ export default function HomePage() {
           <div className="flex flex-wrap justify-center gap-2 mb-2">
             {totalUnread > 0 && (
               <Link href="/messages">
-                <Badge className="bg-orange-500 text-white border-none font-black uppercase tracking-tighter italic px-4 py-1.5 shadow-lg shadow-orange-500/20 flex items-center gap-2 animate-in slide-in-from-top duration-500">
+                <Badge className="bg-orange-500 text-white border-none font-black uppercase italic tracking-tighter italic px-4 py-1.5 shadow-lg shadow-orange-500/20 flex items-center gap-2 animate-in slide-in-from-top duration-500">
                   <MessageSquare className="w-3 h-3 fill-white" />
                   <span>{totalUnread} {totalUnread > 1 ? 'passes' : 'passe'} non lue(s)</span>
                 </Badge>
