@@ -127,14 +127,6 @@ export default function ProfilePage() {
     })
   }
 
-  const handleEditOfferClick = () => {
-    toast({
-      variant: "warning",
-      title: "Carton Jaune !",
-      description: "La modification d'annonce n'est pas encore disponible sur le terrain."
-    })
-  }
-
   const handleDeleteAccount = () => {
     if (!db || !user) return
 
@@ -363,14 +355,6 @@ export default function ProfilePage() {
                         </Link>
 
                         <div className="absolute right-3 flex gap-1.5 items-center">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={handleEditOfferClick}
-                            className="h-10 w-10 text-primary hover:bg-primary/10 rounded-full bg-background/50"
-                          >
-                            <Pencil className="w-5 h-5" />
-                          </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-full bg-background/50">

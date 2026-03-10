@@ -93,7 +93,7 @@ export default function HomePage() {
         date: 'En ligne'
       })) : [];
 
-    // On ajoute les offres de démo si la base est vide ou pour compléter le terrain
+    // On ajoute les offres de démo pour repeupler le terrain
     const demoOffers = mockOffers.map(o => ({
       ...o,
       isDemo: true
@@ -107,12 +107,6 @@ export default function HomePage() {
   }, [firestoreOffers])
 
   const totalActiveOffers = combinedOffers.length
-
-  if (isUserLoading && !user) return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-    </div>
-  )
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 

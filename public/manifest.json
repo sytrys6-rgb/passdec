@@ -1,3 +1,4 @@
+
 {
   "name": "100% Pass'Déc'",
   "short_name": "Pass'Déc'",
@@ -16,7 +17,8 @@
     {
       "src": "https://res.cloudinary.com/dfincejqz/image/upload/w_512,h_512,c_pad/v1772489336/logo_fec345.jpg",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
   ]
 }
