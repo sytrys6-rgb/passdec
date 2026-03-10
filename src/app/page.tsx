@@ -96,12 +96,11 @@ export default function HomePage() {
 
   const totalActiveOffers = combinedOffers.length
 
-  if (isUserLoading) return (
+  if (!user && isUserLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>
   )
-  if (!user && isUserLoading) return null
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
@@ -130,7 +129,7 @@ export default function HomePage() {
 
   const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
     e.preventDefault()
-    if (!userRef || !user) {
+    if (!user) {
       router.push('/login')
       return
     }
@@ -138,9 +137,18 @@ export default function HomePage() {
       ? favorites.filter((id: string) => id !== offerId)
       : [...favorites, offerId]
 
-    updateDocumentNonBlocking(userRef, { 
-      favoris: newFavorites 
-    })
+    if (userRef) {
+      updateDocumentNonBlocking(userRef, { 
+        favoris: newFavorites 
+      })
+    }
+  }
+
+  const handleOfferClick = (e: React.MouseEvent, offerId: string) => {
+    if (!user) {
+      e.preventDefault()
+      router.push('/login')
+    }
   }
 
   return (
@@ -277,6 +285,7 @@ export default function HomePage() {
               <Link 
                 href={`/offres/details/?id=${offer.id}`}
                 key={offer.id} 
+                onClick={(e) => handleOfferClick(e, offer.id)}
                 className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all duration-300 relative"
               >
                 <div className="relative aspect-[16/9] w-full">

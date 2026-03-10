@@ -16,7 +16,7 @@ import {
 } from '@/firebase'
 import { doc, collection, query, where, serverTimestamp } from 'firebase/firestore'
 import { cn } from '@/lib/utils'
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import {
@@ -70,13 +70,20 @@ function OfferDetailContent() {
   const router = useRouter()
   const id = searchParams.get('id')
   const db = useFirestore()
-  const { user } = useUser()
+  const { user, isUserLoading } = useUser()
   const { toast } = useToast()
 
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const [reportReason, setReportReason] = useState("")
   const [reportDetails, setReportDetails] = useState("")
   const [isSendingReport, setIsSendingReport] = useState(false)
+
+  // Sécurité tactique : redirection si non connecté
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isUserLoading, router])
 
   const offerRef = useMemoFirebase(() => {
     if (!db || !id) return null
@@ -194,6 +201,14 @@ function OfferDetailContent() {
       description: "L'annonce a été retirée du terrain par l'arbitre."
     })
     router.push('/')
+  }
+
+  if (isUserLoading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   if (isFirestoreLoading) {
