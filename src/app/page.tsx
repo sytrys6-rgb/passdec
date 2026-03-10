@@ -16,6 +16,7 @@ import { doc, collection, query, orderBy, where } from 'firebase/firestore'
 import placeholderData from '@/app/lib/placeholder-images.json'
 import { CITY_DATA, getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 import { Button } from '@/components/ui/button'
+import { allOffers as mockOffers } from '@/app/lib/offers'
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
@@ -51,9 +52,9 @@ export default function HomePage() {
   }, [activeLocation, activeRadius, activeFilter, searchQuery, isInitialized])
 
   const userRef = useMemoFirebase(() => {
-    if (!db || !user || isUserLoading) return null
+    if (!db || !user) return null
     return doc(db, 'users', user.uid)
-  }, [db, user, isUserLoading])
+  }, [db, user])
 
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
@@ -83,20 +84,31 @@ export default function HomePage() {
   }, [conversations, user])
 
   const combinedOffers = useMemo(() => {
-    if (!firestoreOffers) return []
-    return [...firestoreOffers]
+    // On commence par les offres réelles du Firestore
+    const fsOffers = firestoreOffers ? [...firestoreOffers]
       .filter(o => o.isActive !== false)
-      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
       .map(o => ({
         ...o,
         image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
         date: 'En ligne'
-      }))
+      })) : [];
+
+    // On ajoute les offres de démo si la base est vide ou pour compléter le terrain
+    const demoOffers = mockOffers.map(o => ({
+      ...o,
+      isDemo: true
+    }));
+
+    return [...fsOffers, ...demoOffers].sort((a, b) => {
+      const timeA = a.createdAt?.seconds || 0;
+      const timeB = b.createdAt?.seconds || 0;
+      return timeB - timeA;
+    });
   }, [firestoreOffers])
 
   const totalActiveOffers = combinedOffers.length
 
-  if (!user && isUserLoading) return (
+  if (isUserLoading && !user) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>
@@ -171,7 +183,7 @@ export default function HomePage() {
           <div className="flex flex-wrap justify-center gap-2 mb-2">
             {totalUnread > 0 && (
               <Link href="/messages">
-                <Badge className="bg-orange-500 text-white border-none font-black uppercase italic tracking-tighter italic px-4 py-1.5 shadow-lg shadow-orange-500/20 flex items-center gap-2 animate-in slide-in-from-top duration-500">
+                <Badge className="bg-orange-500 text-white border-none font-black uppercase italic tracking-tighter px-4 py-1.5 shadow-lg shadow-orange-500/20 flex items-center gap-2 animate-in slide-in-from-top duration-500">
                   <MessageSquare className="w-3 h-3 fill-white" />
                   <span>{totalUnread} {totalUnread > 1 ? 'passes' : 'passe'} non lue(s)</span>
                 </Badge>
@@ -180,7 +192,7 @@ export default function HomePage() {
             
             <Badge variant="outline" className="border-primary/50 text-primary font-black uppercase italic tracking-tighter px-4 py-1.5 bg-primary/5 flex items-center gap-2 shadow-lg shadow-primary/5">
               <Activity className="w-3 h-3 animate-pulse text-primary" />
-              <span>Mercato : {totalActiveOffers} {totalActiveOffers > 1 ? 'offres' : 'offre'} en ligne</span>
+              <span>Mercato : {totalActiveOffers} {totalActiveOffers > 1 ? 'offres' : 'offre'}</span>
             </Badge>
           </div>
           

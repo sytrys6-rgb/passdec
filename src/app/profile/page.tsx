@@ -323,6 +323,19 @@ export default function ProfilePage() {
         </div>
 
         <div className="w-full flex flex-col gap-3 mt-8 pb-10">
+          {deferredPrompt && !isInstalled && (
+            <div className="w-full flex flex-col gap-2 bg-primary/10 p-4 rounded-2xl border border-primary/20 animate-in slide-in-from-bottom-4">
+              <p className="text-[10px] font-black uppercase italic text-primary">Disponible sur mobile</p>
+              <Button 
+                onClick={handleInstallClick}
+                className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase italic tracking-widest text-sm shadow-xl shadow-primary/20 animate-pulse"
+              >
+                <PhoneIcon className="w-4 h-4 mr-2" />
+                📲 Installer l'app
+              </Button>
+            </div>
+          )}
+
           <Button 
             onClick={() => setShowMyOffers(!showMyOffers)}
             className={`w-full rounded-xl py-6 font-black uppercase tracking-widest text-xs h-12 italic ${showMyOffers ? 'bg-secondary text-white' : 'bg-primary text-black'}`}
@@ -387,19 +400,6 @@ export default function ProfilePage() {
 
           {!showMyOffers && (
             <div className="flex flex-col gap-2">
-              {deferredPrompt && !isInstalled && (
-                <div className="w-full flex flex-col gap-2 bg-primary/10 p-4 rounded-2xl border border-primary/20 mb-2">
-                  <p className="text-[10px] font-black uppercase italic text-primary text-center">Ajoutez Pass&apos;Déc&apos; à votre écran d&apos;accueil</p>
-                  <Button 
-                    onClick={handleInstallClick}
-                    className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase tracking-widest text-xs italic shadow-lg shadow-primary/20 animate-pulse"
-                  >
-                    <PhoneIcon className="w-4 h-4 mr-2" />
-                    📲 Installer l&apos;app
-                  </Button>
-                </div>
-              )}
-              
               <Button variant="ghost" onClick={handleLogout} className="w-full text-accent hover:bg-accent/10 rounded-xl h-12 font-black uppercase tracking-widest text-xs">
                 <LogOut className="w-4 h-4 mr-2" />
                 Déconnexion
