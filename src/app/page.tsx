@@ -1,12 +1,11 @@
 
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Slider } from '@/components/ui/slider'
 import { Search, MapPin, X, Circle, Triangle, Square, Loader2, MessageSquare, Activity, Compass, Banknote } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -17,7 +16,7 @@ import placeholderData from '@/app/lib/placeholder-images.json'
 import { getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 
 /**
- * @fileOverview Page d'accueil - La vitrine publique avec filtres de zone et de budget.
+ * @fileOverview Page d'accueil - La vitrine publique avec filtres de zone et de budget circulaire.
  */
 
 export default function HomePage() {
@@ -30,6 +29,8 @@ export default function HomePage() {
   const [activeRadius, setActiveRadius] = useState<number>(100)
   const [maxPrice, setMaxPrice] = useState<number>(1500)
   const [searchQuery, setSearchQuery] = useState('')
+
+  const dialRef = useRef<SVGSVGElement>(null)
 
   // Stabilisation de l'hydratation
   useEffect(() => {
@@ -98,13 +99,9 @@ export default function HomePage() {
 
   const filteredOffers = useMemo(() => {
     return combinedOffers.filter(offer => {
-      // Filtre catégorie
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
-      
-      // Filtre Budget
       const matchesPrice = (offer.prix || 0) <= maxPrice
 
-      // Filtre Géographique
       let matchesLocation = true;
       const targetCityName = activeLocation !== 'all' ? activeLocation : null
       
@@ -117,7 +114,6 @@ export default function HomePage() {
         }
       }
 
-      // Filtre Recherche textuelle
       const queryLower = searchQuery.toLowerCase()
       const matchesSearch = !searchQuery || 
         (offer.titre || '').toLowerCase().includes(queryLower) ||
@@ -127,6 +123,33 @@ export default function HomePage() {
       return matchesCategory && matchesPrice && matchesLocation && matchesSearch
     })
   }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery, maxPrice])
+
+  // Gestion du cadran circulaire
+  const handleDialInteraction = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!dialRef.current) return;
+    const rect = dialRef.current.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+    
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+    
+    // Calcul de l'angle (0 à 360) en commençant par le haut (0°)
+    let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+    if (angle < 0) angle += 360;
+    
+    // Mapper l'angle sur 0-1500€ par paliers de 10
+    const newValue = Math.round((angle / 360) * 1500 / 10) * 10;
+    setMaxPrice(Math.min(1500, Math.max(0, newValue)));
+  };
+
+  const dialProgress = (maxPrice / 1500) * 100;
+  const radius = 20;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference - (dialProgress / 100) * circumference;
 
   if (!mounted) {
     return (
@@ -174,7 +197,7 @@ export default function HomePage() {
               )}
               <Badge variant="outline" className="border-primary/50 text-primary font-black uppercase italic tracking-tighter px-4 py-1.5 bg-primary/5">
                 <Activity className="w-3 h-3 animate-pulse mr-2" />
-                Mercato : {combinedOffers.length} annonces réelles
+                Mercato : {combinedOffers.length} annonces
               </Badge>
             </div>
             <h1 className="text-4xl font-black italic uppercase tracking-tighter">
@@ -193,25 +216,58 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* SECTION BUDGET ULTRA DISCRETE */}
-        <section className="px-10 py-0.5 flex flex-col gap-0.5 opacity-60 hover:opacity-100 transition-opacity">
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-1">
-              <Banknote className="w-2.5 h-2.5 text-primary opacity-40" />
-              <span className="text-[7px] font-black uppercase tracking-[0.3em] italic text-muted-foreground">Budget Max</span>
-            </div>
-            <span className="text-[8px] font-black italic text-primary">
-              {maxPrice === 0 ? "Gratuit" : maxPrice === 1500 ? "Illimité" : `${maxPrice}€`}
-            </span>
-          </div>
-          <div className="px-1">
-            <Slider
-              value={[maxPrice]}
-              max={1500}
-              step={10}
-              onValueChange={(val) => setMaxPrice(val[0])}
-              className="py-1.5"
-            />
+        {/* SECTION BUDGET CIRCULAIRE ULTRA DISCRETE */}
+        <section className="px-6 py-2 flex items-center justify-center gap-6 opacity-60 hover:opacity-100 transition-opacity">
+          <div className="flex flex-col items-center">
+             <div className="flex items-center gap-1.5 mb-1">
+                <Banknote className="w-2.5 h-2.5 text-primary opacity-40" />
+                <span className="text-[7px] font-black uppercase tracking-[0.3em] italic text-muted-foreground">Budget Tactique</span>
+             </div>
+             
+             <div className="relative w-11 h-11 cursor-pointer select-none group/dial"
+                  onMouseDown={(e) => handleDialInteraction(e)}
+                  onTouchStart={(e) => handleDialInteraction(e)}
+                  onMouseMove={(e) => e.buttons === 1 && handleDialInteraction(e)}
+                  onTouchMove={(e) => handleDialInteraction(e)}
+             >
+                <svg ref={dialRef} width="44" height="44" className="transform -rotate-90">
+                  <circle
+                    cx="22"
+                    cy="22"
+                    r={radius}
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    fill="transparent"
+                    className="text-white/5"
+                  />
+                  <circle
+                    cx="22"
+                    cy="22"
+                    r={radius}
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    fill="transparent"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={dashOffset}
+                    strokeLinecap="round"
+                    className="text-primary transition-all duration-300 ease-out drop-shadow-[0_0_5px_rgba(var(--primary),0.5)]"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-[8px] font-black italic text-primary leading-none">
+                    {maxPrice === 1500 ? "∞" : maxPrice}
+                  </span>
+                  <span className="text-[6px] font-black uppercase text-muted-foreground">€</span>
+                </div>
+                {/* Indicateur de poignée visuelle discrète */}
+                <div 
+                  className="absolute w-1.5 h-1.5 bg-primary rounded-full shadow-lg transition-all duration-300"
+                  style={{
+                    left: `${22 + radius * Math.cos((dialProgress * 3.6 - 90) * (Math.PI / 180)) - 3}px`,
+                    top: `${22 + radius * Math.sin((dialProgress * 3.6 - 90) * (Math.PI / 180)) - 3}px`,
+                  }}
+                />
+             </div>
           </div>
         </section>
 
