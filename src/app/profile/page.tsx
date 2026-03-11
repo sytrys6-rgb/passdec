@@ -59,8 +59,16 @@ export default function ProfilePage() {
   const [isIOS, setIsIOS] = useState(false)
 
   useEffect(() => {
-    // Détection iOS
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    // Détection iOS robuste
+    const isIOSDevice = [
+      'iPad Simulator',
+      'iPhone Simulator',
+      'iPod Simulator',
+      'iPad',
+      'iPhone',
+      'iPod'
+    ].includes(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+    
     setIsIOS(isIOSDevice);
 
     const handleBeforeInstallPrompt = (e: any) => {
@@ -69,7 +77,8 @@ export default function ProfilePage() {
     }
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
     
-    if (window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone) {
+    // Vérification si déjà installé
+    if (window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true) {
       setIsInstalled(true)
     }
     
@@ -77,7 +86,13 @@ export default function ProfilePage() {
   }, [])
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return
+    if (!deferredPrompt) {
+      toast({
+        title: "Installation manuelle",
+        description: "Utilisez le menu de votre navigateur pour 'Installer l'application' ou 'Ajouter à l'écran d'accueil'."
+      });
+      return;
+    }
     deferredPrompt.prompt()
     const { outcome } = await deferredPrompt.userChoice
     if (outcome === 'accepted') {
@@ -326,7 +341,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="w-full flex flex-col gap-3 mt-8 pb-32">
-          {/* SECTION INSTALLATION PWA */}
+          {/* SECTION INSTALLATION PWA - PLUS INTERACTIVE */}
           <div className="bg-card/50 border border-white/5 rounded-2xl p-4 flex flex-col gap-3">
             <div className="flex items-center gap-2 mb-1">
               <Smartphone className="w-4 h-4 text-primary" />
@@ -344,14 +359,14 @@ export default function ProfilePage() {
                 className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase italic tracking-widest text-sm shadow-xl animate-pulse"
               >
                 <Download className="w-4 h-4 mr-2" />
-                Installer sur mon écran
+                Installer maintenant
               </Button>
             ) : isIOS ? (
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="w-full bg-primary/10 text-primary border border-primary/20 rounded-xl h-12 font-black uppercase italic tracking-widest text-sm">
-                    <Share className="w-4 h-4 mr-2" />
-                    Installer sur iPhone
+                  <Button className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase italic tracking-widest text-sm shadow-xl">
+                    <Smartphone className="w-4 h-4 mr-2" />
+                    Ajouter à l'écran d'accueil
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-card border-white/10 rounded-3xl max-w-[90vw]">
@@ -370,7 +385,7 @@ export default function ProfilePage() {
                         Pour installer l'app sur votre iPhone :
                       </p>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-4 text-left">
                       <div className="flex gap-4 items-start">
                         <div className="w-6 h-6 rounded-full bg-primary text-black flex items-center justify-center font-black text-xs shrink-0">1</div>
                         <p className="text-[11px] font-medium leading-relaxed">Appuyez sur le bouton <span className="font-black text-primary">Partager</span> en bas de votre navigateur Safari.</p>
@@ -388,14 +403,31 @@ export default function ProfilePage() {
                 </DialogContent>
               </Dialog>
             ) : (
-              <div className="flex flex-col gap-2 p-3 bg-muted/20 rounded-xl border border-white/5">
-                <div className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Comment installer ?</span>
+              <div className="flex flex-col gap-3">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({
+                        title: "100% Pass'Déc'",
+                        text: "Rejoins le stade Pass'Déc' !",
+                        url: window.location.origin
+                      });
+                    } else {
+                      toast({ title: "Copie le lien", description: window.location.origin });
+                    }
+                  }}
+                  className="w-full bg-primary/10 text-primary border border-primary/20 rounded-xl h-12 font-black uppercase italic tracking-widest text-sm"
+                >
+                  <Share className="w-4 h-4 mr-2" />
+                  Partager le stade
+                </Button>
+                <div className="flex items-center gap-2 p-3 bg-muted/20 rounded-xl border border-white/5">
+                  <Info className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <p className="text-[9px] font-bold text-muted-foreground uppercase leading-relaxed text-left">
+                    Ouvrez ce site dans Chrome ou Safari pour accéder aux options d'installation.
+                  </p>
                 </div>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase leading-relaxed">
-                  Utilisez Chrome ou Safari pour installer le raccourci sur votre écran et accéder au stade en un clic.
-                </p>
               </div>
             )}
           </div>
