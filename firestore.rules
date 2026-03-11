@@ -2,15 +2,14 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Profils utilisateurs : Tout utilisateur connecté peut lire
+    // Profils utilisateurs : Lecture autorisée pour les connectés
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && (request.auth.uid == userId || request.auth.uid == "OvtBOwidg7dc4lHw5rR56yqLlIT2");
     }
     
-    // Annonces : LECTURE ET LISTING PUBLICS (indispensable pour les visiteurs)
+    // Annonces : LECTURE ET LISTING PUBLICS (Essentiel pour le lèche-vitrine)
     match /offres/{offreId} {
-      // Autorise explicitement le lèche-vitrine pour les visiteurs non connectés
       allow read, list: if true;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || request.auth.uid == "OvtBOwidg7dc4lHw5rR56yqLlIT2");
@@ -33,7 +32,7 @@ service cloud.firestore {
       allow read, update, delete: if request.auth != null && request.auth.uid == "OvtBOwidg7dc4lHw5rR56yqLlIT2";
     }
     
-    // Règle par défaut (protection générale)
+    // Règle par défaut
     match /{document=**} {
       allow read, write: if request.auth != null;
     }

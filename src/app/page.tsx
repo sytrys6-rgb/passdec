@@ -18,13 +18,12 @@ import { allOffers as mockOffers } from '@/app/lib/offers'
 
 /**
  * @fileOverview Page d'accueil - Le terrain de jeu principal.
- * Version stabilisée pour éliminer les erreurs d'hydratation et forcer l'affichage des annonces réelles pour tous.
+ * Version stabilisée pour éliminer les erreurs d'hydratation et garantir l'accès public aux annonces réelles.
  */
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
   const db = useFirestore()
-  const router = useRouter()
   
   const [mounted, setMounted] = useState(false)
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
@@ -32,7 +31,7 @@ export default function HomePage() {
   const [activeRadius, setActiveRadius] = useState<number>(150)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Hydratation et récupération des préférences locales
+  // Hydratation sécurisée et récupération des préférences
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
@@ -47,12 +46,12 @@ export default function HomePage() {
         if (savedFilter && savedFilter !== 'null') setActiveFilter(savedFilter)
         if (savedSearch) setSearchQuery(savedSearch)
       } catch (e) {
-        // Silencieux pour le build SSR
+        // Silencieux lors du build/SSR
       }
     }
   }, [])
 
-  // Sauvegarde des filtres tactiques
+  // Sauvegarde des préférences côté client uniquement
   useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
       try {
@@ -66,14 +65,7 @@ export default function HomePage() {
     }
   }, [activeLocation, activeRadius, activeFilter, searchQuery, mounted])
 
-  const userRef = useMemoFirebase(() => {
-    if (!db || !user) return null
-    return doc(db, 'users', user.uid)
-  }, [db, user])
-
-  const { data: profile } = useDoc(userRef)
-
-  // REQUÊTE PUBLIQUE : Toujours chargée pour tous (Mercato ouvert)
+  // REQUÊTE PUBLIQUE : Les annonces réelles sont chargées pour tous
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
     return collection(db, 'offres')
@@ -81,7 +73,7 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  // Messages non lus (uniquement pour les joueurs connectés)
+  // Messages non lus (uniquement si connecté)
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, 'conversations'), where('participants', 'array-contains', user.uid))
@@ -100,7 +92,7 @@ export default function HomePage() {
     return count
   }, [conversations, user])
 
-  // Fusion tactique des annonces : Réel d'abord, Démo ensuite
+  // Fusion des offres réelles et de démo
   const combinedOffers = useMemo(() => {
     const fsOffers = firestoreOffers ? firestoreOffers.map(o => ({
       ...o,
@@ -115,7 +107,6 @@ export default function HomePage() {
       isReal: false
     }));
 
-    // Les annonces réelles passent devant les démos
     return [...fsOffers, ...demoOffers].sort((a, b) => {
       if (a.isReal && !b.isReal) return -1;
       if (!a.isReal && b.isReal) return 1;
@@ -128,6 +119,7 @@ export default function HomePage() {
   const totalActiveRealCount = useMemo(() => combinedOffers.filter(o => o.isReal).length, [combinedOffers])
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
+  // Filtrage des offres
   const filteredOffers = useMemo(() => {
     return combinedOffers.filter(offer => {
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
@@ -153,15 +145,15 @@ export default function HomePage() {
     })
   }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery])
 
-  // RENDU STABLE : Le div racine doit avoir les mêmes classes dès le début pour éviter l'Internal Server Error
+  // Structure Racine stable pour éviter les erreurs d'hydratation
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {!mounted ? (
-        <div className="flex-grow flex items-center justify-center">
+        <div className="flex-grow flex items-center justify-center min-h-screen">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       ) : (
-        <>
+        <div className="flex flex-col flex-grow">
           <header className="p-6 pb-2 flex flex-col items-center gap-4 animate-in fade-in duration-500">
             <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
               <Image 
@@ -196,7 +188,7 @@ export default function HomePage() {
                 )}
                 <Badge variant="outline" className="border-primary/50 text-primary font-black uppercase italic tracking-tighter px-4 py-1.5 bg-primary/5">
                   <Activity className="w-3 h-3 animate-pulse mr-2" />
-                  Mercato : {totalActiveRealCount} annonces réelles
+                  Mercato : {totalActiveRealCount} annonces en direct
                 </Badge>
               </div>
               <h1 className="text-4xl font-black italic uppercase tracking-tighter">
@@ -273,7 +265,7 @@ export default function HomePage() {
           </section>
 
           <Navigation />
-        </>
+        </div>
       )}
     </div>
   )
