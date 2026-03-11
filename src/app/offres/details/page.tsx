@@ -7,18 +7,17 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   ArrowLeft, MapPin, MessageSquare, ShieldCheck, Star, 
-  Loader2, Info, User, Trophy, Flag, AlertTriangle, Shield, Trash2 
+  Loader2, Info, User, Trophy, Flag, Shield, Heart
 } from 'lucide-react'
 import Image from 'next/image'
 import { 
   useFirestore, useDoc, useMemoFirebase, useUser, 
-  updateDocumentNonBlocking, addDocumentNonBlocking, useCollection, deleteDocumentNonBlocking 
+  updateDocumentNonBlocking, deleteDocumentNonBlocking 
 } from '@/firebase'
-import { doc, collection, query, where, serverTimestamp } from 'firebase/firestore'
+import { doc } from 'firebase/firestore'
 import { cn } from '@/lib/utils'
-import { useState, Suspense, useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
-import Link from 'next/link'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +30,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-// Export dynamique pour Vercel pour éviter les erreurs de static params
 export const dynamic = 'force-dynamic';
 
 const profileTypes = {
@@ -49,7 +47,6 @@ function OfferDetailContent() {
   const { user, isUserLoading } = useUser()
   const { toast } = useToast()
 
-  // Redirection forcée si non connecté
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login')
@@ -138,7 +135,7 @@ function OfferDetailContent() {
     )
   }
 
-  const currentType = profileTypes[offer.userType as keyof typeof profileTypes] || profileTypes.particulier
+  const authorType = authorProfile ? (profileTypes[authorProfile.typeProfil as keyof typeof profileTypes] || profileTypes.particulier) : profileTypes.particulier
   const isOwnOffer = user?.uid === offer.userId
 
   return (
@@ -177,19 +174,59 @@ function OfferDetailContent() {
           </div>
 
           <div className="space-y-4 text-left">
-            <h2 className="text-sm font-black uppercase italic tracking-widest text-primary border-b border-primary/20 pb-1 w-fit">Description</h2>
+            <h2 className="text-sm font-black uppercase italic tracking-widest text-primary border-b border-primary/20 pb-1 w-fit">Description du match</h2>
             <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">{offer.description}</p>
           </div>
         </div>
       </div>
 
       <div className="px-6 mt-8">
-        <div className="relative bg-card/80 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/10 shadow-2xl flex flex-col items-center gap-4 overflow-hidden">
-          <div className="w-28 h-28 rounded-full border-4 border-primary/20 overflow-hidden shadow-2xl relative">
-            {authorProfile?.photoUrl ? <Image src={authorProfile.photoUrl} alt={offer.userNom} fill className="object-cover" unoptimized /> : <User className="w-12 h-12 text-muted-foreground mx-auto mt-6" />}
+        <div className="relative bg-card/80 backdrop-blur-xl rounded-[2.5rem] p-6 border border-white/10 shadow-2xl flex flex-col items-center gap-4 overflow-hidden text-center">
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
+          
+          <div className="relative">
+            <div className="w-28 h-28 rounded-full border-4 border-primary/20 overflow-hidden shadow-2xl bg-muted flex items-center justify-center">
+              {authorProfile?.photoUrl ? <Image src={authorProfile.photoUrl} alt={offer.userNom} fill className="object-cover" unoptimized /> : <User className="w-12 h-12 text-muted-foreground" />}
+            </div>
+            <div className="absolute -bottom-1 -right-1 bg-primary p-1.5 rounded-full border-2 border-card shadow-lg">
+              <ShieldCheck className="w-4 h-4 text-black" />
+            </div>
           </div>
-          <h3 className="text-2xl font-black uppercase italic tracking-tighter">{offer.userNom}</h3>
-          <Badge className="bg-primary/10 text-primary border-primary/20">{currentType.label}</Badge>
+
+          <div className="space-y-1">
+            <h3 className="text-2xl font-black uppercase italic tracking-tighter">{offer.userNom}</h3>
+            <div className="flex justify-center gap-2">
+              <Badge className="bg-primary/10 text-primary border-primary/20 font-black uppercase italic tracking-widest text-[8px]">{authorType.emoji} {authorType.label}</Badge>
+              {authorProfile?.role === 'admin' && <Badge className="bg-destructive text-white border-none font-black uppercase italic tracking-widest text-[8px]">Arbitre</Badge>}
+            </div>
+          </div>
+
+          {authorProfile?.clubPrefere && (
+            <div className="flex items-center gap-2 px-4 py-1.5 bg-primary/5 border border-primary/10 rounded-full">
+              <Heart className="w-3 h-3 text-primary fill-primary/20" />
+              <span className="text-[10px] font-black uppercase italic tracking-tighter text-primary">{authorProfile.clubPrefere}</span>
+            </div>
+          )}
+
+          <div className="w-full mt-2">
+            <p className="text-[11px] font-medium text-muted-foreground italic leading-relaxed px-4">
+              "{authorProfile?.description || "Ce joueur n'a pas encore rempli sa bio tactique."}"
+            </p>
+          </div>
+
+          <div className="flex gap-4 w-full justify-center pt-2">
+            <div className="flex flex-col items-center">
+              <span className="text-lg font-black italic text-primary">5.0</span>
+              <div className="flex gap-0.5">
+                {[...Array(5)].map((_, i) => <Star key={i} className="w-2 h-2 fill-primary text-primary" />)}
+              </div>
+            </div>
+            <div className="w-px h-8 bg-white/5" />
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Membre</span>
+              <span className="text-[10px] font-bold text-foreground">Pro</span>
+            </div>
+          </div>
         </div>
       </div>
 

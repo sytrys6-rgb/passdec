@@ -9,7 +9,7 @@ import {
   Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, 
   Flag, ChevronRight, Shield, Cookie, FileText, Database, 
   Smartphone, Trophy, UserX, User, Trash2, Download, 
-  Share, Info, ChevronDown
+  Share, Info, Heart
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -59,7 +59,6 @@ export default function ProfilePage() {
   const [isIOS, setIsIOS] = useState(false)
 
   useEffect(() => {
-    // Détection iOS robuste
     const isIOSDevice = [
       'iPad Simulator',
       'iPhone Simulator',
@@ -77,7 +76,6 @@ export default function ProfilePage() {
     }
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
     
-    // Vérification si déjà installé
     if (window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true) {
       setIsInstalled(true)
     }
@@ -112,7 +110,6 @@ export default function ProfilePage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(userRef)
 
-  // AUTO-PROMOTION LOGIC FOR ADMIN
   useEffect(() => {
     if (user?.email === 'sytrys6@gmail.com' && profile && profile.role !== 'admin' && userRef) {
       updateDocumentNonBlocking(userRef, { role: 'admin' });
@@ -313,12 +310,41 @@ export default function ProfilePage() {
         
         <div className="mt-4 flex flex-col items-center gap-1">
           <h1 className="text-3xl font-black italic uppercase tracking-tighter">{profileData.nom}</h1>
-          <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest px-3 py-1 bg-primary/5">
-             {currentType.emoji} {currentType.label}
-          </Badge>
+          <div className="flex gap-2 items-center">
+            <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest px-3 py-1 bg-primary/5">
+               {currentType.emoji} {currentType.label}
+            </Badge>
+            {profileData.role === 'admin' && <Badge className="bg-destructive text-white border-none font-black uppercase italic tracking-widest text-[8px] px-2 py-1">Arbitre V.A.R</Badge>}
+          </div>
           <div className="flex items-center gap-1 text-muted-foreground mt-2">
             <MapPin className="w-3 h-3 text-primary" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">{profileData.ville}</span>
+          </div>
+        </div>
+
+        {profileData.clubPrefere && (
+          <div className="mt-6 w-full animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-full">
+                  <Heart className="w-4 h-4 text-primary fill-primary/20" />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Club de cœur</span>
+                  <span className="text-sm font-black italic uppercase tracking-tighter text-primary">{profileData.clubPrefere}</span>
+                </div>
+              </div>
+              <Trophy className="w-5 h-5 text-primary opacity-20" />
+            </div>
+          </div>
+        )}
+
+        <div className="w-full mt-6 text-left">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-2 ml-1 italic">Palmarès / Bio</h2>
+          <div className="bg-card/40 border border-white/5 rounded-2xl p-4">
+            <p className="text-xs font-medium text-muted-foreground leading-relaxed italic">
+              "{profileData.description}"
+            </p>
           </div>
         </div>
 
@@ -341,7 +367,6 @@ export default function ProfilePage() {
         </div>
 
         <div className="w-full flex flex-col gap-3 mt-8 pb-32">
-          {/* SECTION INSTALLATION PWA - PLUS INTERACTIVE */}
           <div className="bg-card/50 border border-white/5 rounded-2xl p-4 flex flex-col gap-3">
             <div className="flex items-center gap-2 mb-1">
               <Smartphone className="w-4 h-4 text-primary" />
