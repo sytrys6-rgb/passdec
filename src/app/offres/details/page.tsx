@@ -78,7 +78,7 @@ function OfferDetailContent() {
   const [reportDetails, setReportDetails] = useState("")
   const [isSendingReport, setIsSendingReport] = useState(false)
 
-  // Redirection si non connecté
+  // Redirection vers login si non connecté pour voir les détails
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login')
@@ -286,7 +286,7 @@ function OfferDetailContent() {
           <div className="flex justify-between items-start mb-4">
             <div className="flex flex-col gap-2">
               <div className="flex gap-2 items-center">
-                <Badge className="w-fit bg-primary text-black font-black uppercase italic tracking-wider text-[10px]">
+                <Badge className="w-fit bg-primary text-black font-black uppercase italic tracking-wider text-[10px] border-none">
                   {offer.typeOffre}
                 </Badge>
                 {offer.etat && (
