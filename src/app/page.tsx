@@ -33,25 +33,33 @@ export default function HomePage() {
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
-      const savedCity = sessionStorage.getItem('last_city') || 'all'
-      const savedRadius = sessionStorage.getItem('last_radius') || '150'
-      const savedFilter = sessionStorage.getItem('last_filter') || 'null'
-      const savedSearch = sessionStorage.getItem('last_search') || ''
-      
-      setActiveLocation(savedCity)
-      setActiveRadius(parseInt(savedRadius))
-      setActiveFilter(savedFilter === 'null' ? null : savedFilter)
-      setSearchQuery(savedSearch)
+      try {
+        const savedCity = sessionStorage.getItem('last_city') || 'all'
+        const savedRadius = sessionStorage.getItem('last_radius') || '150'
+        const savedFilter = sessionStorage.getItem('last_filter') || 'null'
+        const savedSearch = sessionStorage.getItem('last_search') || ''
+        
+        setActiveLocation(savedCity)
+        setActiveRadius(parseInt(savedRadius))
+        setActiveFilter(savedFilter === 'null' ? null : savedFilter)
+        setSearchQuery(savedSearch)
+      } catch (e) {
+        console.warn("Storage access denied")
+      }
     }
   }, [])
 
   // Sauvegarde des préférences de recherche
   useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
-      sessionStorage.setItem('last_city', activeLocation)
-      sessionStorage.setItem('last_radius', activeRadius.toString())
-      sessionStorage.setItem('last_filter', activeFilter || 'null')
-      sessionStorage.setItem('last_search', searchQuery)
+      try {
+        sessionStorage.setItem('last_city', activeLocation)
+        sessionStorage.setItem('last_radius', activeRadius.toString())
+        sessionStorage.setItem('last_filter', activeFilter || 'null')
+        sessionStorage.setItem('last_search', searchQuery)
+      } catch (e) {
+        // Silently fail on storage restriction
+      }
     }
   }, [activeLocation, activeRadius, activeFilter, searchQuery, mounted])
 
@@ -67,6 +75,7 @@ export default function HomePage() {
   // RÉCUPÉRATION DES OFFRES RÉELLES (Indépendante de l'authentification)
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
+    // Pas de filtre userId ici pour permettre la lecture publique
     return collection(db, 'offres')
   }, [db])
 
@@ -106,6 +115,7 @@ export default function HomePage() {
       isReal: false
     }));
 
+    // Fusion et tri : Réel d'abord, puis par date
     return [...fsOffers, ...demoOffers].sort((a, b) => {
       if (a.isReal && !b.isReal) return -1;
       if (!a.isReal && b.isReal) return 1;
@@ -172,9 +182,15 @@ export default function HomePage() {
   }
 
   // Empêcher l'affichage avant le montage pour éviter les erreurs d'hydratation
-  // On s'assure que la structure flex-col est présente dès le début
+  // On garde EXACTEMENT les mêmes classes CSS sur le div racine pour l'hydratation
   if (!mounted) {
-    return <div className="flex flex-col min-h-screen bg-background" />
+    return (
+      <div className="flex flex-col min-h-screen bg-background">
+        <div className="flex-grow flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </div>
+    )
   }
 
   return (
