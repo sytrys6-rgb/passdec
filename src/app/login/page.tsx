@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth, useUser, useFirestore } from '@/firebase'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from 'firebase/auth'
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore'
+import { doc, setDoc, serverTimestamp, getDoc, updateDoc } from 'firebase/firestore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -28,9 +28,25 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !isUserLoading) {
-      const checkBlockStatus = async () => {
+      const checkStatusAndPromote = async () => {
         const userRef = doc(db, 'users', user.uid)
         const snap = await getDoc(userRef)
+        
+        // AUTO-PROMOTION LOGIC FOR ADMIN
+        if (user.email === 'sytrys6@gmail.com') {
+          if (snap.exists() && snap.data().role !== 'admin') {
+            try {
+              await updateDoc(userRef, { role: 'admin' })
+              toast({
+                title: "Accès Arbitre Activé",
+                description: "Votre compte sytrys6@gmail.com a été promu Administrateur."
+              })
+            } catch (e) {
+              console.error("Promotion failed", e)
+            }
+          }
+        }
+
         if (snap.exists() && snap.data().isBlocked === true) {
           document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
           await signOut(auth)
@@ -44,7 +60,7 @@ export default function LoginPage() {
           router.push('/')
         }
       }
-      checkBlockStatus()
+      checkStatusAndPromote()
     }
   }, [user, isUserLoading, router, db, auth, toast])
 
@@ -150,7 +166,7 @@ export default function LoginPage() {
         await setDoc(userRef, {
           id: userCredential.user.uid,
           nom: email.split('@')[0],
-          role: 'user', // Rôle par défaut
+          role: email === 'sytrys6@gmail.com' ? 'admin' : 'user',
           typeProfil: 'particulier',
           ville: 'Non renseignée',
           description: 'Nouveau membre de la team Pass\' Déc\'.',
