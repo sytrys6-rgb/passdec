@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect } from 'react'
@@ -6,14 +7,7 @@ import { Loader2 } from 'lucide-react'
 
 /**
  * @fileOverview Redirection des anciennes routes vers le nouveau système de détails.
- * Requis pour le build statique sur Vercel.
  */
-
-export const dynamicParams = true;
-
-export function generateStaticParams() {
-  return [];
-}
 
 export default function RedirectOfferPage() {
   const router = useRouter()

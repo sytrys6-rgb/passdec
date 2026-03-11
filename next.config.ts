@@ -2,8 +2,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* Mode Export Statique requis pour Firebase Hosting Gratuit (Spark) */
-  output: 'export',
+  /* Mode standard pour Vercel (supporte Middleware et Routes Dynamiques) */
   trailingSlash: true,
   typescript: {
     ignoreBuildErrors: true,
@@ -12,7 +11,6 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    /* Requis pour le mode export statique car il n'y a pas de serveur de traitement d'images */
     unoptimized: true,
     remotePatterns: [
       {

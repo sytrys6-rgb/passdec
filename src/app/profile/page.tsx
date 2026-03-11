@@ -79,12 +79,6 @@ export default function ProfilePage() {
     }
   }
 
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login')
-    }
-  }, [user, isUserLoading, router])
-
   const userRef = useMemoFirebase(() => {
     if (!db || !user || isUserLoading) return null
     return doc(db, 'users', user.uid)
@@ -112,6 +106,8 @@ export default function ProfilePage() {
   }, [myOffers])
 
   const handleLogout = () => {
+    // Supprimer le cookie pour le middleware
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
     signOut(auth)
   }
 
@@ -139,6 +135,8 @@ export default function ProfilePage() {
       deleteDocumentNonBlocking(userRef)
     }
 
+    // Supprimer le cookie
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
     signOut(auth).then(() => {
       toast({
         variant: "destructive",

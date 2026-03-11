@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -35,13 +36,6 @@ function OfferDetailContent() {
   const db = useFirestore()
   const { user, isUserLoading } = useUser()
   const { toast } = useToast()
-
-  // REDIRECTION SI NON CONNECTÉ : Seul le détail est protégé
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login')
-    }
-  }, [user, isUserLoading, router])
 
   const offerRef = useMemoFirebase(() => {
     if (!db || !id) return null
@@ -83,26 +77,18 @@ function OfferDetailContent() {
   const { data: authorProfile } = useDoc(authorRef)
 
   const handleContactPassDec = () => {
-    if (!user) {
-      router.push('/login')
-      return
-    }
     if (offer?.userId) {
       router.push(`/messages/chat/?userId=${offer.userId}&offerId=${id}`)
     }
   }
 
   const toggleFavorite = () => {
-    if (!userRef || !user) {
-      router.push('/login')
-      return
-    }
-    if (!id) return;
+    if (!id || !userRef) return;
     const newFavorites = isFavorite ? favorites.filter((favId: string) => favId !== id) : [...favorites, id]
     updateDocumentNonBlocking(userRef, { favoris: newFavorites })
   }
 
-  if (isUserLoading || isFirestoreLoading || !user) {
+  if (isFirestoreLoading || isUserLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

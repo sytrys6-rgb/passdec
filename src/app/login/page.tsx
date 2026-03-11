@@ -28,11 +28,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !isUserLoading) {
-      // Check if user is blocked before letting them in
       const checkBlockStatus = async () => {
         const userRef = doc(db, 'users', user.uid)
         const snap = await getDoc(userRef)
         if (snap.exists() && snap.data().isBlocked === true) {
+          // Supprimer le cookie si bloqué
+          document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
           await signOut(auth)
           toast({
             variant: "destructive",
@@ -40,6 +41,8 @@ export default function LoginPage() {
             description: "Votre accès au terrain a été suspendu par l'arbitre."
           })
         } else {
+          // Poser le cookie pour le middleware
+          document.cookie = `auth_token=true; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
           router.push('/')
         }
       }
