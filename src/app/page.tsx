@@ -93,7 +93,6 @@ export default function HomePage() {
 
   // FUSION DES OFFRES (Réelles prioritaires + Démo)
   const combinedOffers = useMemo(() => {
-    // On transforme les annonces Firestore en format compatible
     const fsOffers = firestoreOffers ? firestoreOffers.map(o => ({
       ...o,
       image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
@@ -101,19 +100,15 @@ export default function HomePage() {
       isReal: true
     })) : [];
 
-    // On prépare les annonces de démonstration
     const demoOffers = mockOffers.map(o => ({
       ...o,
       isDemo: true,
       isReal: false
     }));
 
-    // Fusion avec priorité absolue aux annonces réelles
-    // Si des annonces réelles existent, elles sont en haut du terrain
     return [...fsOffers, ...demoOffers].sort((a, b) => {
       if (a.isReal && !b.isReal) return -1;
       if (!a.isReal && b.isReal) return 1;
-      // Tri par date pour les annonces réelles entre elles
       const timeA = a.createdAt?.seconds || 0;
       const timeB = b.createdAt?.seconds || 0;
       return timeB - timeA;
@@ -128,10 +123,8 @@ export default function HomePage() {
   // FILTRAGE DU TERRAIN
   const filteredOffers = useMemo(() => {
     return combinedOffers.filter(offer => {
-      // 1. Filtre par catégorie
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
       
-      // 2. Filtre par localisation (Ville ou Rayon)
       let matchesLocation = true;
       const searchCityMatch = MAIN_CITIES.find(c => c.toLowerCase() === searchQuery.trim().toLowerCase())
       const targetCityName = activeLocation !== 'all' ? activeLocation : (searchCityMatch || null)
@@ -141,12 +134,10 @@ export default function HomePage() {
         if (distance !== null) {
           matchesLocation = distance <= activeRadius;
         } else {
-          // Fallback : recherche textuelle si pas de coordonnées
           matchesLocation = offer.ville.toLowerCase().includes(targetCityName.toLowerCase())
         }
       }
 
-      // 3. Filtre par recherche textuelle globale
       const matchesSearch = !searchQuery || 
         offer.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
         offer.ville.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -156,7 +147,6 @@ export default function HomePage() {
     })
   }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery])
 
-  // Gestion des favoris (Redirige vers login si pas connecté)
   const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
     e.preventDefault()
     if (!user) {
@@ -174,7 +164,6 @@ export default function HomePage() {
     }
   }
 
-  // Clic sur une annonce (Redirige vers login si pas connecté)
   const handleOfferClick = (e: React.MouseEvent, offerId: string) => {
     if (!user) {
       e.preventDefault()
@@ -183,8 +172,9 @@ export default function HomePage() {
   }
 
   // Empêcher l'affichage avant le montage pour éviter les erreurs d'hydratation
+  // On s'assure que la structure flex-col est présente dès le début
   if (!mounted) {
-    return <div className="min-h-screen bg-background" />
+    return <div className="flex flex-col min-h-screen bg-background" />
   }
 
   return (
