@@ -102,6 +102,7 @@ export default function HomePage() {
       isDemo: true
     }));
 
+    // On fusionne et on trie par date de création
     return [...fsOffers, ...demoOffers].sort((a, b) => {
       const timeA = a.createdAt?.seconds || 0;
       const timeB = b.createdAt?.seconds || 0;
@@ -155,24 +156,15 @@ export default function HomePage() {
     }
   }
 
-  const handleOfferClick = (e: React.MouseEvent) => {
+  const handleOfferClick = (e: React.MouseEvent, offerId: string) => {
     if (!user) {
       e.preventDefault()
       router.push('/login')
     }
   }
 
-  // Ne pas bloquer le rendu, mais afficher un loader si on attend l'auth au premier montage
   if (!mounted) {
     return <div className="min-h-screen bg-background" />
-  }
-
-  if (isUserLoading && !user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    )
   }
 
   return (
@@ -309,7 +301,7 @@ export default function HomePage() {
               <Link 
                 href={`/offres/details/?id=${offer.id}`}
                 key={offer.id} 
-                onClick={handleOfferClick}
+                onClick={(e) => handleOfferClick(e, offer.id)}
                 className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all duration-300 relative"
               >
                 <div className="relative aspect-[16/9] w-full">
