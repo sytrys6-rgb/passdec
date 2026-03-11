@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect } from 'react'
@@ -6,13 +5,20 @@ import { useRouter, useParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
 /**
- * @fileOverview Redirection des anciennes routes vers /offres/details/?id=[id]
- * Correction : Ne renvoie plus de balises <html> pour éviter Internal Server Error.
+ * @fileOverview Redirection des anciennes routes vers le nouveau système de détails.
+ * Requis pour le build statique sur Vercel.
  */
+
+export const dynamicParams = true;
+
+export function generateStaticParams() {
+  return [];
+}
+
 export default function RedirectOfferPage() {
   const router = useRouter()
   const params = useParams()
-  const id = params.id as string
+  const id = params?.id as string
 
   useEffect(() => {
     if (id && id !== 'redirect') {

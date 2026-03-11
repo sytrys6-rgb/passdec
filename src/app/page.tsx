@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react'
@@ -135,7 +134,6 @@ export default function HomePage() {
     })
   }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery])
 
-  // Structure stable pour éviter les erreurs d'hydratation
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <div className="flex-grow flex flex-col pb-24">

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -19,13 +18,6 @@ import { cn } from '@/lib/utils'
 import { useState, Suspense, useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 
 const ADMIN_UID = "OvtBOwidg7dc4lHw5rR56yqLlIT2"
 
