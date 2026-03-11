@@ -2,7 +2,6 @@
 "use client"
 
 import { useState, useEffect, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -32,7 +31,7 @@ export default function HomePage() {
   const [activeRadius, setActiveRadius] = useState<number>(150)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Hydratation sécurisée : on attend que le composant soit monté pour afficher le contenu dynamique
+  // Hydratation sécurisée
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
@@ -47,7 +46,7 @@ export default function HomePage() {
         if (savedFilter && savedFilter !== 'null') setActiveFilter(savedFilter)
         if (savedSearch) setSearchQuery(savedSearch)
       } catch (e) {
-        // Silencieux lors du build statique
+        // Silencieux
       }
     }
   }, [])
@@ -93,7 +92,6 @@ export default function HomePage() {
     return count
   }, [conversations, user])
 
-  // Fusion des offres réelles et de démo
   const combinedOffers = useMemo(() => {
     const fsOffers = firestoreOffers ? firestoreOffers.map(o => ({
       ...o,
@@ -108,7 +106,6 @@ export default function HomePage() {
       isReal: false
     }));
 
-    // Les offres réelles passent en premier
     return [...fsOffers, ...demoOffers].sort((a, b) => {
       if (a.isReal && !b.isReal) return -1;
       if (!a.isReal && b.isReal) return 1;
@@ -121,7 +118,6 @@ export default function HomePage() {
   const totalActiveRealCount = useMemo(() => combinedOffers.filter(o => o.isReal).length, [combinedOffers])
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
-  // Filtrage des offres
   const filteredOffers = useMemo(() => {
     return combinedOffers.filter(offer => {
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
@@ -147,14 +143,9 @@ export default function HomePage() {
     })
   }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery])
 
-  // Structure stable pour éviter les erreurs d'hydratation (mismatch serveur/client)
-  if (!mounted) {
-    return <div className="flex flex-col min-h-screen bg-background" />;
-  }
-
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <div className="flex-grow flex flex-col animate-in fade-in duration-500">
+      <div className="flex-grow flex flex-col pb-24">
         <header className="p-6 pb-2 flex flex-col items-center gap-4">
           <div className="w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 mt-2">
             <Image 
@@ -166,7 +157,7 @@ export default function HomePage() {
               unoptimized
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
-            {!user && !isUserLoading && (
+            {mounted && !user && !isUserLoading && (
               <div className="absolute top-4 right-4">
                 <Link href="/login">
                   <Badge className="bg-primary text-black font-black uppercase italic tracking-tighter px-4 py-2 cursor-pointer hover:scale-105 transition-transform border-none">
@@ -179,7 +170,7 @@ export default function HomePage() {
 
           <div className="text-center flex flex-col items-center">
             <div className="flex flex-wrap justify-center gap-2 mb-2">
-              {totalUnread > 0 && user && (
+              {mounted && totalUnread > 0 && user && (
                 <Link href="/messages">
                   <Badge className="bg-orange-500 text-white border-none font-black uppercase italic tracking-tighter px-4 py-1.5 animate-bounce">
                     <MessageSquare className="w-3 h-3 fill-white mr-2" />
@@ -233,7 +224,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="px-6 py-4 flex flex-col gap-6 pb-32">
+        <section className="px-6 py-4 flex flex-col gap-6">
           <h2 className="text-xl font-black italic uppercase tracking-tighter">Le Mercato</h2>
           {isOffersLoading && (
             <div className="flex justify-center py-4"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
@@ -255,7 +246,7 @@ export default function HomePage() {
                       </div>
                     )}
                   </div>
-                  <div className="p-4 flex flex-col gap-1">
+                  <div className="p-4 flex flex-col gap-1 text-left">
                     <h3 className="font-bold text-lg italic uppercase tracking-tighter line-clamp-1">{offer.titre}</h3>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1 text-muted-foreground">

@@ -1,32 +1,31 @@
+
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+
 /**
- * @fileOverview Redirection de l'ancienne route dynamique vers la nouvelle route statique.
- * Ce fichier est un Server Component pour être compatible avec generateStaticParams en mode export.
+ * @fileOverview Redirection des anciennes routes dynamiques /offres/[id] vers /offres/details/?id=[id]
+ * Utilise un Client Component pour éviter les problèmes de structure HTML racine.
  */
-
-export function generateStaticParams() {
-  // On génère une route statique "redirect" pour que le build passe.
-  return [{ id: 'redirect' }]
-}
-
 export default function RedirectOfferPage() {
+  const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+
+  useEffect(() => {
+    if (id && id !== 'redirect') {
+      router.replace(`/offres/details/?id=${id}`);
+    } else {
+      router.replace('/');
+    }
+  }, [id, router]);
+
   return (
-    <html>
-      <head>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            const params = new URLSearchParams(window.location.search);
-            const id = window.location.pathname.split('/').filter(Boolean).pop();
-            if (id && id !== 'redirect') {
-              window.location.href = '/offres/details/?id=' + id;
-            } else {
-              window.location.href = '/';
-            }
-          `
-        }} />
-      </head>
-      <body className="bg-background flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </body>
-    </html>
-  )
+    <div className="bg-background flex flex-col items-center justify-center min-h-screen p-6">
+      <Loader2 className="animate-spin h-8 w-8 text-primary mb-4" />
+      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recalibrage tactique...</p>
+    </div>
+  );
 }
