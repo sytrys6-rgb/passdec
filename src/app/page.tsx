@@ -128,8 +128,8 @@ export default function HomePage() {
   const handleDialInteraction = (e: React.MouseEvent | React.TouchEvent) => {
     if (!dialRef.current) return;
     const rect = dialRef.current.getBoundingClientRect();
-    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+    const clientX = 'touches' in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = 'touches' in e ? (e as React.TouchEvent).touches[0].clientY : (e as React.MouseEvent).clientY;
     
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
@@ -147,8 +147,8 @@ export default function HomePage() {
   };
 
   const dialProgress = (maxPrice / 1500) * 100;
-  const radius = 20;
-  const circumference = 2 * Math.PI * radius;
+  const dialRadius = 28;
+  const circumference = 2 * Math.PI * dialRadius;
   const dashOffset = circumference - (dialProgress / 100) * circumference;
 
   if (!mounted) {
@@ -216,69 +216,21 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* SECTION BUDGET CIRCULAIRE ULTRA DISCRETE */}
-        <section className="px-6 py-2 flex items-center justify-center gap-6 opacity-60 hover:opacity-100 transition-opacity">
-          <div className="flex flex-col items-center">
-             <div className="flex items-center gap-1.5 mb-1">
-                <Banknote className="w-2.5 h-2.5 text-primary opacity-40" />
-                <span className="text-[7px] font-black uppercase tracking-[0.3em] italic text-muted-foreground">Budget Tactique</span>
-             </div>
-             
-             <div className="relative w-11 h-11 cursor-pointer select-none group/dial"
-                  onMouseDown={(e) => handleDialInteraction(e)}
-                  onTouchStart={(e) => handleDialInteraction(e)}
-                  onMouseMove={(e) => e.buttons === 1 && handleDialInteraction(e)}
-                  onTouchMove={(e) => handleDialInteraction(e)}
-             >
-                <svg ref={dialRef} width="44" height="44" className="transform -rotate-90">
-                  <circle
-                    cx="22"
-                    cy="22"
-                    r={radius}
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    fill="transparent"
-                    className="text-white/5"
-                  />
-                  <circle
-                    cx="22"
-                    cy="22"
-                    r={radius}
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    fill="transparent"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={dashOffset}
-                    strokeLinecap="round"
-                    className="text-primary transition-all duration-300 ease-out drop-shadow-[0_0_5px_rgba(var(--primary),0.5)]"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[8px] font-black italic text-primary leading-none">
-                    {maxPrice === 1500 ? "∞" : maxPrice}
-                  </span>
-                  <span className="text-[6px] font-black uppercase text-muted-foreground">€</span>
-                </div>
-                {/* Indicateur de poignée visuelle discrète */}
-                <div 
-                  className="absolute w-1.5 h-1.5 bg-primary rounded-full shadow-lg transition-all duration-300"
-                  style={{
-                    left: `${22 + radius * Math.cos((dialProgress * 3.6 - 90) * (Math.PI / 180)) - 3}px`,
-                    top: `${22 + radius * Math.sin((dialProgress * 3.6 - 90) * (Math.PI / 180)) - 3}px`,
-                  }}
-                />
-             </div>
-          </div>
-        </section>
-
-        {/* SECTION TACTIQUE DE ZONE */}
+        {/* SECTION TACTIQUE DE ZONE & BUDGET (DÉSORMAIS ALIGNÉS) */}
         <section className="px-6 py-2 flex flex-col gap-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Compass className="w-4 h-4 text-primary" />
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Tactique de Zone</h3>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <Compass className="w-4 h-4 text-primary" />
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Tactique de Zone</h3>
+            </div>
+            <div className="flex items-center gap-1.5 opacity-60">
+               <Banknote className="w-2.5 h-2.5 text-primary opacity-40" />
+               <span className="text-[7px] font-black uppercase tracking-[0.3em] italic text-muted-foreground">Budget</span>
+            </div>
           </div>
           
-          <div className="flex flex-row flex-nowrap gap-2 items-center w-full">
+          <div className="flex flex-row flex-nowrap gap-3 items-center w-full">
+            {/* VILLE */}
             <div className="flex-[2] min-w-0">
               <Select value={activeLocation} onValueChange={setActiveLocation}>
                 <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold italic text-[11px] w-full px-3">
@@ -296,6 +248,7 @@ export default function HomePage() {
               </Select>
             </div>
 
+            {/* RAYON */}
             <div className="flex-1 min-w-0">
               <Select 
                 value={activeRadius.toString()} 
@@ -320,9 +273,58 @@ export default function HomePage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* CADRAN DE BUDGET (A DROITE) */}
+            <div className="flex flex-col items-center justify-center shrink-0">
+               <div className="relative w-16 h-16 cursor-pointer select-none group/dial"
+                    onMouseDown={(e) => handleDialInteraction(e)}
+                    onTouchStart={(e) => handleDialInteraction(e)}
+                    onMouseMove={(e) => e.buttons === 1 && handleDialInteraction(e)}
+                    onTouchMove={(e) => handleDialInteraction(e)}
+               >
+                  <svg ref={dialRef} width="64" height="64" className="transform -rotate-90">
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r={dialRadius}
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="transparent"
+                      className="text-white/5"
+                    />
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r={dialRadius}
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="transparent"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={dashOffset}
+                      strokeLinecap="round"
+                      className="text-primary transition-all duration-300 ease-out drop-shadow-[0_0_8px_rgba(var(--primary),0.6)]"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-[10px] font-black italic text-primary leading-none">
+                      {maxPrice === 1500 ? "MAX" : maxPrice}
+                    </span>
+                    <span className="text-[6px] font-black uppercase text-muted-foreground mt-0.5">€</span>
+                  </div>
+                  {/* Poignée visuelle */}
+                  <div 
+                    className="absolute w-2 h-2 bg-primary rounded-full shadow-lg transition-all duration-300 z-10"
+                    style={{
+                      left: `${32 + dialRadius * Math.cos((dialProgress * 3.6 - 90) * (Math.PI / 180)) - 4}px`,
+                      top: `${32 + dialRadius * Math.sin((dialProgress * 3.6 - 90) * (Math.PI / 180)) - 4}px`,
+                    }}
+                  />
+               </div>
+            </div>
           </div>
         </section>
 
+        {/* FILTRES DE TYPE D'OFFRE */}
         <section className="px-6 py-2 mt-2">
           <div className="grid grid-cols-4 gap-3">
             {[
@@ -348,6 +350,7 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* LE MERCATO (GRID D'ANNONCES) */}
         <section className="px-6 py-4 flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-black italic uppercase tracking-tighter">Le Mercato</h2>
