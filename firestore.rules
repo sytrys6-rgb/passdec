@@ -8,10 +8,10 @@ service cloud.firestore {
       allow write: if request.auth != null && (request.auth.uid == userId || request.auth.uid == "OvtBOwidg7dc4lHw5rR56yqLlIT2");
     }
     
-    // Annonces : Lecture publique autorisée pour le "lèche-vitrine"
-    // Mise à jour : Lecture publique confirmée pour voir les vraies annonces sans compte
+    // Annonces : Lecture et Listing publics autorisés pour le "lèche-vitrine"
+    // Cette règle permet à n'importe qui (même non connecté) de voir la liste des annonces.
     match /offres/{offreId} {
-      allow read: if true;
+      allow read, list: if true;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow update: if request.auth != null && resource.data.userId == request.auth.uid;
       allow delete: if request.auth != null && (resource.data.userId == request.auth.uid || request.auth.uid == "OvtBOwidg7dc4lHw5rR56yqLlIT2");
@@ -35,7 +35,7 @@ service cloud.firestore {
       allow read, update, delete: if request.auth != null && request.auth.uid == "OvtBOwidg7dc4lHw5rR56yqLlIT2";
     }
     
-    // Règle par défaut pour le reste du projet
+    // Règle par défaut pour le reste du projet (Sécurité maximale)
     match /{document=**} {
       allow read, write: if request.auth != null;
     }

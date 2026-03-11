@@ -29,7 +29,6 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [mounted, setMounted] = useState(false)
 
-  // Initialisation du montage pour éviter les erreurs d'hydratation
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
@@ -45,7 +44,6 @@ export default function HomePage() {
     }
   }, [])
 
-  // Sauvegarde des préférences (Client-side only)
   useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
       sessionStorage.setItem('last_city', activeLocation)
@@ -63,6 +61,7 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
+  // La requête des offres est maintenant indépendante de l'état utilisateur
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
     return collection(db, 'offres')
@@ -89,8 +88,9 @@ export default function HomePage() {
   }, [conversations, user])
 
   const combinedOffers = useMemo(() => {
+    // On récupère les annonces réelles
     const fsOffers = firestoreOffers ? [...firestoreOffers]
-      .filter(o => o.isActive !== false)
+      .filter(o => o.isActive !== false) // On garde même si isActive n'est pas défini
       .map(o => ({
         ...o,
         image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
@@ -98,14 +98,14 @@ export default function HomePage() {
         isReal: true
       })) : [];
 
+    // On prépare les annonces de démonstration
     const demoOffers = mockOffers.map(o => ({
       ...o,
       isDemo: true,
       isReal: false
     }));
 
-    // Fusion des annonces : Firestore d'abord, Mock ensuite si pas assez de données
-    // Tri par date (les annonces Firestore ont généralement des timestamps)
+    // Fusion avec priorité aux annonces réelles
     return [...fsOffers, ...demoOffers].sort((a, b) => {
       if (a.isReal && !b.isReal) return -1;
       if (!a.isReal && b.isReal) return 1;
@@ -115,7 +115,7 @@ export default function HomePage() {
     });
   }, [firestoreOffers])
 
-  const totalActiveOffers = combinedOffers.filter(o => o.isReal).length || combinedOffers.length
+  const totalActiveOffersCount = combinedOffers.filter(o => o.isReal).length
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
@@ -125,7 +125,7 @@ export default function HomePage() {
       
       let matchesLocation = true;
       const searchCityMatch = MAIN_CITIES.find(c => c.toLowerCase() === searchQuery.trim().toLowerCase())
-      const targetCityName = activeLocation !== 'all' ? activeLocation : searchCityMatch
+      const targetCityName = activeLocation !== 'all' ? activeLocation : (searchCityMatch || null)
       
       if (targetCityName) {
         const distance = getDistanceBetweenCities(targetCityName, offer.ville);
@@ -211,7 +211,7 @@ export default function HomePage() {
             
             <Badge variant="outline" className="border-primary/50 text-primary font-black uppercase italic tracking-tighter px-4 py-1.5 bg-primary/5 flex items-center gap-2 shadow-lg shadow-primary/5">
               <Activity className="w-3 h-3 animate-pulse text-primary" />
-              <span>Mercato : {totalActiveOffers} {totalActiveOffers > 1 ? 'offres' : 'offre'}</span>
+              <span>Mercato : {totalActiveOffersCount} {totalActiveOffersCount > 1 ? 'offres réelles' : 'offre réelle'}</span>
             </Badge>
 
             {!user && (
