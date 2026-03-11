@@ -2,7 +2,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* Mode Export Statique pour Firebase Hosting Classique (Gratuit) */
+  /* Mode Export Statique requis pour Firebase Hosting Gratuit (Spark) */
   output: 'export',
   trailingSlash: true,
   typescript: {
@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    /* Requis pour le mode export statique */
+    /* Requis pour le mode export statique car il n'y a pas de serveur de traitement d'images */
     unoptimized: true,
     remotePatterns: [
       {
