@@ -5,7 +5,12 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, User, PhoneIcon, Trash2 } from 'lucide-react'
+import { 
+  Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, 
+  Flag, ChevronRight, Shield, Cookie, FileText, Database, 
+  Smartphone, Trophy, UserX, User, Trash2, Download, 
+  Share, Info, ChevronDown
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase'
@@ -51,16 +56,23 @@ export default function ProfilePage() {
   const [showMyOffers, setShowMyOffers] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [isInstalled, setIsInstalled] = useState(false)
+  const [isIOS, setIsIOS] = useState(false)
 
   useEffect(() => {
+    // Détection iOS
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(isIOSDevice);
+
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault()
       setDeferredPrompt(e)
     }
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    
+    if (window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone) {
       setIsInstalled(true)
     }
+    
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
   }, [])
 
@@ -71,6 +83,10 @@ export default function ProfilePage() {
     if (outcome === 'accepted') {
       setDeferredPrompt(null)
       setIsInstalled(true)
+      toast({
+        title: "Transfert réussi !",
+        description: "L'application est en cours d'installation sur votre appareil."
+      })
     }
   }
 
@@ -113,7 +129,6 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     try {
-      // Nettoyage des cookies de session
       document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
       await signOut(auth)
       toast({
@@ -311,17 +326,80 @@ export default function ProfilePage() {
         </div>
 
         <div className="w-full flex flex-col gap-3 mt-8 pb-32">
-          {deferredPrompt && !isInstalled && (
-            <Button 
-              onClick={handleInstallClick}
-              className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase italic tracking-widest text-sm shadow-xl animate-pulse"
-            >
-              <PhoneIcon className="w-4 h-4 mr-2" />
-              Installer l'app
-            </Button>
-          )}
+          {/* SECTION INSTALLATION PWA */}
+          <div className="bg-card/50 border border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Smartphone className="w-4 h-4 text-primary" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Tactique Mobile</span>
+            </div>
+            
+            {isInstalled ? (
+              <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-xl border border-primary/20">
+                <ShieldCheck className="w-5 h-5 text-primary" />
+                <span className="text-[11px] font-black uppercase tracking-tighter text-primary">Application installée au stade</span>
+              </div>
+            ) : deferredPrompt ? (
+              <Button 
+                onClick={handleInstallClick}
+                className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase italic tracking-widest text-sm shadow-xl animate-pulse"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Installer sur mon écran
+              </Button>
+            ) : isIOS ? (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full bg-primary/10 text-primary border border-primary/20 rounded-xl h-12 font-black uppercase italic tracking-widest text-sm">
+                    <Share className="w-4 h-4 mr-2" />
+                    Installer sur iPhone
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border-white/10 rounded-3xl max-w-[90vw]">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2">
+                      <Smartphone className="w-5 h-5 text-primary" />
+                      Guide d'entrée
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="flex flex-col gap-6 py-4">
+                    <div className="flex flex-col items-center text-center gap-4">
+                      <div className="p-4 bg-primary/10 rounded-full">
+                        <Share className="w-8 h-8 text-primary" />
+                      </div>
+                      <p className="text-xs font-bold uppercase tracking-wide leading-relaxed">
+                        Pour installer l'app sur votre iPhone :
+                      </p>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex gap-4 items-start">
+                        <div className="w-6 h-6 rounded-full bg-primary text-black flex items-center justify-center font-black text-xs shrink-0">1</div>
+                        <p className="text-[11px] font-medium leading-relaxed">Appuyez sur le bouton <span className="font-black text-primary">Partager</span> en bas de votre navigateur Safari.</p>
+                      </div>
+                      <div className="flex gap-4 items-start">
+                        <div className="w-6 h-6 rounded-full bg-primary text-black flex items-center justify-center font-black text-xs shrink-0">2</div>
+                        <p className="text-[11px] font-medium leading-relaxed">Faites défiler vers le bas et sélectionnez <span className="font-black text-primary italic">"Sur l'écran d'accueil"</span>.</p>
+                      </div>
+                      <div className="flex gap-4 items-start">
+                        <div className="w-6 h-6 rounded-full bg-primary text-black flex items-center justify-center font-black text-xs shrink-0">3</div>
+                        <p className="text-[11px] font-medium leading-relaxed">Appuyez sur <span className="font-black text-primary">Ajouter</span> en haut à droite pour finaliser le transfert.</p>
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            ) : (
+              <div className="flex flex-col gap-2 p-3 bg-muted/20 rounded-xl border border-white/5">
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Comment installer ?</span>
+                </div>
+                <p className="text-[9px] font-bold text-muted-foreground uppercase leading-relaxed">
+                  Utilisez Chrome ou Safari pour installer le raccourci sur votre écran et accéder au stade en un clic.
+                </p>
+              </div>
+            )}
+          </div>
 
-          {/* PANEL ARBITRE VISIBLE UNIQUEMENT POUR ADMIN */}
           {(profileData.role === 'admin' || user?.email === 'sytrys6@gmail.com') && (
             <Link href="/admin" className="w-full">
               <Button className="w-full bg-secondary text-white rounded-xl h-14 font-black uppercase italic tracking-widest text-base shadow-xl border-2 border-white/10 hover:bg-secondary/90 flex items-center justify-center gap-3">
@@ -371,7 +449,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* BOUTON DE DECONNEXION TOUJOURS VISIBLE */}
           <div className="w-full pt-4 mt-2 border-t border-white/5">
             <Button 
               variant="ghost" 

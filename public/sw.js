@@ -1,23 +1,18 @@
 
-const CACHE_NAME = 'passdec-v1';
-const ASSETS = [
-  '/',
-  '/manifest.json',
-  '/favicon.ico'
-];
-
+// Service Worker minimal pour permettre l'installation PWA
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
-  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
 });
 
 self.addEventListener('fetch', (event) => {
+  // Stratégie Network-first par défaut pour garantir les données fraîches de Firestore
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
     })
   );
 });
