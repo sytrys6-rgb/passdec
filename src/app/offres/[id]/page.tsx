@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect } from 'react'
@@ -25,7 +24,7 @@ export default function RedirectOfferPage() {
   return (
     <div className="bg-background flex flex-col items-center justify-center min-h-screen p-6">
       <Loader2 className="animate-spin h-8 w-8 text-primary mb-4" />
-      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Redirection tactique...</p>
+      <p className="text-[10px] font-black uppercase italic tracking-widest text-muted-foreground">Redirection tactique...</p>
     </div>
   )
 }
