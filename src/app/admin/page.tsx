@@ -47,12 +47,20 @@ export default function AdminPage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc(userRef)
 
+  // Accès prioritaire pour le propriétaire sytrys6@gmail.com
   useEffect(() => {
-    if (!isUserLoading && !isProfileLoading) {
-      if (!user || profile?.role !== 'admin') {
-        router.push('/')
-      } else {
+    if (!isUserLoading) {
+      if (user?.email === 'sytrys6@gmail.com') {
         setIsAdminAuthorized(true)
+        return
+      }
+      
+      if (!isProfileLoading) {
+        if (!user || profile?.role !== 'admin') {
+          router.push('/')
+        } else {
+          setIsAdminAuthorized(true)
+        }
       }
     }
   }, [user, profile, isUserLoading, isProfileLoading, router])
@@ -133,7 +141,7 @@ export default function AdminPage() {
   }
 
   const handleToggleBlockUser = (userId: string, currentlyBlocked: boolean) => {
-    if (!db || !profile || profile.role !== 'admin') return
+    if (!db || !isAdminAuthorized) return
     const targetUserRef = doc(db, 'users', userId)
     updateDocumentNonBlocking(targetUserRef, { isBlocked: !currentlyBlocked })
     toast({ 
@@ -143,7 +151,7 @@ export default function AdminPage() {
   }
 
   const handleDeleteUserPermanently = async (userId: string) => {
-    if (!db || !profile || profile.role !== 'admin') return
+    if (!db || !isAdminAuthorized) return
 
     try {
       const offersQuery = query(collection(db, 'offres'), where('userId', '==', userId))

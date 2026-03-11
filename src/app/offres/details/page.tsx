@@ -19,11 +19,20 @@ import { cn } from '@/lib/utils'
 import { useState, Suspense, useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 // Export dynamique pour Vercel pour éviter les erreurs de static params
 export const dynamic = 'force-dynamic';
-
-const ADMIN_UID = "OvtBOwidg7dc4lHw5rR56yqLlIT2"
 
 const profileTypes = {
   particulier: { label: 'Footeux', complement: 'Particulier', emoji: '⚽' },
@@ -40,7 +49,7 @@ function OfferDetailContent() {
   const { user, isUserLoading } = useUser()
   const { toast } = useToast()
 
-  // Redirection forcée si non connecté (sécurité supplémentaire côté client)
+  // Redirection forcée si non connecté
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login')
@@ -74,9 +83,11 @@ function OfferDetailContent() {
     if (!db || !user) return null
     return doc(db, 'users', user.uid)
   }, [db, user])
+  
   const { data: currentUserProfile } = useDoc(userRef)
   const favorites = currentUserProfile?.favoris || []
   const isFavorite = id ? favorites.includes(id) : false
+  const isAdmin = currentUserProfile?.role === 'admin' || user?.email === 'sytrys6@gmail.com'
 
   const authorId = offer?.userId
   const authorRef = useMemoFirebase(() => {
@@ -96,6 +107,17 @@ function OfferDetailContent() {
     if (!id || !userRef) return;
     const newFavorites = isFavorite ? favorites.filter((favId: string) => favId !== id) : [...favorites, id]
     updateDocumentNonBlocking(userRef, { favoris: newFavorites })
+  }
+
+  const handleAdminDelete = () => {
+    if (!offerRef) return
+    deleteDocumentNonBlocking(offerRef)
+    toast({
+      variant: "destructive",
+      title: "Arbitrage effectué",
+      description: "L'annonce a été retirée du terrain par l'arbitre."
+    })
+    router.push('/')
   }
 
   if (isFirestoreLoading || isUserLoading || !user) {
@@ -171,14 +193,37 @@ function OfferDetailContent() {
         </div>
       </div>
 
-      {!isOwnOffer && (
-        <div className="fixed bottom-24 left-6 right-6 z-40 flex flex-col gap-3 animate-in slide-in-from-bottom-8">
+      <div className="fixed bottom-24 left-6 right-6 z-40 flex flex-col gap-3 animate-in slide-in-from-bottom-8">
+        {!isOwnOffer && (
           <Button onClick={handleContactPassDec} className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg bg-primary text-black shadow-2xl">
             <MessageSquare className="w-5 h-5 mr-3" />
             Messagerie Pass' Déc'
           </Button>
-        </div>
-      )}
+        )}
+        
+        {isAdmin && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="w-full h-12 rounded-xl font-black uppercase italic tracking-widest text-xs border-2 border-white/10 shadow-2xl">
+                <Shield className="w-4 h-4 mr-2" />
+                Supprimer (Arbitre)
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter text-destructive">Arbitrage V.A.R</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                  Voulez-vous retirer cette annonce du terrain définitivement ?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-xs">Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleAdminDelete} className="bg-destructive text-white rounded-xl font-black uppercase tracking-tighter text-xs">Confirmer</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
 
       <Navigation />
     </div>
