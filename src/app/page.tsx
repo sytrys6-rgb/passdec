@@ -7,14 +7,14 @@ import { Navigation } from '@/components/Navigation'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2, MessageSquare, Plus, Activity, Globe } from 'lucide-react'
+import { Search, MapPin, X, Circle, Triangle, Square, Trophy, Loader2, MessageSquare, Plus, Activity } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection, updateDocumentNonBlocking } from '@/firebase'
-import { doc, collection, query, orderBy, where } from 'firebase/firestore'
+import { doc, collection, query, where } from 'firebase/firestore'
 import placeholderData from '@/app/lib/placeholder-images.json'
-import { CITY_DATA, getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
+import { getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 import { Button } from '@/components/ui/button'
 import { allOffers as mockOffers } from '@/app/lib/offers'
 
@@ -29,26 +29,32 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isInitialized, setIsInitialized] = useState(false)
 
+  // Initialisation sécurisée des filtres depuis le stockage local (client-side only)
   useEffect(() => {
-    const savedCity = sessionStorage.getItem('last_city') || 'all'
-    const savedRadius = sessionStorage.getItem('last_radius') || '150'
-    const savedFilter = sessionStorage.getItem('last_filter') || 'null'
-    const savedSearch = sessionStorage.getItem('last_search') || ''
-    
-    setActiveLocation(savedCity)
-    setActiveRadius(parseInt(savedRadius))
-    setActiveFilter(savedFilter === 'null' ? null : savedFilter)
-    setSearchQuery(savedSearch)
-    
-    setTimeout(() => setIsInitialized(true), 100)
+    if (typeof window !== 'undefined') {
+      const savedCity = sessionStorage.getItem('last_city') || 'all'
+      const savedRadius = sessionStorage.getItem('last_radius') || '150'
+      const savedFilter = sessionStorage.getItem('last_filter') || 'null'
+      const savedSearch = sessionStorage.getItem('last_search') || ''
+      
+      setActiveLocation(savedCity)
+      setActiveRadius(parseInt(savedRadius))
+      setActiveFilter(savedFilter === 'null' ? null : savedFilter)
+      setSearchQuery(savedSearch)
+      
+      setIsInitialized(true)
+    }
   }, [])
 
+  // Sauvegarde des préférences
   useEffect(() => {
     if (!isInitialized) return
-    sessionStorage.setItem('last_city', activeLocation)
-    sessionStorage.setItem('last_radius', activeRadius.toString())
-    sessionStorage.setItem('last_filter', activeFilter || 'null')
-    sessionStorage.setItem('last_search', searchQuery)
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('last_city', activeLocation)
+      sessionStorage.setItem('last_radius', activeRadius.toString())
+      sessionStorage.setItem('last_filter', activeFilter || 'null')
+      sessionStorage.setItem('last_search', searchQuery)
+    }
   }, [activeLocation, activeRadius, activeFilter, searchQuery, isInitialized])
 
   const userRef = useMemoFirebase(() => {
@@ -78,7 +84,9 @@ export default function HomePage() {
     let count = 0
     conversations.forEach(conv => {
       if (conv.deletedBy?.includes(user.uid)) return;
-      count += (conv.unreadCount?.[user.uid] || 0)
+      // Vérification robuste des compteurs de non lus
+      const myUnread = conv.unreadCount?.[user.uid] ?? conv[`unreadCount.${user.uid}`] ?? 0;
+      count += myUnread;
     })
     return count
   }, [conversations, user])
@@ -148,14 +156,15 @@ export default function HomePage() {
     }
   }
 
-  const handleOfferClick = (e: React.MouseEvent, offerId: string) => {
+  const handleOfferClick = (e: React.MouseEvent) => {
     if (!user) {
       e.preventDefault()
       router.push('/login')
     }
   }
 
-  if (!user && isUserLoading) {
+  // On affiche un loader uniquement pendant que l'arbitre vérifie l'identité initiale
+  if (isUserLoading && !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -181,7 +190,7 @@ export default function HomePage() {
 
         <div className="text-center flex flex-col items-center">
           <div className="flex flex-wrap justify-center gap-2 mb-2">
-            {totalUnread > 0 && (
+            {totalUnread > 0 && user && (
               <Link href="/messages">
                 <Badge className="bg-orange-500 text-white border-none font-black uppercase italic tracking-tighter px-4 py-1.5 shadow-lg shadow-orange-500/20 flex items-center gap-2 animate-in slide-in-from-top duration-500">
                   <MessageSquare className="w-3 h-3 fill-white" />
@@ -297,7 +306,7 @@ export default function HomePage() {
               <Link 
                 href={`/offres/details/?id=${offer.id}`}
                 key={offer.id} 
-                onClick={(e) => handleOfferClick(e, offer.id)}
+                onClick={handleOfferClick}
                 className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all duration-300 relative"
               >
                 <div className="relative aspect-[16/9] w-full">
@@ -318,7 +327,7 @@ export default function HomePage() {
                     <Trophy className={cn("w-5 h-5", favorites.includes(offer.id) && "fill-primary")} />
                   </button>
 
-                  {offer.prix > 0 && (
+                  {(offer.prix || 0) > 0 && (
                     <div className="absolute bottom-3 right-3 glass-morphism px-3 py-1 rounded-full font-black text-primary italic border-primary/20">
                       {offer.prix}€
                     </div>
