@@ -7,16 +7,16 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   ArrowLeft, MapPin, MessageSquare, ShieldCheck, Star, 
-  Loader2, Info, User, Trophy, Flag, Shield, Heart
+  Loader2, Info, User, Trophy, Flag, Shield, Heart, AlertTriangle
 } from 'lucide-react'
 import Image from 'next/image'
 import { 
   useFirestore, useDoc, useMemoFirebase, useUser, 
-  setDocumentNonBlocking, deleteDocumentNonBlocking 
+  setDocumentNonBlocking, deleteDocumentNonBlocking, addDocumentNonBlocking
 } from '@/firebase'
-import { doc } from 'firebase/firestore'
+import { doc, collection, serverTimestamp } from 'firebase/firestore'
 import { cn } from '@/lib/utils'
-import { Suspense, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import {
   AlertDialog,
@@ -29,6 +29,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +57,11 @@ function OfferDetailContent() {
   const db = useFirestore()
   const { user, isUserLoading } = useUser()
   const { toast } = useToast()
+
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
+  const [reportReason, setReportReason] = useState('')
+  const [reportDetails, setReportDetails] = useState('')
+  const [isReporting, setIsReporting] = useState(false)
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -124,6 +140,48 @@ function OfferDetailContent() {
     router.push('/')
   }
 
+  const handleSendReport = async () => {
+    if (!db || !user || !offer || !reportReason) {
+      toast({
+        variant: "destructive",
+        title: "Infos manquantes",
+        description: "Veuillez sélectionner une raison pour le signalement."
+      })
+      return
+    }
+
+    setIsReporting(true)
+    try {
+      const reportsCol = collection(db, 'signalements')
+      await addDocumentNonBlocking(reportsCol, {
+        offreId: offer.id,
+        offreTitre: offer.titre,
+        signalePar: user.uid,
+        signaleParNom: currentUserProfile?.nom || user.email?.split('@')[0] || 'Anonyme',
+        raison: reportReason,
+        details: reportDetails,
+        createdAt: serverTimestamp(),
+        statut: 'en_attente'
+      })
+
+      toast({
+        title: "Signalement transmis",
+        description: "L'arbitre va vérifier cette annonce sous 48h."
+      })
+      setIsReportDialogOpen(false)
+      setReportReason('')
+      setReportDetails('')
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Erreur technique",
+        description: "Impossible d'envoyer le signalement."
+      })
+    } finally {
+      setIsReporting(false)
+    }
+  }
+
   if (isFirestoreLoading || isUserLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -155,6 +213,57 @@ function OfferDetailContent() {
           </Button>
         </div>
         <div className="absolute top-6 right-6 flex gap-2">
+          <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="glass-morphism rounded-full h-10 w-10 border-white/10 shadow-lg text-white hover:text-destructive">
+                <Flag className="w-5 h-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-card border-white/10 rounded-3xl max-w-[90vw]">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                  Signaler l'annonce
+                </DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col gap-4 py-4">
+                <div className="space-y-2">
+                  <Label className="uppercase text-[10px] font-black tracking-widest text-muted-foreground">Raison du signalement</Label>
+                  <Select value={reportReason} onValueChange={setReportReason}>
+                    <SelectTrigger className="bg-background/50 border-white/10 rounded-xl">
+                      <SelectValue placeholder="Choisir une raison" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Arnaque / Fraude">Arnaque / Fraude</SelectItem>
+                      <SelectItem value="Contrefaçon">Contrefaçon</SelectItem>
+                      <SelectItem value="Contenu inapproprié">Contenu inapproprié</SelectItem>
+                      <SelectItem value="Doublon / Spam">Doublon / Spam</SelectItem>
+                      <SelectItem value="Autre">Autre raison</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="uppercase text-[10px] font-black tracking-widest text-muted-foreground">Précisions (Optionnel)</Label>
+                  <Textarea 
+                    placeholder="Expliquez brièvement le problème..." 
+                    value={reportDetails}
+                    onChange={(e) => setReportDetails(e.target.value)}
+                    className="bg-background/50 border-white/10 rounded-xl min-h-[100px]"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  onClick={handleSendReport} 
+                  disabled={isReporting || !reportReason}
+                  className="w-full bg-destructive text-white rounded-xl font-black uppercase italic h-12"
+                >
+                  {isReporting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Envoyer à l'arbitre"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <Button variant="ghost" size="icon" onClick={toggleFavorite} className={cn("glass-morphism rounded-full h-10 w-10 border-white/10 shadow-lg", isFavorite ? "text-primary bg-primary/20 border-primary/30" : "text-white")}>
             <Trophy className={cn("w-5 h-5", isFavorite && "fill-primary")} />
           </Button>
