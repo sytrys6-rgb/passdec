@@ -1,24 +1,20 @@
-/**
- * @fileOverview Redirection de l'ancienne route de messagerie.
- */
 
-export function generateStaticParams() {
-  return [{ userId: 'redirect' }]
-}
+"use client"
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
 
 export default function RedirectUserMessagesPage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace('/messages')
+  }, [router])
+
   return (
-    <html>
-      <head>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            window.location.href = '/messages';
-          `
-        }} />
-      </head>
-      <body className="bg-background flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </body>
-    </html>
+    <div className="bg-background flex flex-col items-center justify-center min-h-screen p-6">
+      <Loader2 className="animate-spin h-8 w-8 text-primary" />
+    </div>
   )
 }

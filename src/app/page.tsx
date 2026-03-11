@@ -12,13 +12,13 @@ import { cn } from '@/lib/utils'
 import { useUser, useFirestore, useMemoFirebase, useCollection } from '@/firebase'
 import { collection, query, where } from 'firebase/firestore'
 import placeholderData from '@/app/lib/placeholder-images.json'
-import { getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
+import { getDistanceBetweenCities } from '@/app/lib/cities'
 import { allOffers as mockOffers } from '@/app/lib/offers'
 
 /**
- * @fileOverview Page d'accueil - Le terrain de jeu principal.
- * Version publique : Les annonces réelles sont visibles par tous.
- * Seule la vue détaillée nécessite une connexion.
+ * @fileOverview Page d'accueil - La vitrine publique.
+ * Accessible à tous sans redirection.
+ * Seule la consultation du détail d'une annonce demandera une connexion.
  */
 
 export default function HomePage() {
@@ -35,37 +35,29 @@ export default function HomePage() {
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
-      try {
-        const savedCity = sessionStorage.getItem('last_city')
-        const savedRadius = sessionStorage.getItem('last_radius')
-        const savedFilter = sessionStorage.getItem('last_filter')
-        const savedSearch = sessionStorage.getItem('last_search')
-        
-        if (savedCity) setActiveLocation(savedCity)
-        if (savedRadius) setActiveRadius(parseInt(savedRadius))
-        if (savedFilter && savedFilter !== 'null') setActiveFilter(savedFilter)
-        if (savedSearch) setSearchQuery(savedSearch)
-      } catch (e) {
-        // Silencieux
-      }
+      const savedCity = sessionStorage.getItem('last_city')
+      const savedRadius = sessionStorage.getItem('last_radius')
+      const savedFilter = sessionStorage.getItem('last_filter')
+      const savedSearch = sessionStorage.getItem('last_search')
+      
+      if (savedCity) setActiveLocation(savedCity)
+      if (savedRadius) setActiveRadius(parseInt(savedRadius))
+      if (savedFilter && savedFilter !== 'null') setActiveFilter(savedFilter)
+      if (savedSearch) setSearchQuery(savedSearch)
     }
   }, [])
 
   // Sauvegarde des préférences côté client
   useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
-      try {
-        sessionStorage.setItem('last_city', activeLocation)
-        sessionStorage.setItem('last_radius', activeRadius.toString())
-        sessionStorage.setItem('last_filter', activeFilter || 'null')
-        sessionStorage.setItem('last_search', searchQuery)
-      } catch (e) {
-        // Silencieux
-      }
+      sessionStorage.setItem('last_city', activeLocation)
+      sessionStorage.setItem('last_radius', activeRadius.toString())
+      sessionStorage.setItem('last_filter', activeFilter || 'null')
+      sessionStorage.setItem('last_search', searchQuery)
     }
   }, [activeLocation, activeRadius, activeFilter, searchQuery, mounted])
 
-  // REQUÊTE PUBLIQUE : Les annonces réelles sont chargées pour tous dès l'arrivée
+  // REQUÊTE PUBLIQUE : Les annonces réelles sont visibles par tous
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
     return collection(db, 'offres')
@@ -73,7 +65,7 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  // Messages non lus (uniquement si connecté)
+  // Messages non lus (si connecté)
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, 'conversations'), where('participants', 'array-contains', user.uid))
@@ -122,10 +114,9 @@ export default function HomePage() {
     return combinedOffers.filter(offer => {
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
       let matchesLocation = true;
-      const searchCityMatch = MAIN_CITIES.find(c => c.toLowerCase() === searchQuery.trim().toLowerCase())
-      const targetCityName = activeLocation !== 'all' ? activeLocation : (searchCityMatch || null)
+      const targetCityName = activeLocation !== 'all' ? activeLocation : null
       
-      if (targetCityName) {
+      if (targetCityName && offer.ville) {
         const distance = getDistanceBetweenCities(targetCityName, offer.ville);
         if (distance !== null) {
           matchesLocation = distance <= activeRadius;
@@ -134,15 +125,17 @@ export default function HomePage() {
         }
       }
 
+      const queryLower = searchQuery.toLowerCase()
       const matchesSearch = !searchQuery || 
-        offer.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        offer.ville.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        offer.description.toLowerCase().includes(searchQuery.toLowerCase())
+        (offer.titre || '').toLowerCase().includes(queryLower) ||
+        (offer.ville || '').toLowerCase().includes(queryLower) ||
+        (offer.description || '').toLowerCase().includes(queryLower)
       
       return matchesCategory && matchesLocation && matchesSearch
     })
   }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery])
 
+  // Structure stable pour éviter les erreurs d'hydratation
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <div className="flex-grow flex flex-col pb-24">
@@ -157,8 +150,9 @@ export default function HomePage() {
               unoptimized
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
+            
             {mounted && !user && !isUserLoading && (
-              <div className="absolute top-4 right-4">
+              <div className="absolute top-4 right-4 animate-in fade-in duration-500">
                 <Link href="/login">
                   <Badge className="bg-primary text-black font-black uppercase italic tracking-tighter px-4 py-2 cursor-pointer hover:scale-105 transition-transform border-none">
                     Connexion

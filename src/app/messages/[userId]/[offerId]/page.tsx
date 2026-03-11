@@ -1,31 +1,31 @@
+
+"use client"
+
+import { useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
+
 /**
- * @fileOverview Redirection de l'ancienne route dynamique de messagerie vers la nouvelle route statique.
+ * @fileOverview Redirection de messagerie.
+ * Correction : Ne renvoie plus de balises <html> pour éviter Internal Server Error.
  */
-
-export function generateStaticParams() {
-  return [{ userId: 'redirect', offerId: 'redirect' }]
-}
-
 export default function RedirectChatPage() {
+  const router = useRouter()
+  const params = useParams()
+  
+  useEffect(() => {
+    const userId = params.userId as string
+    const offerId = params.offerId as string
+    if (userId && offerId && userId !== 'redirect') {
+      router.replace(`/messages/chat/?userId=${userId}&offerId=${offerId}`)
+    } else {
+      router.replace('/messages')
+    }
+  }, [params, router])
+
   return (
-    <html>
-      <head>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            const pathParts = window.location.pathname.split('/').filter(Boolean);
-            const userId = pathParts[1];
-            const offerId = pathParts[2];
-            if (userId && offerId && userId !== 'redirect') {
-              window.location.href = '/messages/chat/?userId=' + userId + '&offerId=' + offerId;
-            } else {
-              window.location.href = '/messages';
-            }
-          `
-        }} />
-      </head>
-      <body className="bg-background flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </body>
-    </html>
+    <div className="bg-background flex flex-col items-center justify-center min-h-screen p-6">
+      <Loader2 className="animate-spin h-8 w-8 text-primary" />
+    </div>
   )
 }

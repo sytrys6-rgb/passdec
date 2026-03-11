@@ -6,8 +6,8 @@ import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
-  ArrowLeft, MapPin, MessageSquare, Share2, ShieldCheck, Star, 
-  Loader2, Info, User, Mail, MessageCircle, Trophy, Flag, AlertTriangle, Shield, Trash2 
+  ArrowLeft, MapPin, MessageSquare, ShieldCheck, Star, 
+  Loader2, Info, User, Trophy, Flag, AlertTriangle, Shield, Trash2 
 } from 'lucide-react'
 import Image from 'next/image'
 import { 
@@ -22,31 +22,10 @@ import Link from 'next/link'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from '@/components/ui/textarea'
 
 const ADMIN_UID = "OvtBOwidg7dc4lHw5rR56yqLlIT2"
 
@@ -57,14 +36,6 @@ const profileTypes = {
   professionnel: { label: 'Pro', complement: 'Professionnel / Entreprise', emoji: '🏢' },
 }
 
-const REPORT_REASONS = [
-  "Contenu inapproprié",
-  "Arnaque / Fausse annonce",
-  "Spam",
-  "Contenu illégal",
-  "Autre"
-]
-
 function OfferDetailContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -73,12 +44,7 @@ function OfferDetailContent() {
   const { user, isUserLoading } = useUser()
   const { toast } = useToast()
 
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
-  const [reportReason, setReportReason] = useState("")
-  const [reportDetails, setReportDetails] = useState("")
-  const [isSendingReport, setIsSendingReport] = useState(false)
-
-  // Redirection SI non connecté
+  // REDIRECTION SI NON CONNECTÉ : Seul le détail est protégé
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login')
@@ -124,13 +90,6 @@ function OfferDetailContent() {
 
   const { data: authorProfile } = useDoc(authorRef)
 
-  const checkReportQuery = useMemoFirebase(() => {
-    if (!db || !user || !id) return null
-    return query(collection(db, 'signalements'), where('offreId', '==', id), where('signalePar', '==', user.uid))
-  }, [db, user, id])
-  const { data: existingReports } = useCollection(checkReportQuery)
-  const alreadyReported = existingReports && existingReports.length > 0
-
   const handleContactPassDec = () => {
     if (!user) {
       router.push('/login')
@@ -151,38 +110,7 @@ function OfferDetailContent() {
     updateDocumentNonBlocking(userRef, { favoris: newFavorites })
   }
 
-  const handleSendReport = async () => {
-    if (!user || !db || !offer || !reportReason || !id) return
-    setIsSendingReport(true)
-    try {
-      const reportsCol = collection(db, 'signalements')
-      addDocumentNonBlocking(reportsCol, {
-        offreId: id,
-        offreTitre: offer.titre,
-        signalePar: user.uid,
-        signaleParNom: currentUserProfile?.nom || user.email?.split('@')[0] || 'Inconnu',
-        raison: reportReason,
-        details: reportDetails,
-        createdAt: serverTimestamp(),
-        statut: "en_attente"
-      })
-      toast({ title: "Signalement envoyé", description: "L'arbitre va examiner cette annonce." })
-      setIsReportModalOpen(false)
-    } catch (e) {
-      toast({ variant: "destructive", title: "Erreur", description: "Impossible d'envoyer le signalement." })
-    } finally {
-      setIsSendingReport(false)
-    }
-  }
-
-  const handleAdminDelete = () => {
-    if (!db || !offerRef || user?.uid !== ADMIN_UID) return
-    deleteDocumentNonBlocking(offerRef)
-    toast({ variant: "destructive", title: "Arbitrage effectué", description: "L'annonce a été retirée." })
-    router.push('/')
-  }
-
-  if (isUserLoading || isFirestoreLoading) {
+  if (isUserLoading || isFirestoreLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -194,7 +122,7 @@ function OfferDetailContent() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6 text-center">
         <h1 className="text-2xl font-black uppercase italic tracking-tighter mb-4 text-destructive">Hors-jeu !</h1>
-        <p className="text-muted-foreground mb-8">Cette annonce n'existe pas ou a été retirée du terrain.</p>
+        <p className="text-muted-foreground mb-8">Cette annonce n'existe pas ou a été retirée.</p>
         <Button onClick={() => router.push('/')} className="rounded-xl font-black uppercase italic">Retour à l'accueil</Button>
       </div>
     )
@@ -202,9 +130,6 @@ function OfferDetailContent() {
 
   const currentType = profileTypes[offer.userType as keyof typeof profileTypes] || profileTypes.particulier
   const isOwnOffer = user?.uid === offer.userId
-  const isAdmin = user?.uid === ADMIN_UID
-  const whatsappLink = authorProfile?.whatsapp ? `https://wa.me/${authorProfile.whatsapp.replace(/\D/g, '')}` : null
-  const emailLink = authorProfile?.emailPublic ? `mailto:${authorProfile.emailPublic}` : null
 
   return (
     <div className="flex flex-col min-h-screen bg-background pb-80">
