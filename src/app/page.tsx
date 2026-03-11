@@ -6,7 +6,8 @@ import { Navigation } from '@/components/Navigation'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, MapPin, X, Circle, Triangle, Square, Loader2, MessageSquare, Activity, Compass } from 'lucide-react'
+import { Slider } from '@/components/ui/slider'
+import { Search, MapPin, X, Circle, Triangle, Square, Loader2, MessageSquare, Activity, Compass, Banknote } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
@@ -16,8 +17,7 @@ import placeholderData from '@/app/lib/placeholder-images.json'
 import { getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 
 /**
- * @fileOverview Page d'accueil - La vitrine publique.
- * Optimisation de l'alignement des filtres et stabilisation du rendu client.
+ * @fileOverview Page d'accueil - La vitrine publique avec filtres de zone et de budget.
  */
 
 export default function HomePage() {
@@ -28,6 +28,7 @@ export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<string>('all')
   const [activeRadius, setActiveRadius] = useState<number>(100)
+  const [maxPrice, setMaxPrice] = useState<number>(1500)
   const [searchQuery, setSearchQuery] = useState('')
 
   // Stabilisation de l'hydratation
@@ -38,11 +39,13 @@ export default function HomePage() {
       const savedRadius = sessionStorage.getItem('last_radius')
       const savedFilter = sessionStorage.getItem('last_filter')
       const savedSearch = sessionStorage.getItem('last_search')
+      const savedPrice = sessionStorage.getItem('last_price')
       
       if (savedCity) setActiveLocation(savedCity)
       if (savedRadius) setActiveRadius(parseInt(savedRadius))
       if (savedFilter && savedFilter !== 'null') setActiveFilter(savedFilter)
       if (savedSearch) setSearchQuery(savedSearch)
+      if (savedPrice) setMaxPrice(parseInt(savedPrice))
     }
   }, [])
 
@@ -53,8 +56,9 @@ export default function HomePage() {
       sessionStorage.setItem('last_radius', activeRadius.toString())
       sessionStorage.setItem('last_filter', activeFilter || 'null')
       sessionStorage.setItem('last_search', searchQuery)
+      sessionStorage.setItem('last_price', maxPrice.toString())
     }
-  }, [activeLocation, activeRadius, activeFilter, searchQuery, mounted])
+  }, [activeLocation, activeRadius, activeFilter, searchQuery, maxPrice, mounted])
 
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
@@ -94,7 +98,13 @@ export default function HomePage() {
 
   const filteredOffers = useMemo(() => {
     return combinedOffers.filter(offer => {
+      // Filtre catégorie
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
+      
+      // Filtre Budget
+      const matchesPrice = (offer.prix || 0) <= maxPrice
+
+      // Filtre Géographique
       let matchesLocation = true;
       const targetCityName = activeLocation !== 'all' ? activeLocation : null
       
@@ -107,17 +117,17 @@ export default function HomePage() {
         }
       }
 
+      // Filtre Recherche textuelle
       const queryLower = searchQuery.toLowerCase()
       const matchesSearch = !searchQuery || 
         (offer.titre || '').toLowerCase().includes(queryLower) ||
         (offer.ville || '').toLowerCase().includes(queryLower) ||
         (offer.description || '').toLowerCase().includes(queryLower)
       
-      return matchesCategory && matchesLocation && matchesSearch
+      return matchesCategory && matchesPrice && matchesLocation && matchesSearch
     })
-  }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery])
+  }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery, maxPrice])
 
-  // Rendu de sécurité pour l'hydratation
   if (!mounted) {
     return (
       <div className="flex flex-col min-h-screen bg-background items-center justify-center">
@@ -183,7 +193,29 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* SECTION TACTIQUE DE ZONE - ALIGNEMENT CÔTE À CÔTE PARFAIT */}
+        {/* SECTION BUDGET - AU DESSUS DE LA ZONE */}
+        <section className="px-6 py-2 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Banknote className="w-4 h-4 text-primary" />
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Budget Tactique</h3>
+            </div>
+            <span className="text-[11px] font-black italic text-primary">
+              {maxPrice === 0 ? "Gratuit" : maxPrice === 1500 ? "Max (1500€)" : `${maxPrice}€ max`}
+            </span>
+          </div>
+          <div className="px-2 pt-1">
+            <Slider
+              value={[maxPrice]}
+              max={1500}
+              step={10}
+              onValueChange={(val) => setMaxPrice(val[0])}
+              className="py-4"
+            />
+          </div>
+        </section>
+
+        {/* SECTION TACTIQUE DE ZONE */}
         <section className="px-6 py-2 flex flex-col gap-3">
           <div className="flex items-center gap-2 mb-1">
             <Compass className="w-4 h-4 text-primary" />
@@ -325,6 +357,7 @@ export default function HomePage() {
                     setActiveFilter(null);
                     setActiveLocation('all');
                     setSearchQuery('');
+                    setMaxPrice(1500);
                   }}
                   className="text-[10px] font-black uppercase italic text-primary hover:underline underline-offset-4"
                 >
