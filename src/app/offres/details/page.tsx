@@ -12,7 +12,7 @@ import {
 import Image from 'next/image'
 import { 
   useFirestore, useDoc, useMemoFirebase, useUser, 
-  updateDocumentNonBlocking, deleteDocumentNonBlocking 
+  setDocumentNonBlocking, deleteDocumentNonBlocking 
 } from '@/firebase'
 import { doc } from 'firebase/firestore'
 import { cn } from '@/lib/utils'
@@ -102,8 +102,15 @@ function OfferDetailContent() {
 
   const toggleFavorite = () => {
     if (!id || !userRef) return;
-    const newFavorites = isFavorite ? favorites.filter((favId: string) => favId !== id) : [...favorites, id]
-    updateDocumentNonBlocking(userRef, { favoris: newFavorites })
+    const isFav = favorites.includes(id);
+    const newFavorites = isFav ? favorites.filter((fid: string) => fid !== id) : [...favorites, id]
+    
+    setDocumentNonBlocking(userRef, { favoris: newFavorites }, { merge: true })
+    
+    toast({
+      title: isFav ? "Trophée retiré" : "Trophée ajouté",
+      description: isFav ? "L'annonce n'est plus dans vos favoris." : "Retrouvez-la dans votre onglet Favoris."
+    });
   }
 
   const handleAdminDelete = () => {

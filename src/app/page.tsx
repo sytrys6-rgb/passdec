@@ -6,14 +6,15 @@ import { Navigation } from '@/components/Navigation'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, MapPin, X, Circle, Triangle, Square, Loader2, MessageSquare, Activity, Compass, Banknote } from 'lucide-react'
+import { Search, MapPin, X, Circle, Triangle, Square, Loader2, MessageSquare, Activity, Compass, Banknote, Trophy } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { useUser, useFirestore, useMemoFirebase, useCollection } from '@/firebase'
-import { collection, query, where } from 'firebase/firestore'
+import { useUser, useFirestore, useMemoFirebase, useCollection, useDoc, setDocumentNonBlocking } from '@/firebase'
+import { collection, query, where, doc } from 'firebase/firestore'
 import placeholderData from '@/app/lib/placeholder-images.json'
 import { getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
+import { useToast } from '@/hooks/use-toast'
 
 /**
  * @fileOverview Page d'accueil - La vitrine publique avec filtres de zone et de budget circulaire.
@@ -22,6 +23,7 @@ import { getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
   const db = useFirestore()
+  const { toast } = useToast()
   const [mounted, setMounted] = useState(false)
   
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
@@ -60,6 +62,14 @@ export default function HomePage() {
       sessionStorage.setItem('last_price', maxPrice.toString())
     }
   }, [activeLocation, activeRadius, activeFilter, searchQuery, maxPrice, mounted])
+
+  const userRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, 'users', user.uid)
+  }, [db, user])
+
+  const { data: profile } = useDoc(userRef)
+  const favorites = profile?.favoris || []
 
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
@@ -124,7 +134,6 @@ export default function HomePage() {
     })
   }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery, maxPrice])
 
-  // Gestion du cadran circulaire
   const handleDialInteraction = (e: React.MouseEvent | React.TouchEvent) => {
     if (!dialRef.current) return;
     const rect = dialRef.current.getBoundingClientRect();
@@ -137,11 +146,9 @@ export default function HomePage() {
     const dx = clientX - centerX;
     const dy = clientY - centerY;
     
-    // Calcul de l'angle (0 à 360) en commençant par le haut (0°)
     let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
     if (angle < 0) angle += 360;
     
-    // Mapper l'angle sur 0-1500€ par paliers de 10
     const newValue = Math.round((angle / 360) * 1500 / 10) * 10;
     setMaxPrice(Math.min(1500, Math.max(0, newValue)));
   };
@@ -150,6 +157,25 @@ export default function HomePage() {
   const dialRadius = 28;
   const circumference = 2 * Math.PI * dialRadius;
   const dashOffset = circumference - (dialProgress / 100) * circumference;
+
+  const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
+    e.preventDefault();
+    if (!user) {
+      toast({ title: "Connexion requise", description: "Connectez-vous pour marquer vos favoris." });
+      return;
+    }
+    if (!userRef) return;
+
+    const isFav = favorites.includes(offerId);
+    const newFavorites = isFav ? favorites.filter((fid: string) => fid !== offerId) : [...favorites, offerId];
+    
+    setDocumentNonBlocking(userRef, { favoris: newFavorites }, { merge: true });
+    
+    toast({
+      title: isFav ? "Trophée retiré" : "Trophée ajouté",
+      description: isFav ? "L'annonce n'est plus dans vos favoris." : "Retrouvez-la dans votre onglet Favoris."
+    });
+  };
 
   if (!mounted) {
     return (
@@ -216,7 +242,6 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* SECTION TACTIQUE DE ZONE & BUDGET (DÉSORMAIS ALIGNÉS) */}
         <section className="px-6 py-2 flex flex-col gap-3">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
@@ -230,7 +255,6 @@ export default function HomePage() {
           </div>
           
           <div className="flex flex-row flex-nowrap gap-3 items-center w-full">
-            {/* VILLE */}
             <div className="flex-[2] min-w-0">
               <Select value={activeLocation} onValueChange={setActiveLocation}>
                 <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold italic text-[11px] w-full px-3">
@@ -248,7 +272,6 @@ export default function HomePage() {
               </Select>
             </div>
 
-            {/* RAYON */}
             <div className="flex-1 min-w-0">
               <Select 
                 value={activeRadius.toString()} 
@@ -274,7 +297,6 @@ export default function HomePage() {
               </Select>
             </div>
 
-            {/* CADRAN DE BUDGET (A DROITE) */}
             <div className="flex flex-col items-center justify-center shrink-0">
                <div className="relative w-16 h-16 cursor-pointer select-none group/dial"
                     onMouseDown={(e) => handleDialInteraction(e)}
@@ -311,7 +333,6 @@ export default function HomePage() {
                     </span>
                     <span className="text-[6px] font-black uppercase text-muted-foreground mt-0.5">€</span>
                   </div>
-                  {/* Poignée visuelle */}
                   <div 
                     className="absolute w-2 h-2 bg-primary rounded-full shadow-lg transition-all duration-300 z-10"
                     style={{
@@ -324,7 +345,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* FILTRES DE TYPE D'OFFRE */}
         <section className="px-6 py-2 mt-2">
           <div className="grid grid-cols-4 gap-3">
             {[
@@ -350,7 +370,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* LE MERCATO (GRID D'ANNONCES) */}
         <section className="px-6 py-4 flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-black italic uppercase tracking-tighter">Le Mercato</h2>
@@ -365,43 +384,56 @@ export default function HomePage() {
 
           <div className="grid gap-6">
             {filteredOffers.length > 0 ? (
-              filteredOffers.map((offer) => (
-                <Link 
-                  href={`/offres/details/?id=${offer.id}`} 
-                  key={offer.id} 
-                  className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all active:scale-[0.98]"
-                >
-                  <div className="relative aspect-[16/9] w-full">
-                    {offer.photos?.[0] ? (
-                       <Image src={offer.photos[0]} alt={offer.titre} fill className="object-cover" unoptimized />
-                    ) : (
-                       <div className="w-full h-full bg-muted flex items-center justify-center">
-                          <Activity className="w-10 h-10 text-muted-foreground/20" />
-                       </div>
-                    )}
-                    <div className="absolute top-3 left-3">
-                      <Badge className="font-black uppercase italic border-none px-3 py-1 text-[9px] shadow-lg bg-primary text-black">
-                        {offer.typeOffre}
-                      </Badge>
-                    </div>
-                    {offer.prix > 0 && (
-                      <div className="absolute bottom-3 right-3 glass-morphism px-3 py-1 rounded-full font-black text-primary italic border-primary/20 text-sm shadow-lg">
-                        {offer.prix}€
+              filteredOffers.map((offer) => {
+                const isFav = favorites.includes(offer.id);
+                return (
+                  <div key={offer.id} className="relative">
+                    <Link 
+                      href={`/offres/details/?id=${offer.id}`} 
+                      className="block bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all active:scale-[0.98]"
+                    >
+                      <div className="relative aspect-[16/9] w-full">
+                        {offer.photos?.[0] ? (
+                           <Image src={offer.photos[0]} alt={offer.titre} fill className="object-cover" unoptimized />
+                        ) : (
+                           <div className="w-full h-full bg-muted flex items-center justify-center">
+                              <Activity className="w-10 h-10 text-muted-foreground/20" />
+                           </div>
+                        )}
+                        <div className="absolute top-3 left-3">
+                          <Badge className="font-black uppercase italic border-none px-3 py-1 text-[9px] shadow-lg bg-primary text-black">
+                            {offer.typeOffre}
+                          </Badge>
+                        </div>
+                        {offer.prix > 0 && (
+                          <div className="absolute bottom-3 right-3 glass-morphism px-3 py-1 rounded-full font-black text-primary italic border-primary/20 text-sm shadow-lg">
+                            {offer.prix}€
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="p-4 flex flex-col gap-1 text-left">
-                    <h3 className="font-bold text-lg italic uppercase tracking-tighter line-clamp-1 group-hover:text-primary transition-colors">{offer.titre}</h3>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <MapPin className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{offer.ville}</span>
+                      <div className="p-4 flex flex-col gap-1 text-left">
+                        <h3 className="font-bold text-lg italic uppercase tracking-tighter line-clamp-1 group-hover:text-primary transition-colors">{offer.titre}</h3>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <MapPin className="w-3.5 h-3.5 text-primary" />
+                            <span className="text-[10px] font-black uppercase tracking-widest">{offer.ville}</span>
+                          </div>
+                          <span className="text-[9px] font-bold text-muted-foreground italic opacity-70">En direct</span>
+                        </div>
                       </div>
-                      <span className="text-[9px] font-bold text-muted-foreground italic opacity-70">En direct</span>
-                    </div>
+                    </Link>
+                    <button 
+                      onClick={(e) => toggleFavorite(e, offer.id)}
+                      className={cn(
+                        "absolute top-3 right-3 p-2.5 rounded-full transition-all shadow-xl z-20",
+                        isFav ? "bg-primary text-black" : "glass-morphism text-white hover:text-primary"
+                      )}
+                    >
+                      <Trophy className={cn("w-5 h-5", isFav && "fill-current")} />
+                    </button>
                   </div>
-                </Link>
-              ))
+                )
+              })
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center gap-4 animate-in fade-in slide-in-from-bottom-4">
                 <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center">
