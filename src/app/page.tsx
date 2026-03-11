@@ -17,10 +17,8 @@ import { getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 
 /**
  * @fileOverview Page d'accueil - La vitrine publique.
- * Correction de l'alignement des filtres et stabilisation du rendu.
+ * Optimisation de l'alignement des filtres et stabilisation du rendu client.
  */
-
-export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
@@ -188,23 +186,23 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* SECTION TACTIQUE DE ZONE - ALIGNEMENT CÔTE À CÔTE */}
+        {/* SECTION TACTIQUE DE ZONE - ALIGNEMENT CÔTE À CÔTE PARFAIT */}
         <section className="px-6 py-2 flex flex-col gap-3">
           <div className="flex items-center gap-2 mb-1">
             <Compass className="w-4 h-4 text-primary" />
             <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Tactique de Zone</h3>
           </div>
           
-          <div className="flex flex-row gap-3 items-center w-full">
+          <div className="flex flex-row flex-nowrap gap-2 items-center w-full">
             <div className="flex-[2] min-w-0">
               <Select value={activeLocation} onValueChange={setActiveLocation}>
-                <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold italic text-[10px] w-full">
-                  <div className="flex items-center gap-2 overflow-hidden">
+                <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold italic text-[11px] w-full px-3">
+                  <div className="flex items-center gap-1.5 overflow-hidden">
                     <MapPin className="w-3 h-3 text-primary shrink-0" />
-                    <SelectValue placeholder="Choisir une ville" />
+                    <SelectValue placeholder="Ville" />
                   </div>
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px] z-50">
+                <SelectContent className="max-h-[300px] z-[100]" position="popper">
                   <SelectItem value="all">🇫🇷 Toute la France</SelectItem>
                   {MAIN_CITIES.map((city) => (
                     <SelectItem key={city} value={city}>{city}</SelectItem>
@@ -220,15 +218,15 @@ export default function HomePage() {
                 disabled={activeLocation === 'all'}
               >
                 <SelectTrigger className={cn(
-                  "bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold italic text-[10px] w-full",
+                  "bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold italic text-[11px] w-full px-3",
                   activeLocation === 'all' && "opacity-40"
                 )}>
-                  <div className="flex items-center gap-2 overflow-hidden">
+                  <div className="flex items-center gap-1.5 overflow-hidden">
                     <Activity className="w-3 h-3 text-primary shrink-0" />
                     <SelectValue placeholder="Rayon" />
                   </div>
                 </SelectTrigger>
-                <SelectContent className="z-50">
+                <SelectContent className="z-[100]" position="popper">
                   <SelectItem value="25">25 km</SelectItem>
                   <SelectItem value="50">50 km</SelectItem>
                   <SelectItem value="100">100 km</SelectItem>
