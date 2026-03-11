@@ -18,6 +18,12 @@ import { getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 import { Button } from '@/components/ui/button'
 import { allOffers as mockOffers } from '@/app/lib/offers'
 
+/**
+ * @fileOverview Page d'accueil - Le terrain de jeu principal.
+ * Affiche les annonces réelles (Firestore) et les annonces de démo.
+ * Les annonces réelles sont visibles par tous, même hors connexion.
+ */
+
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
   const db = useFirestore()
@@ -29,25 +35,27 @@ export default function HomePage() {
   const [activeRadius, setActiveRadius] = useState<number>(150)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Hydratation et récupération des préférences locales
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
       try {
-        const savedCity = sessionStorage.getItem('last_city') || 'all'
-        const savedRadius = sessionStorage.getItem('last_radius') || '150'
-        const savedFilter = sessionStorage.getItem('last_filter') || 'null'
-        const savedSearch = sessionStorage.getItem('last_search') || ''
+        const savedCity = sessionStorage.getItem('last_city')
+        const savedRadius = sessionStorage.getItem('last_radius')
+        const savedFilter = sessionStorage.getItem('last_filter')
+        const savedSearch = sessionStorage.getItem('last_search')
         
-        setActiveLocation(savedCity)
-        setActiveRadius(parseInt(savedRadius))
-        setActiveFilter(savedFilter === 'null' ? null : savedFilter)
-        setSearchQuery(savedSearch)
+        if (savedCity) setActiveLocation(savedCity)
+        if (savedRadius) setActiveRadius(parseInt(savedRadius))
+        if (savedFilter && savedFilter !== 'null') setActiveFilter(savedFilter)
+        if (savedSearch) setSearchQuery(savedSearch)
       } catch (e) {
-        // Silencieusement ignoré
+        // Silencieux pour le build statique
       }
     }
   }, [])
 
+  // Sauvegarde des filtres tactiques
   useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
       try {
@@ -56,7 +64,7 @@ export default function HomePage() {
         sessionStorage.setItem('last_filter', activeFilter || 'null')
         sessionStorage.setItem('last_search', searchQuery)
       } catch (e) {
-        // Silencieusement ignoré
+        // Silencieux
       }
     }
   }, [activeLocation, activeRadius, activeFilter, searchQuery, mounted])
@@ -69,7 +77,7 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // Requête publique pour les offres : Pas de dépendance directe à 'user' pour la visibilité publique
+  // REQUÊTE PUBLIQUE : Visible par tout le monde sur le terrain
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
     return collection(db, 'offres')
@@ -77,6 +85,7 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
+  // Messages non lus (uniquement pour les joueurs connectés)
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, 'conversations'), where('participants', 'array-contains', user.uid))
@@ -89,12 +98,13 @@ export default function HomePage() {
     let count = 0
     conversations.forEach(conv => {
       if (conv.deletedBy?.includes(user.uid)) return;
-      const myUnread = conv.unreadCount?.[user.uid] ?? conv[`unreadCount.${user.uid}`] ?? 0;
-      count += myUnread;
+      const unread = conv.unreadCount?.[user.uid] ?? conv[`unreadCount.${user.uid}`] ?? 0;
+      count += unread;
     })
     return count
   }, [conversations, user])
 
+  // Fusion tactique des annonces : Réel d'abord, Démo ensuite
   const combinedOffers = useMemo(() => {
     const fsOffers = firestoreOffers ? firestoreOffers.map(o => ({
       ...o,
@@ -109,7 +119,6 @@ export default function HomePage() {
       isReal: false
     }));
 
-    // On fusionne et trie : Priorité aux offres réelles
     return [...fsOffers, ...demoOffers].sort((a, b) => {
       if (a.isReal && !b.isReal) return -1;
       if (!a.isReal && b.isReal) return 1;
@@ -119,7 +128,7 @@ export default function HomePage() {
     });
   }, [firestoreOffers])
 
-  const totalActiveOffersCount = useMemo(() => combinedOffers.filter(o => o.isReal).length, [combinedOffers])
+  const totalActiveRealCount = useMemo(() => combinedOffers.filter(o => o.isReal).length, [combinedOffers])
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
@@ -166,19 +175,9 @@ export default function HomePage() {
     }
   }
 
-  const handleOfferClick = (e: React.MouseEvent, offerId: string) => {
-    if (!user) {
-      e.preventDefault()
-      router.push('/login')
-    }
-  }
-
-  // Pour éviter l'erreur d'hydratation, le rendu initial (SSR) doit être stable
-  // On utilise la même classe racine flex-col pour tout le monde
+  // Empêcher le clignotement d'hydratation tout en gardant une structure stable
   if (!mounted) {
-    return (
-      <div className="flex flex-col min-h-screen bg-background" />
-    )
+    return <div className="flex flex-col min-h-screen bg-background" />
   }
 
   return (
@@ -194,7 +193,7 @@ export default function HomePage() {
             unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
-          {!user && !isUserLoading && (
+          {!user && (
             <div className="absolute top-4 right-4 animate-in fade-in zoom-in duration-700">
                <Link href="/login">
                 <Badge className="bg-primary text-black font-black uppercase italic tracking-tighter px-4 py-2 shadow-2xl hover:scale-105 transition-transform cursor-pointer">
@@ -218,12 +217,12 @@ export default function HomePage() {
             
             <Badge variant="outline" className="border-primary/50 text-primary font-black uppercase italic tracking-tighter px-4 py-1.5 bg-primary/5 flex items-center gap-2">
               <Activity className="w-3 h-3 animate-pulse text-primary" />
-              <span>Mercato : {totalActiveOffersCount} offres réelles</span>
+              <span>Mercato : {totalActiveRealCount} offres réelles</span>
             </Badge>
 
-            {!user && !isUserLoading && (
+            {!user && (
               <Badge variant="outline" className="border-white/20 text-muted-foreground font-black uppercase italic tracking-tighter px-4 py-1.5 bg-white/5">
-                Mode Public ⚽
+                Lèche-vitrine actif ⚽
               </Badge>
             )}
           </div>
@@ -232,7 +231,7 @@ export default function HomePage() {
             <span className="text-primary">100%</span> <span className="text-secondary">Pass&apos; Déc&apos;</span>
           </h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
-            Le réseau qui fait marquer
+            Le réseau social qui fait marquer
           </p>
         </div>
 
@@ -282,7 +281,7 @@ export default function HomePage() {
       <div className="px-6 py-4 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-muted-foreground">
           <MapPin className={cn("w-3.5 h-3.5 flex-shrink-0 transition-colors", activeLocation !== 'all' ? "text-primary" : "text-muted-foreground")} />
-          <span className="text-[10px] font-black uppercase tracking-widest">Rayon :</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Zone de jeu :</span>
         </div>
         <div className="grid grid-cols-[2fr_1.2fr] gap-2">
           <Select value={activeLocation} onValueChange={(val) => setActiveLocation(val)}>
@@ -290,7 +289,7 @@ export default function HomePage() {
               <SelectValue placeholder="Ville" />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              <SelectItem value="all">Toute la France</SelectItem>
+              <SelectItem value="all">France entière</SelectItem>
               {MAIN_CITIES.map((city) => (
                 <SelectItem key={city} value={city}>{city}</SelectItem>
               ))}
@@ -305,7 +304,6 @@ export default function HomePage() {
               <SelectItem value="25">25 km</SelectItem>
               <SelectItem value="50">50 km</SelectItem>
               <SelectItem value="100">100 km</SelectItem>
-              <SelectItem value="150">150 km</SelectItem>
               <SelectItem value="200">200 km</SelectItem>
             </SelectContent>
           </Select>
@@ -326,7 +324,6 @@ export default function HomePage() {
               <Link 
                 href={`/offres/details/?id=${offer.id}`}
                 key={offer.id} 
-                onClick={(e) => handleOfferClick(e, offer.id)}
                 className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all duration-300 relative"
               >
                 <div className="relative aspect-[16/9] w-full">
