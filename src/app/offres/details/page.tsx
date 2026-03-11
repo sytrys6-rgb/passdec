@@ -78,7 +78,7 @@ function OfferDetailContent() {
   const [reportDetails, setReportDetails] = useState("")
   const [isSendingReport, setIsSendingReport] = useState(false)
 
-  // Redirection vers login si non connecté pour voir les détails
+  // Seule la vue détaillée nécessite d'être connecté
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login')
