@@ -5,10 +5,10 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, User, PhoneIcon } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, User, PhoneIcon, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
+import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase'
 import { signOut } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { doc, collection, query, where } from 'firebase/firestore'
@@ -79,7 +79,18 @@ export default function ProfilePage() {
     return doc(db, 'users', user.uid)
   }, [db, user, isUserLoading])
 
-  const { data: profile } = useDoc(userRef)
+  const { data: profile, isLoading: isProfileLoading } = useDoc(userRef)
+
+  // AUTO-PROMOTION LOGIC FOR ADMIN
+  useEffect(() => {
+    if (user?.email === 'sytrys6@gmail.com' && profile && profile.role !== 'admin' && userRef) {
+      updateDocumentNonBlocking(userRef, { role: 'admin' });
+      toast({
+        title: "Accès Arbitre Activé",
+        description: "Votre compte sytrys6@gmail.com a été promu Administrateur."
+      });
+    }
+  }, [user, profile, userRef, toast]);
 
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user) return null
@@ -135,7 +146,7 @@ export default function ProfilePage() {
     })
   }
 
-  if (isUserLoading) return (
+  if (isUserLoading || isProfileLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>
@@ -296,11 +307,21 @@ export default function ProfilePage() {
             </Button>
           )}
 
+          {/* PANEL ARBITRE VISIBLE UNIQUEMENT POUR ADMIN */}
+          {profileData.role === 'admin' && (
+            <Link href="/admin" className="w-full">
+              <Button className="w-full bg-secondary text-white rounded-xl h-14 font-black uppercase italic tracking-widest text-base shadow-xl border-2 border-white/10 hover:bg-secondary/90 flex items-center justify-center gap-3">
+                <Shield className="w-6 h-6 animate-pulse" />
+                V.A.R • Panel Arbitre
+              </Button>
+            </Link>
+          )}
+
           <Button 
             onClick={() => setShowMyOffers(!showMyOffers)}
-            className={`w-full rounded-xl py-6 font-black uppercase tracking-widest text-xs h-12 italic ${showMyOffers ? 'bg-secondary text-white' : 'bg-primary text-black'}`}
+            className={`w-full rounded-xl py-6 font-black uppercase tracking-widest text-xs h-12 italic ${showMyOffers ? 'bg-muted text-muted-foreground' : 'bg-primary text-black'}`}
           >
-            {showMyOffers ? "Voir mon profil" : "Mes annonces"}
+            {showMyOffers ? "Voir mon profil" : "Gérer mes annonces"}
           </Button>
 
           {showMyOffers && (
@@ -312,11 +333,11 @@ export default function ProfilePage() {
                   {sortedMyOffers.map((offer) => (
                     <div key={offer.id} className="relative">
                       <div className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center shadow-lg pr-24">
-                        <Link href={`/offres/details/?id=${offer.id}`} className="flex gap-4 items-center flex-grow overflow-hidden">
+                        <Link href={`/offres/details/?id=${offer.id}`} className="flex gap-4 items-center flex-grow overflow-hidden text-left">
                           <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
                             <Image src={offer.photos?.[0] || 'https://picsum.photos/seed/foot/100/100'} alt={offer.titre} fill className="object-cover" unoptimized />
                           </div>
-                          <div className="flex flex-col text-left overflow-hidden">
+                          <div className="flex flex-col overflow-hidden">
                             <h4 className="font-bold text-sm truncate uppercase tracking-tighter">{offer.titre}</h4>
                             <span className="text-[9px] font-black text-primary italic uppercase">{offer.typeOffre} • {offer.prix}€</span>
                           </div>
@@ -331,26 +352,17 @@ export default function ProfilePage() {
                   ))}
                 </div>
               ) : (
-                <div className="py-10 text-muted-foreground italic text-xs">Aucune annonce.</div>
+                <div className="py-10 text-muted-foreground italic text-xs">Aucune annonce sur le terrain.</div>
               )}
             </div>
           )}
 
           {!showMyOffers && (
             <div className="flex flex-col gap-2">
-              <Button variant="ghost" onClick={handleLogout} className="w-full text-accent rounded-xl h-12 font-black uppercase tracking-widest text-xs">
+              <Button variant="ghost" onClick={handleLogout} className="w-full text-accent rounded-xl h-12 font-black uppercase tracking-widest text-xs mt-4">
                 <LogOut className="w-4 h-4 mr-2" />
-                Déconnexion
+                Quitter le stade (Déconnexion)
               </Button>
-              
-              {profileData.role === 'admin' && (
-                <Link href="/admin" className="w-full mt-4">
-                  <Button variant="ghost" className="w-full text-muted-foreground rounded-xl h-10 font-black uppercase tracking-widest text-[9px] opacity-50">
-                    <Shield className="w-3.5 h-3.5 mr-2" />
-                    Panel Arbitre
-                  </Button>
-                </Link>
-              )}
             </div>
           )}
         </div>
