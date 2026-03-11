@@ -78,7 +78,7 @@ function OfferDetailContent() {
   const [reportDetails, setReportDetails] = useState("")
   const [isSendingReport, setIsSendingReport] = useState(false)
 
-  // Sécurité tactique : redirection si non connecté
+  // Redirection si non connecté
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login')
