@@ -4,15 +4,15 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
-  useUser, useFirestore, useCollection, useMemoFirebase, 
+  useUser, useFirestore, useCollection, useDoc, useMemoFirebase, 
   updateDocumentNonBlocking, deleteDocumentNonBlocking 
 } from '@/firebase'
-import { collection, query, where, getDocs, doc, writeBatch } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc } from 'firebase/firestore'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
   ShieldAlert, Loader2, Eye, Trash2, CheckCircle, 
-  ArrowLeft, Calendar, User, History, ListFilter, Users, UserX, Ban, Unlock
+  ArrowLeft, Calendar, User, History, ListFilter, Users, Ban, Unlock, Trophy
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -32,50 +32,61 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-const ADMIN_UID = "OvtBOwidg7dc4lHw5rR56yqLlIT2"
-
 export default function AdminPage() {
   const { user, isUserLoading } = useUser()
   const db = useFirestore()
   const router = useRouter()
   const { toast } = useToast()
 
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [isAdminAuthorized, setIsAdminAuthorized] = useState(false)
+
+  const userRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, 'users', user.uid)
+  }, [db, user])
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc(userRef)
 
   useEffect(() => {
-    if (!isUserLoading) {
-      if (!user || user.uid !== ADMIN_UID) {
+    if (!isUserLoading && !isProfileLoading) {
+      if (!user || profile?.role !== 'admin') {
         router.push('/')
       } else {
-        setIsAdmin(true)
+        setIsAdminAuthorized(true)
       }
     }
-  }, [user, isUserLoading, router])
+  }, [user, profile, isUserLoading, isProfileLoading, router])
 
   const pendingReportsQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null
+    if (!db || !isAdminAuthorized) return null
     return query(
       collection(db, 'signalements'),
       where('statut', '==', 'en_attente')
     )
-  }, [db, isAdmin])
+  }, [db, isAdminAuthorized])
 
   const historyReportsQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null
+    if (!db || !isAdminAuthorized) return null
     return query(
       collection(db, 'signalements'),
       where('statut', 'in', ['traité', 'ignoré'])
     )
-  }, [db, isAdmin])
+  }, [db, isAdminAuthorized])
 
   const allUsersQuery = useMemoFirebase(() => {
-    if (!db || !isAdmin) return null
+    if (!db || !isAdminAuthorized) return null
     return collection(db, 'users')
-  }, [db, isAdmin])
+  }, [db, isAdminAuthorized])
+
+  const allOffersQuery = useMemoFirebase(() => {
+    if (!db || !isAdminAuthorized) return null
+    return collection(db, 'offres')
+  }, [db, isAdminAuthorized])
 
   const { data: pendingReports, isLoading: isPendingLoading } = useCollection(pendingReportsQuery)
   const { data: historyReports, isLoading: isHistoryLoading } = useCollection(historyReportsQuery)
   const { data: users, isLoading: isUsersLoading } = useCollection(allUsersQuery)
+  const { data: allOffers, isLoading: isAllOffersLoading } = useCollection(allOffersQuery)
 
   const sortedPending = useMemo(() => {
     if (!pendingReports) return []
@@ -92,6 +103,11 @@ export default function AdminPage() {
     return [...users].sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
   }, [users])
 
+  const sortedOffers = useMemo(() => {
+    if (!allOffers) return []
+    return [...allOffers].sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+  }, [allOffers])
+
   const handleIgnoreReport = (reportId: string) => {
     if (!db) return
     const reportRef = doc(db, 'signalements', reportId)
@@ -99,23 +115,27 @@ export default function AdminPage() {
     toast({ title: "Signalement ignoré" })
   }
 
-  const handleDeleteOffer = async (reportId: string, offerId: string) => {
+  const handleDeleteOffer = async (offerId: string, reportId?: string) => {
     if (!db) return
     const offerRef = doc(db, 'offres', offerId)
-    const reportRef = doc(db, 'signalements', reportId)
     deleteDocumentNonBlocking(offerRef)
-    updateDocumentNonBlocking(reportRef, { statut: 'traité' })
+    
+    if (reportId) {
+      const reportRef = doc(db, 'signalements', reportId)
+      updateDocumentNonBlocking(reportRef, { statut: 'traité' })
+    }
+    
     toast({ 
       variant: "destructive",
       title: "Arbitrage effectué",
-      description: "L'annonce a été retirée."
+      description: "L'annonce a été retirée du terrain."
     })
   }
 
   const handleToggleBlockUser = (userId: string, currentlyBlocked: boolean) => {
-    if (!db || userId === ADMIN_UID) return
-    const userRef = doc(db, 'users', userId)
-    updateDocumentNonBlocking(userRef, { isBlocked: !currentlyBlocked })
+    if (!db || !profile || profile.role !== 'admin') return
+    const targetUserRef = doc(db, 'users', userId)
+    updateDocumentNonBlocking(targetUserRef, { isBlocked: !currentlyBlocked })
     toast({ 
       title: currentlyBlocked ? "Joueur débloqué" : "Joueur suspendu",
       description: currentlyBlocked ? "Il peut de nouveau entrer sur le terrain." : "Son accès est désormais interdit."
@@ -123,27 +143,19 @@ export default function AdminPage() {
   }
 
   const handleDeleteUserPermanently = async (userId: string) => {
-    if (!db || userId === ADMIN_UID) return
+    if (!db || !profile || profile.role !== 'admin') return
 
     try {
-      // 1. Supprimer ses offres
       const offersQuery = query(collection(db, 'offres'), where('userId', '==', userId))
       const offersSnap = await getDocs(offersQuery)
       offersSnap.forEach(d => deleteDocumentNonBlocking(d.ref))
 
-      // 2. Supprimer ses conversations
       const convsQuery = query(collection(db, 'conversations'), where('participants', 'array-contains', userId))
       const convsSnap = await getDocs(convsQuery)
       convsSnap.forEach(d => deleteDocumentNonBlocking(d.ref))
 
-      // 3. Supprimer ses signalements (ceux qu'il a fait)
-      const reportsQuery = query(collection(db, 'signalements'), where('signalePar', '==', userId))
-      const reportsSnap = await getDocs(reportsQuery)
-      reportsSnap.forEach(d => deleteDocumentNonBlocking(d.ref))
-
-      // 4. Supprimer le document utilisateur
-      const userRef = doc(db, 'users', userId)
-      deleteDocumentNonBlocking(userRef)
+      const targetUserRef = doc(db, 'users', userId)
+      deleteDocumentNonBlocking(targetUserRef)
 
       toast({
         variant: "destructive",
@@ -159,7 +171,7 @@ export default function AdminPage() {
     }
   }
 
-  if (isUserLoading || !isAdmin) {
+  if (isUserLoading || isProfileLoading || !isAdminAuthorized) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -202,7 +214,7 @@ export default function AdminPage() {
             <Button variant="outline" onClick={() => handleIgnoreReport(report.id)} className="rounded-xl font-black uppercase italic text-[10px] h-11">
               <CheckCircle className="w-4 h-4 mr-2" />Ignorer
             </Button>
-            <Button variant="destructive" onClick={() => handleDeleteOffer(report.id, report.offreId)} className="rounded-xl font-black uppercase italic text-[10px] h-11">
+            <Button variant="destructive" onClick={() => handleDeleteOffer(report.offreId, report.id)} className="rounded-xl font-black uppercase italic text-[10px] h-11">
               <Trash2 className="w-4 h-4 mr-2" />Supprimer
             </Button>
           </div>
@@ -211,18 +223,18 @@ export default function AdminPage() {
     </div>
   )
 
-  const UserRow = ({ profile }: { profile: any }) => {
-    const isBlocked = profile.isBlocked === true
-    const regDate = profile.createdAt?.seconds 
-      ? format(new Date(profile.createdAt.seconds * 1000), 'dd/MM/yyyy', { locale: fr }) 
+  const UserRow = ({ profile: rowProfile }: { profile: any }) => {
+    const isBlocked = rowProfile.isBlocked === true
+    const regDate = rowProfile.createdAt?.seconds 
+      ? format(new Date(rowProfile.createdAt.seconds * 1000), 'dd/MM/yyyy', { locale: fr }) 
       : 'Inconnue'
 
     return (
       <div className="flex items-center justify-between p-4 bg-card rounded-2xl border border-white/5 mb-3 gap-4">
         <div className="flex items-center gap-4 flex-grow overflow-hidden">
           <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-primary/20 overflow-hidden relative shrink-0">
-            {profile.photoUrl ? (
-              <Image src={profile.photoUrl} alt={profile.nom} fill className="object-cover" unoptimized />
+            {rowProfile.photoUrl ? (
+              <Image src={rowProfile.photoUrl} alt={rowProfile.nom} fill className="object-cover" unoptimized />
             ) : (
               <User className="w-6 h-6 text-muted-foreground" />
             )}
@@ -234,21 +246,21 @@ export default function AdminPage() {
           </div>
           <div className="flex flex-col overflow-hidden">
             <div className="flex items-center gap-2">
-              <span className="font-black uppercase italic tracking-tighter text-sm truncate">{profile.nom}</span>
+              <span className="font-black uppercase italic tracking-tighter text-sm truncate">{rowProfile.nom}</span>
               {isBlocked && <Badge className="bg-destructive text-[8px] h-4 font-black px-1.5 uppercase italic">Suspendu</Badge>}
+              {rowProfile.role === 'admin' && <Badge className="bg-primary text-black text-[8px] h-4 font-black px-1.5 uppercase italic">Arbitre</Badge>}
             </div>
-            <span className="text-[9px] font-bold uppercase text-primary tracking-widest">{profile.typeProfil} • Inscrit le {regDate}</span>
-            <span className="text-[9px] font-medium text-muted-foreground truncate italic">{profile.emailPublic || "Pas d'email public"}</span>
+            <span className="text-[9px] font-bold uppercase text-primary tracking-widest">{rowProfile.typeProfil} • Inscrit le {regDate}</span>
           </div>
         </div>
         
         <div className="flex items-center gap-2 shrink-0">
-          {profile.id !== ADMIN_UID && (
+          {rowProfile.id !== user?.uid && (
             <>
               <Button 
                 variant="outline" 
                 size="icon" 
-                onClick={() => handleToggleBlockUser(profile.id, isBlocked)}
+                onClick={() => handleToggleBlockUser(rowProfile.id, isBlocked)}
                 className={isBlocked ? "text-primary border-primary/20" : "text-warning border-warning/20"}
               >
                 {isBlocked ? <Unlock className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
@@ -263,15 +275,10 @@ export default function AdminPage() {
                 <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
                   <AlertDialogHeader>
                     <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter text-destructive">Sortie Définitive ?</AlertDialogTitle>
-                    <AlertDialogDescription className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Voulez-vous supprimer définitivement <strong>{profile.nom}</strong> ? <br/> 
-                      Toutes ses annonces, messages et signalements seront effacés. <br/><br/>
-                      <span className="text-destructive font-black">ACTION IRRÉVERSIBLE</span>
-                    </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-[10px]">Annuler</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDeleteUserPermanently(profile.id)} className="bg-destructive text-white rounded-xl font-black uppercase tracking-tighter text-[10px]">Confirmer l'arbitrage</AlertDialogAction>
+                    <AlertDialogAction onClick={() => handleDeleteUserPermanently(rowProfile.id)} className="bg-destructive text-white rounded-xl font-black uppercase tracking-tighter text-[10px]">Confirmer</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -281,6 +288,32 @@ export default function AdminPage() {
       </div>
     )
   }
+
+  const OfferRow = ({ offer }: { offer: any }) => (
+    <div className="flex items-center justify-between p-4 bg-card rounded-2xl border border-white/5 mb-3 gap-4">
+      <div className="flex items-center gap-4 flex-grow overflow-hidden">
+        <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden relative shrink-0">
+          {offer.photos?.[0] ? (
+            <Image src={offer.photos[0]} alt={offer.titre} fill className="object-cover" unoptimized />
+          ) : (
+            <Trophy className="w-6 h-6 text-muted-foreground m-3" />
+          )}
+        </div>
+        <div className="flex flex-col overflow-hidden">
+          <span className="font-black uppercase italic tracking-tighter text-sm truncate">{offer.titre}</span>
+          <span className="text-[9px] font-bold uppercase text-primary tracking-widest">{offer.userNom} • {offer.ville}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <Button asChild variant="outline" size="icon" className="text-muted-foreground">
+          <Link href={`/offres/details/?id=${offer.id}`}><Eye className="w-4 h-4" /></Link>
+        </Button>
+        <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => handleDeleteOffer(offer.id)}>
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  )
 
   return (
     <div className="flex flex-col min-h-screen bg-background p-6">
@@ -295,15 +328,18 @@ export default function AdminPage() {
 
       <div className="flex-grow pb-24">
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-card border border-white/5 rounded-2xl h-14 p-1 mb-8">
-            <TabsTrigger value="pending" className="rounded-xl font-black uppercase italic text-[9px] data-[state=active]:bg-primary">
-              <ListFilter className="w-4 h-4 mr-1.5" /> Alertes ({sortedPending.length})
+          <TabsList className="grid w-full grid-cols-4 bg-card border border-white/5 rounded-2xl h-14 p-1 mb-8">
+            <TabsTrigger value="pending" className="rounded-xl font-black uppercase italic text-[8px] data-[state=active]:bg-primary">
+              Alertes ({sortedPending.length})
             </TabsTrigger>
-            <TabsTrigger value="history" className="rounded-xl font-black uppercase italic text-[9px] data-[state=active]:bg-primary">
-              <History className="w-4 h-4 mr-1.5" /> Archives ({sortedHistory.length})
+            <TabsTrigger value="offers" className="rounded-xl font-black uppercase italic text-[8px] data-[state=active]:bg-primary">
+              Terrain ({sortedOffers.length})
             </TabsTrigger>
-            <TabsTrigger value="users" className="rounded-xl font-black uppercase italic text-[9px] data-[state=active]:bg-primary">
-              <Users className="w-4 h-4 mr-1.5" /> Joueurs ({sortedUsers.length})
+            <TabsTrigger value="users" className="rounded-xl font-black uppercase italic text-[8px] data-[state=active]:bg-primary">
+              Joueurs ({sortedUsers.length})
+            </TabsTrigger>
+            <TabsTrigger value="history" className="rounded-xl font-black uppercase italic text-[8px] data-[state=active]:bg-primary">
+              Archives
             </TabsTrigger>
           </TabsList>
 
@@ -313,16 +349,22 @@ export default function AdminPage() {
               <p className="text-center py-20 text-muted-foreground uppercase font-black italic text-xs">Terrain propre !</p>}
           </TabsContent>
 
-          <TabsContent value="history" className="mt-0">
-            {isHistoryLoading ? <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div> :
-              sortedHistory.length > 0 ? <div className="grid gap-6">{sortedHistory.map(r => <ReportCard key={r.id} report={r} isHistory />)}</div> :
-              <p className="text-center py-20 text-muted-foreground uppercase font-black italic text-xs">Aucun historique.</p>}
+          <TabsContent value="offers" className="mt-0">
+            {isAllOffersLoading ? <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div> :
+              sortedOffers.length > 0 ? <div>{sortedOffers.map(o => <OfferRow key={o.id} offer={o} />)}</div> :
+              <p className="text-center py-20 text-muted-foreground uppercase font-black italic text-xs">Aucune annonce.</p>}
           </TabsContent>
 
           <TabsContent value="users" className="mt-0">
             {isUsersLoading ? <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div> :
               sortedUsers.length > 0 ? <div>{sortedUsers.map(u => <UserRow key={u.id} profile={u} />)}</div> :
               <p className="text-center py-20 text-muted-foreground uppercase font-black italic text-xs">Aucun joueur.</p>}
+          </TabsContent>
+
+          <TabsContent value="history" className="mt-0">
+            {isHistoryLoading ? <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div> :
+              sortedHistory.length > 0 ? <div className="grid gap-6">{sortedHistory.map(r => <ReportCard key={r.id} report={r} isHistory />)}</div> :
+              <p className="text-center py-20 text-muted-foreground uppercase font-black italic text-xs">Aucun historique.</p>}
           </TabsContent>
         </Tabs>
       </div>

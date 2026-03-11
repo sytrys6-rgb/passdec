@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, User, Pencil, Smartphone as PhoneIcon } from 'lucide-react'
+import { Settings, LogOut, ShieldCheck, MapPin, Star, Loader2, Flag, ChevronRight, Shield, Cookie, FileText, Database, Smartphone, Trophy, UserX, User, PhoneIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase, useCollection, deleteDocumentNonBlocking } from '@/firebase'
@@ -39,7 +39,6 @@ const profileTypes = {
   professionnel: { label: 'Pro', complement: 'Professionnel / Entreprise', emoji: '🏢' },
 }
 
-const ADMIN_UID = "OvtBOwidg7dc4lHw5rR56yqLlIT2"
 const LOGO_URL = "https://res.cloudinary.com/dfincejqz/image/upload/v1772489336/logo_fec345.jpg"
 
 export default function ProfilePage() {
@@ -53,19 +52,15 @@ export default function ProfilePage() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [isInstalled, setIsInstalled] = useState(false)
 
-  // Gestion de l'installation PWA
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault()
       setDeferredPrompt(e)
     }
-
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true)
     }
-
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
   }, [])
 
@@ -106,17 +101,14 @@ export default function ProfilePage() {
   }, [myOffers])
 
   const handleLogout = () => {
-    // Supprimer le cookie pour le middleware
     document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
     signOut(auth)
   }
 
   const handleDeleteOffer = async (e: React.MouseEvent, offerId: string) => {
     if (!db) return
-
     const offerRef = doc(db, 'offres', offerId)
     deleteDocumentNonBlocking(offerRef)
-    
     toast({
       title: "Sortie définitive !",
       description: "L'annonce a été retirée du terrain."
@@ -125,17 +117,13 @@ export default function ProfilePage() {
 
   const handleDeleteAccount = () => {
     if (!db || !user) return
-
     myOffers?.forEach((offer) => {
       const oRef = doc(db, 'offres', offer.id)
       deleteDocumentNonBlocking(oRef)
     })
-
     if (userRef) {
       deleteDocumentNonBlocking(userRef)
     }
-
-    // Supprimer le cookie
     document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
     signOut(auth).then(() => {
       toast({
@@ -156,6 +144,7 @@ export default function ProfilePage() {
 
   const profileData = {
     nom: profile?.nom || user.email?.split('@')[0] || 'Nouvelle Recrue',
+    role: profile?.role || 'user',
     typeProfil: profile?.typeProfil || 'particulier',
     ville: profile?.ville || 'Inconnue',
     description: profile?.description || 'Cette recrue n\'a pas encore rempli son palmarès.',
@@ -172,8 +161,8 @@ export default function ProfilePage() {
 
   const lawsOfGame = [
     { name: "Nos Causes", icon: Trophy, path: "/legal/causes" },
-    { name: "Politique de confidentialité", icon: Shield, path: "/legal/confidentialite" },
-    { name: "Politique de cookies", icon: Cookie, path: "/legal/cookies" },
+    { name: "Confidentialité", icon: Shield, path: "/legal/confidentialite" },
+    { name: "Cookies", icon: Cookie, path: "/legal/cookies" },
     { name: "Mentions légales", icon: FileText, path: "/legal/mentions-legales" },
     { name: "Données personnelles", icon: Database, path: "/legal/donnees-personnelles" },
     { name: "Conformité Stores", icon: Smartphone, path: "/legal/stores" },
@@ -184,11 +173,10 @@ export default function ProfilePage() {
     <div className="flex flex-col min-h-screen bg-background">
       <div className="relative h-48 w-full bg-gradient-to-b from-primary/20 to-transparent border-b border-white/5">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
-        
         <div className="absolute top-6 left-6 opacity-80">
            <Image 
             src={LOGO_URL}
-            alt="100% Pass'Déc' Logo"
+            alt="Logo"
             width={100}
             height={40}
             unoptimized={true}
@@ -203,7 +191,7 @@ export default function ProfilePage() {
                 <Flag className="w-5 h-5 text-primary" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-card border-white/10 rounded-3xl max-w-[90vw] sm:max-w-md">
+            <DialogContent className="bg-card border-white/10 rounded-3xl">
               <DialogHeader>
                 <DialogTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-2">
                   <Flag className="w-5 h-5 text-primary" />
@@ -215,13 +203,13 @@ export default function ProfilePage() {
                   <Link
                     key={law.name}
                     href={law.path}
-                    className="flex items-center justify-between p-3 rounded-xl bg-background/50 border border-white/5 hover:border-primary/30 transition-all group"
+                    className="flex items-center justify-between p-3 rounded-xl bg-background/50 border border-white/5 hover:border-primary/30 group"
                   >
                     <div className="flex items-center gap-3">
                       <law.icon className="w-4 h-4 text-primary" />
-                      <span className="text-[11px] font-black uppercase tracking-widest text-left">{law.name}</span>
+                      <span className="text-[11px] font-black uppercase tracking-widest">{law.name}</span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                   </Link>
                 ))}
               </div>
@@ -230,7 +218,7 @@ export default function ProfilePage() {
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="glass-morphism rounded-full border-white/10 hover:bg-destructive/20 hover:text-destructive">
+              <Button variant="ghost" size="icon" className="glass-morphism rounded-full border-white/10">
                 <UserX className="w-5 h-5 text-destructive" />
               </Button>
             </AlertDialogTrigger>
@@ -238,12 +226,12 @@ export default function ProfilePage() {
               <AlertDialogHeader>
                 <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter text-destructive">Carton Rouge !</AlertDialogTitle>
                 <AlertDialogDescription className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                  Attention ! Votre profil et vos annonces seront supprimés définitivement.
+                  Votre profil et vos annonces seront supprimés définitivement.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-xs">Rester</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-white hover:bg-destructive/90 rounded-xl font-black uppercase tracking-tighter text-xs">Confirmer la sortie</AlertDialogAction>
+                <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-white rounded-xl font-black uppercase tracking-tighter text-xs">Confirmer</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -263,31 +251,16 @@ export default function ProfilePage() {
           ) : (
             <User className="w-12 h-12 text-muted-foreground" />
           )}
-          <div className="absolute bottom-0 right-0 p-1 bg-primary rounded-tl-xl border-t border-l border-background">
+          <div className="absolute bottom-0 right-0 p-1 bg-primary rounded-tl-xl">
             <ShieldCheck className="w-4 h-4 text-black" />
           </div>
         </div>
         
         <div className="mt-4 flex flex-col items-center gap-1">
           <h1 className="text-3xl font-black italic uppercase tracking-tighter">{profileData.nom}</h1>
-          
-          <div className="flex flex-col items-center gap-1 my-1">
-             <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest px-3 py-1 bg-primary/5">
-                {currentType.emoji} {currentType.label}
-             </Badge>
-             <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">
-                {currentType.complement}
-             </span>
-          </div>
-
-          <div className="flex flex-col items-center gap-2 mt-2">
-            {profileData.clubPrefere && profileData.typeProfil === 'particulier' && (
-              <div className="flex items-center gap-1.5 bg-primary/10 px-4 py-1.5 rounded-full border border-primary/20">
-                <span className="text-xs font-black uppercase tracking-tighter text-primary">Club de 💛 {profileData.clubPrefere}</span>
-              </div>
-            )}
-          </div>
-
+          <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase italic tracking-widest px-3 py-1 bg-primary/5">
+             {currentType.emoji} {currentType.label}
+          </Badge>
           <div className="flex items-center gap-1 text-muted-foreground mt-2">
             <MapPin className="w-3 h-3 text-primary" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">{profileData.ville}</span>
@@ -314,33 +287,30 @@ export default function ProfilePage() {
 
         <div className="w-full flex flex-col gap-3 mt-8 pb-10">
           {deferredPrompt && !isInstalled && (
-            <div className="w-full flex flex-col gap-2 bg-primary/10 p-4 rounded-2xl border border-primary/20 animate-in slide-in-from-bottom-4">
-              <p className="text-[10px] font-black uppercase italic text-primary">Disponible sur mobile</p>
-              <Button 
-                onClick={handleInstallClick}
-                className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase italic tracking-widest text-sm shadow-xl shadow-primary/20 animate-pulse"
-              >
-                <PhoneIcon className="w-4 h-4 mr-2" />
-                📲 Installer l'app
-              </Button>
-            </div>
+            <Button 
+              onClick={handleInstallClick}
+              className="w-full bg-primary text-black rounded-xl h-12 font-black uppercase italic tracking-widest text-sm shadow-xl animate-pulse"
+            >
+              <PhoneIcon className="w-4 h-4 mr-2" />
+              Installer l'app
+            </Button>
           )}
 
           <Button 
             onClick={() => setShowMyOffers(!showMyOffers)}
             className={`w-full rounded-xl py-6 font-black uppercase tracking-widest text-xs h-12 italic ${showMyOffers ? 'bg-secondary text-white' : 'bg-primary text-black'}`}
           >
-            {showMyOffers ? "Voir profil" : "Mes annonces"}
+            {showMyOffers ? "Voir mon profil" : "Mes annonces"}
           </Button>
 
           {showMyOffers && (
-            <div className="w-full mt-4 space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="w-full mt-4 space-y-4">
               {isMyOffersLoading ? (
                 <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
               ) : sortedMyOffers.length > 0 ? (
                 <div className="grid gap-4">
                   {sortedMyOffers.map((offer) => (
-                    <div key={offer.id} className="relative group/item">
+                    <div key={offer.id} className="relative">
                       <div className="flex gap-4 p-3 bg-card rounded-2xl border border-white/5 items-center shadow-lg pr-24">
                         <Link href={`/offres/details/?id=${offer.id}`} className="flex gap-4 items-center flex-grow overflow-hidden">
                           <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
@@ -351,24 +321,10 @@ export default function ProfilePage() {
                             <span className="text-[9px] font-black text-primary italic uppercase">{offer.typeOffre} • {offer.prix}€</span>
                           </div>
                         </Link>
-
-                        <div className="absolute right-3 flex gap-1.5 items-center">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-full bg-background/50">
-                                <Trophy className="w-5 h-5 rotate-180" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="bg-card border-white/10 rounded-3xl">
-                              <AlertDialogHeader>
-                                <AlertDialogTitle className="text-xl font-black italic uppercase tracking-tighter">Sortie définitive ?</AlertDialogTitle>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel className="rounded-xl font-black uppercase tracking-tighter text-xs">Annuler</AlertDialogCancel>
-                                <AlertDialogAction onClick={(e) => handleDeleteOffer(e as any, offer.id)} className="bg-destructive text-white rounded-xl font-black uppercase tracking-tighter text-xs">Confirmer</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                        <div className="absolute right-3">
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={(e) => handleDeleteOffer(e as any, offer.id)}>
+                            <Trash2 className="w-5 h-5" />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -382,14 +338,14 @@ export default function ProfilePage() {
 
           {!showMyOffers && (
             <div className="flex flex-col gap-2">
-              <Button variant="ghost" onClick={handleLogout} className="w-full text-accent hover:bg-accent/10 rounded-xl h-12 font-black uppercase tracking-widest text-xs">
+              <Button variant="ghost" onClick={handleLogout} className="w-full text-accent rounded-xl h-12 font-black uppercase tracking-widest text-xs">
                 <LogOut className="w-4 h-4 mr-2" />
                 Déconnexion
               </Button>
               
-              {user?.uid === ADMIN_UID && (
+              {profileData.role === 'admin' && (
                 <Link href="/admin" className="w-full mt-4">
-                  <Button variant="ghost" className="w-full text-muted-foreground hover:text-primary rounded-xl h-10 font-black uppercase tracking-widest text-[9px] opacity-50">
+                  <Button variant="ghost" className="w-full text-muted-foreground rounded-xl h-10 font-black uppercase tracking-widest text-[9px] opacity-50">
                     <Shield className="w-3.5 h-3.5 mr-2" />
                     Panel Arbitre
                   </Button>

@@ -15,6 +15,11 @@
           "type": "string",
           "description": "The name of the user or club."
         },
+        "role": {
+          "type": "string",
+          "description": "The user's role (e.g., 'user', 'admin').",
+          "enum": ["user", "admin"]
+        },
         "typeProfil": {
           "type": "string",
           "description": "The type of user profile (e.g., 'particulier', 'club_foot', 'club_supporter')."
