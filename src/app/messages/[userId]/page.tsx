@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
-// Configuration dynamique pour Vercel
+// Configuration dynamique pour Vercel pour éviter les erreurs de static params
 export const dynamic = 'force-dynamic';
 
 /**
