@@ -29,7 +29,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [mounted, setMounted] = useState(false)
 
-  // Initialisation client-side uniquement pour éviter les erreurs d'hydratation
+  // Initialisation client-side uniquement
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
@@ -44,12 +44,12 @@ export default function HomePage() {
         setActiveFilter(savedFilter === 'null' ? null : savedFilter)
         setSearchQuery(savedSearch)
       } catch (e) {
-        console.warn("Storage access denied")
+        // Silently fail on storage restriction
       }
     }
   }, [])
 
-  // Sauvegarde des préférences de recherche
+  // Sauvegarde des préférences
   useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
       try {
@@ -58,7 +58,7 @@ export default function HomePage() {
         sessionStorage.setItem('last_filter', activeFilter || 'null')
         sessionStorage.setItem('last_search', searchQuery)
       } catch (e) {
-        // Silently fail on storage restriction
+        // Silently fail
       }
     }
   }, [activeLocation, activeRadius, activeFilter, searchQuery, mounted])
@@ -72,16 +72,15 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // RÉCUPÉRATION DES OFFRES RÉELLES (Indépendante de l'authentification)
+  // RÉCUPÉRATION DES OFFRES RÉELLES (Visible par tous)
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
-    // Pas de filtre userId ici pour permettre la lecture publique
     return collection(db, 'offres')
   }, [db])
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  // Notifications de messagerie (Nécessite connexion)
+  // Notifications de messagerie
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, 'conversations'), where('participants', 'array-contains', user.uid))
@@ -100,7 +99,7 @@ export default function HomePage() {
     return count
   }, [conversations, user])
 
-  // FUSION DES OFFRES (Réelles prioritaires + Démo)
+  // FUSION DES OFFRES
   const combinedOffers = useMemo(() => {
     const fsOffers = firestoreOffers ? firestoreOffers.map(o => ({
       ...o,
@@ -115,7 +114,7 @@ export default function HomePage() {
       isReal: false
     }));
 
-    // Fusion et tri : Réel d'abord, puis par date
+    // On priorise les vraies annonces
     return [...fsOffers, ...demoOffers].sort((a, b) => {
       if (a.isReal && !b.isReal) return -1;
       if (!a.isReal && b.isReal) return 1;
@@ -127,10 +126,8 @@ export default function HomePage() {
 
   const totalActiveOffersCount = combinedOffers.filter(o => o.isReal).length
 
-  // Image héro par défaut
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
-  // FILTRAGE DU TERRAIN
   const filteredOffers = useMemo(() => {
     return combinedOffers.filter(offer => {
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
@@ -181,8 +178,6 @@ export default function HomePage() {
     }
   }
 
-  // Empêcher l'affichage avant le montage pour éviter les erreurs d'hydratation
-  // On garde EXACTEMENT les mêmes classes CSS sur le div racine pour l'hydratation
   if (!mounted) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
@@ -204,14 +199,13 @@ export default function HomePage() {
             className="object-cover"
             priority
             unoptimized
-            data-ai-hint="football action"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
           {!user && !isUserLoading && (
             <div className="absolute top-4 right-4 animate-in fade-in zoom-in duration-700">
                <Link href="/login">
                 <Badge className="bg-primary text-black font-black uppercase italic tracking-tighter px-4 py-2 shadow-2xl hover:scale-105 transition-transform">
-                  S'inscrire / Connexion
+                  Connexion
                 </Badge>
                </Link>
             </div>
@@ -224,19 +218,19 @@ export default function HomePage() {
               <Link href="/messages">
                 <Badge className="bg-orange-500 text-white border-none font-black uppercase italic tracking-tighter px-4 py-1.5 shadow-lg shadow-orange-500/20 flex items-center gap-2 animate-in slide-in-from-top duration-500">
                   <MessageSquare className="w-3 h-3 fill-white" />
-                  <span>{totalUnread} {totalUnread > 1 ? 'passes' : 'passe'} non lue(s)</span>
+                  <span>{totalUnread} passe(s) non lue(s)</span>
                 </Badge>
               </Link>
             )}
             
-            <Badge variant="outline" className="border-primary/50 text-primary font-black uppercase italic tracking-tighter px-4 py-1.5 bg-primary/5 flex items-center gap-2 shadow-lg shadow-primary/5">
+            <Badge variant="outline" className="border-primary/50 text-primary font-black uppercase italic tracking-tighter px-4 py-1.5 bg-primary/5 flex items-center gap-2">
               <Activity className="w-3 h-3 animate-pulse text-primary" />
-              <span>Mercato : {totalActiveOffersCount} {totalActiveOffersCount > 1 ? 'offres réelles' : 'offre réelle'}</span>
+              <span>Mercato : {totalActiveOffersCount} offres réelles</span>
             </Badge>
 
             {!user && !isUserLoading && (
               <Badge variant="outline" className="border-white/20 text-muted-foreground font-black uppercase italic tracking-tighter px-4 py-1.5 bg-white/5">
-                Mode Public : Lèche-vitrine ⚽
+                Mode Public ⚽
               </Badge>
             )}
           </div>
@@ -244,7 +238,6 @@ export default function HomePage() {
           <h1 className="text-4xl font-black italic uppercase tracking-tighter">
             <span className="text-primary">100%</span> <span className="text-secondary">Pass&apos; Déc&apos;</span>
           </h1>
-          
           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground mt-2">
             Le réseau qui fait marquer
           </p>
@@ -256,12 +249,11 @@ export default function HomePage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher une annonce ou une ville..." 
-            className="pl-10 h-12 bg-card border-none ring-1 ring-white/10 focus-visible:ring-primary/50 rounded-xl shadow-inner"
+            className="pl-10 h-12 bg-card border-none ring-1 ring-white/10 focus-visible:ring-primary/50 rounded-xl"
           />
         </div>
       </header>
 
-      {/* FILTRES TACTIQUES */}
       <section className="px-6 py-2">
         <div className="grid grid-cols-4 gap-3">
           {[
@@ -276,7 +268,7 @@ export default function HomePage() {
               className={cn(
                 "flex flex-col items-center justify-center py-3 rounded-xl transition-all duration-200 border",
                 activeFilter === filter.id 
-                  ? 'bg-card border-primary/50 scale-105 shadow-lg shadow-primary/5' 
+                  ? 'bg-card border-primary/50 scale-105 shadow-lg' 
                   : 'bg-card/40 border-white/5 hover:border-white/10'
               )}
             >
@@ -294,17 +286,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SÉLECTION DU STADE (Localisation) */}
       <div className="px-6 py-4 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-muted-foreground">
           <MapPin className={cn("w-3.5 h-3.5 flex-shrink-0 transition-colors", activeLocation !== 'all' ? "text-primary" : "text-muted-foreground")} />
-          <span className="text-[10px] font-black uppercase tracking-widest">Rayon autour de :</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Rayon :</span>
         </div>
-        
         <div className="grid grid-cols-[2fr_1.2fr] gap-2">
           <Select value={activeLocation} onValueChange={(val) => setActiveLocation(val)}>
-            <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold focus:ring-primary/50 text-xs">
-              <SelectValue placeholder="Toute la France" />
+            <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold text-xs">
+              <SelectValue placeholder="Ville" />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
               <SelectItem value="all">Toute la France</SelectItem>
@@ -313,10 +303,9 @@ export default function HomePage() {
               ))}
             </SelectContent>
           </Select>
-
           <Select value={activeRadius.toString()} onValueChange={(val) => setActiveRadius(parseInt(val))}>
-            <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold focus:ring-primary/50 text-xs">
-              <SelectValue placeholder="Rayon" />
+            <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-11 font-bold text-xs">
+              <SelectValue placeholder="km" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="0">0 km</SelectItem>
@@ -330,11 +319,10 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* AFFICHAGE DES ANNONCES */}
       <section className="px-6 py-4 flex flex-col gap-6 pb-24">
         <div className="flex justify-between items-end">
           <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">
-            {activeFilter ? `Passes : ${activeFilter}` : 'Dernières passes'}
+            Dernières passes
           </h2>
           {isOffersLoading && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
         </div>
@@ -355,10 +343,9 @@ export default function HomePage() {
                       "text-[10px] uppercase font-black tracking-wider px-2 py-0.5",
                       offer.isReal ? "bg-primary text-black" : "bg-muted text-muted-foreground"
                     )}>
-                      {offer.typeOffre} {offer.isDemo && "(Exemple)"}
+                      {offer.typeOffre} {offer.isDemo && "(Démo)"}
                     </Badge>
                   </div>
-                  
                   <button 
                     onClick={(e) => toggleFavorite(e, offer.id)}
                     className={cn(
@@ -368,18 +355,15 @@ export default function HomePage() {
                   >
                     <Trophy className={cn("w-5 h-5", favorites.includes(offer.id) && "fill-primary")} />
                   </button>
-
                   {(offer.prix || 0) > 0 && (
                     <div className="absolute bottom-3 right-3 glass-morphism px-3 py-1 rounded-full font-black text-primary italic border-primary/20">
                       {offer.prix}€
                     </div>
                   )}
                 </div>
-                
-                <div className="p-4 flex flex-col gap-2 text-left">
+                <div className="p-4 flex flex-col gap-2">
                   <h3 className="font-bold text-lg group-hover:text-primary transition-colors italic uppercase tracking-tighter">{offer.titre}</h3>
                   <p className="text-muted-foreground text-sm line-clamp-2">{offer.description}</p>
-                  
                   <div className="pt-2 flex items-center justify-between border-t border-white/5 mt-2">
                     <span className="text-xs font-bold uppercase tracking-tighter">{offer.userNom}</span>
                     <div className="flex items-center gap-1 text-muted-foreground">
@@ -395,7 +379,7 @@ export default function HomePage() {
               <p className="text-sm font-bold uppercase italic tracking-widest">Le terrain est vide...</p>
               <Link href="/offres/new">
                 <Button className="rounded-xl font-black uppercase italic text-xs h-10 gap-2">
-                  <Plus className="w-4 h-4" /> Publier la 1ère annonce
+                  <Plus className="w-4 h-4" /> Publier une annonce
                 </Button>
               </Link>
             </div>
