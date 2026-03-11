@@ -17,8 +17,10 @@ import { getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
 import { useToast } from '@/hooks/use-toast'
 
 /**
- * @fileOverview Page d'accueil - La vitrine publique avec filtres de zone et de budget circulaire.
+ * @fileOverview Page d'accueil - La vitrine publique avec filtres de zone et de budget circulaire segmenté.
  */
+
+const BUDGET_STEPS = [0, 15, 30, 50, 100, 250, 500, 1500]; // 1500 represents "illimité"
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser()
@@ -110,7 +112,9 @@ export default function HomePage() {
   const filteredOffers = useMemo(() => {
     return combinedOffers.filter(offer => {
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
-      const matchesPrice = (offer.prix || 0) <= maxPrice
+      
+      // Illimité check (BUDGET_STEPS last value)
+      const matchesPrice = maxPrice >= 1500 ? true : (offer.prix || 0) <= maxPrice
 
       let matchesLocation = true;
       const targetCityName = activeLocation !== 'all' ? activeLocation : null
@@ -149,11 +153,16 @@ export default function HomePage() {
     let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
     if (angle < 0) angle += 360;
     
-    const newValue = Math.round((angle / 360) * 1500 / 10) * 10;
-    setMaxPrice(Math.min(1500, Math.max(0, newValue)));
+    // Calculate index based on 360 degrees mapping to steps length
+    const stepCount = BUDGET_STEPS.length;
+    const index = Math.min(stepCount - 1, Math.max(0, Math.round((angle / 360) * (stepCount - 1))));
+    
+    setMaxPrice(BUDGET_STEPS[index]);
   };
 
-  const dialProgress = (maxPrice / 1500) * 100;
+  // Dial progress logic based on index of step
+  const currentStepIndex = BUDGET_STEPS.indexOf(maxPrice);
+  const dialProgress = (currentStepIndex / (BUDGET_STEPS.length - 1)) * 100;
   const dialRadius = 28;
   const circumference = 2 * Math.PI * dialRadius;
   const dashOffset = circumference - (dialProgress / 100) * circumference;
@@ -329,9 +338,11 @@ export default function HomePage() {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-[10px] font-black italic text-primary leading-none">
-                      {maxPrice === 1500 ? "MAX" : maxPrice}
+                      {maxPrice >= 1500 ? "∞" : maxPrice === 0 ? "0" : maxPrice}
                     </span>
-                    <span className="text-[6px] font-black uppercase text-muted-foreground mt-0.5">€</span>
+                    <span className="text-[6px] font-black uppercase text-muted-foreground mt-0.5">
+                      {maxPrice >= 1500 ? "MAX" : "€"}
+                    </span>
                   </div>
                   <div 
                     className="absolute w-2 h-2 bg-primary rounded-full shadow-lg transition-all duration-300 z-10"
