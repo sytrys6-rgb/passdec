@@ -30,6 +30,7 @@ export default function HomePage() {
   const [activeRadius, setActiveRadius] = useState<number>(100)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Stabilisation de l'hydratation
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
@@ -45,6 +46,7 @@ export default function HomePage() {
     }
   }, [])
 
+  // Sauvegarde des préférences
   useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
       sessionStorage.setItem('last_city', activeLocation)
@@ -80,14 +82,8 @@ export default function HomePage() {
   }, [conversations, user])
 
   const combinedOffers = useMemo(() => {
-    const fsOffers = firestoreOffers ? firestoreOffers.map(o => ({
-      ...o,
-      image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
-      date: 'En direct',
-      isReal: true
-    })) : [];
-
-    return fsOffers.sort((a, b) => {
+    if (!firestoreOffers) return [];
+    return [...firestoreOffers].sort((a, b) => {
       const timeA = a.createdAt?.seconds || 0;
       const timeB = b.createdAt?.seconds || 0;
       return timeB - timeA;
@@ -121,6 +117,7 @@ export default function HomePage() {
     })
   }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery])
 
+  // Rendu de sécurité pour l'hydratation
   if (!mounted) {
     return (
       <div className="flex flex-col min-h-screen bg-background items-center justify-center">
@@ -284,12 +281,15 @@ export default function HomePage() {
                   className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5 group hover:border-primary/20 transition-all active:scale-[0.98]"
                 >
                   <div className="relative aspect-[16/9] w-full">
-                    <Image src={offer.image} alt={offer.titre} fill className="object-cover" unoptimized />
+                    {offer.photos?.[0] ? (
+                       <Image src={offer.photos[0]} alt={offer.titre} fill className="object-cover" unoptimized />
+                    ) : (
+                       <div className="w-full h-full bg-muted flex items-center justify-center">
+                          <Activity className="w-10 h-10 text-muted-foreground/20" />
+                       </div>
+                    )}
                     <div className="absolute top-3 left-3">
-                      <Badge className={cn(
-                        "font-black uppercase italic border-none px-3 py-1 text-[9px] shadow-lg",
-                        offer.isReal ? "bg-primary text-black" : "bg-muted text-muted-foreground"
-                      )}>
+                      <Badge className="font-black uppercase italic border-none px-3 py-1 text-[9px] shadow-lg bg-primary text-black">
                         {offer.typeOffre}
                       </Badge>
                     </div>
@@ -306,7 +306,7 @@ export default function HomePage() {
                         <MapPin className="w-3.5 h-3.5 text-primary" />
                         <span className="text-[10px] font-black uppercase tracking-widest">{offer.ville}</span>
                       </div>
-                      <span className="text-[9px] font-bold text-muted-foreground italic opacity-70">{offer.date}</span>
+                      <span className="text-[9px] font-bold text-muted-foreground italic opacity-70">En direct</span>
                     </div>
                   </div>
                 </Link>

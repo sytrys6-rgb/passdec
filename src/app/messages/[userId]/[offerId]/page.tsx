@@ -2,8 +2,8 @@
 import { redirect } from 'next/navigation';
 
 /**
- * @fileOverview Redirection de messagerie sécurisée (Server-side).
- * Correction de l'erreur Internal Server Error en utilisant un Server Component.
+ * @fileOverview Redirection de messagerie sécurisée (Server Component).
+ * Assure la compatibilité avec le Middleware et l'export dynamique.
  */
 
 interface PageProps {

@@ -2,8 +2,8 @@
 import { redirect } from 'next/navigation';
 
 /**
- * @fileOverview Redirection des messages vers la liste principale (Server-side).
- * Correction de l'erreur Internal Server Error.
+ * @fileOverview Redirection des messages vers la liste principale (Server Component).
+ * Utilise redirect() pour une navigation fluide et robuste côté serveur.
  */
 
 export default async function RedirectUserMessagesPage() {

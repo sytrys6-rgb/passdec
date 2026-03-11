@@ -2,8 +2,8 @@
 import { redirect } from 'next/navigation';
 
 /**
- * @fileOverview Redirection des anciennes routes d'offres (Server-side).
- * Correction de l'erreur Internal Server Error.
+ * @fileOverview Redirection des anciennes routes d'offres vers la nouvelle structure de détails.
+ * Server Component pour une meilleure résilience au build.
  */
 
 interface PageProps {
