@@ -94,39 +94,45 @@ export default function HomePage() {
       .map(o => ({
         ...o,
         image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
-        date: 'En ligne'
+        date: 'En ligne',
+        isReal: true
       })) : [];
 
     const demoOffers = mockOffers.map(o => ({
       ...o,
-      isDemo: true
+      isDemo: true,
+      isReal: false
     }));
 
-    // On fusionne et on trie par date de création
+    // Fusion des annonces : Firestore d'abord, Mock ensuite si pas assez de données
+    // Tri par date (les annonces Firestore ont généralement des timestamps)
     return [...fsOffers, ...demoOffers].sort((a, b) => {
+      if (a.isReal && !b.isReal) return -1;
+      if (!a.isReal && b.isReal) return 1;
       const timeA = a.createdAt?.seconds || 0;
       const timeB = b.createdAt?.seconds || 0;
       return timeB - timeA;
     });
   }, [firestoreOffers])
 
-  const totalActiveOffers = combinedOffers.length
+  const totalActiveOffers = combinedOffers.filter(o => o.isReal).length || combinedOffers.length
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
   const filteredOffers = useMemo(() => {
     return combinedOffers.filter(offer => {
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
+      
+      let matchesLocation = true;
       const searchCityMatch = MAIN_CITIES.find(c => c.toLowerCase() === searchQuery.trim().toLowerCase())
       const targetCityName = activeLocation !== 'all' ? activeLocation : searchCityMatch
       
-      let matchesLocation = true;
       if (targetCityName) {
         const distance = getDistanceBetweenCities(targetCityName, offer.ville);
         if (distance !== null) {
           matchesLocation = distance <= activeRadius;
         } else {
-          matchesLocation = offer.ville.toLowerCase() === targetCityName.toLowerCase()
+          matchesLocation = offer.ville.toLowerCase().includes(targetCityName.toLowerCase())
         }
       }
 
@@ -181,6 +187,15 @@ export default function HomePage() {
             data-ai-hint="football action"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
+          {!user && (
+            <div className="absolute top-4 right-4 animate-in fade-in zoom-in duration-700">
+               <Link href="/login">
+                <Badge className="bg-primary text-black font-black uppercase italic tracking-tighter px-4 py-2 shadow-2xl hover:scale-105 transition-transform">
+                  S'inscrire / Connexion
+                </Badge>
+               </Link>
+            </div>
+          )}
         </div>
 
         <div className="text-center flex flex-col items-center">
@@ -198,6 +213,12 @@ export default function HomePage() {
               <Activity className="w-3 h-3 animate-pulse text-primary" />
               <span>Mercato : {totalActiveOffers} {totalActiveOffers > 1 ? 'offres' : 'offre'}</span>
             </Badge>
+
+            {!user && (
+              <Badge variant="outline" className="border-white/20 text-muted-foreground font-black uppercase italic tracking-tighter px-4 py-1.5 bg-white/5">
+                Mode Public : Lèche-vitrine ⚽
+              </Badge>
+            )}
           </div>
           
           <h1 className="text-4xl font-black italic uppercase tracking-tighter">
@@ -307,8 +328,11 @@ export default function HomePage() {
                 <div className="relative aspect-[16/9] w-full">
                   <Image src={offer.image} alt={offer.titre} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
                   <div className="absolute top-3 left-3 flex gap-2">
-                    <Badge className="bg-primary text-black text-[10px] uppercase font-black tracking-wider px-2 py-0.5">
-                      {offer.typeOffre}
+                    <Badge className={cn(
+                      "text-[10px] uppercase font-black tracking-wider px-2 py-0.5",
+                      offer.isReal ? "bg-primary text-black" : "bg-muted text-muted-foreground"
+                    )}>
+                      {offer.typeOffre} {offer.isDemo && "(Exemple)"}
                     </Badge>
                   </div>
                   
@@ -337,7 +361,7 @@ export default function HomePage() {
                     <span className="text-xs font-bold uppercase tracking-tighter">{offer.userNom}</span>
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <MapPin className="w-3 h-3 text-primary" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">{offer.ville}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">{offer.ville}</span>
                     </div>
                   </div>
                 </div>
