@@ -5,11 +5,12 @@ import { useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
-// Configuration dynamique pour Vercel pour éviter les erreurs de static params
+// Configuration dynamique pour Vercel
 export const dynamic = 'force-dynamic';
 
 /**
  * @fileOverview Redirection des anciennes routes vers le nouveau système de détails.
+ * Correction : Suppression des balises html/body interdites.
  */
 
 export default function RedirectOfferPage() {
@@ -31,4 +32,8 @@ export default function RedirectOfferPage() {
       <p className="text-[10px] font-black uppercase italic tracking-widest text-muted-foreground">Redirection tactique...</p>
     </div>
   )
+}
+
+export function generateStaticParams() {
+  return []
 }

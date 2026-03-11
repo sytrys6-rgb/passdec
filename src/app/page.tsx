@@ -188,6 +188,7 @@ export default function HomePage() {
           </div>
         </header>
 
+        {/* SECTION TACTIQUE DE ZONE - ALIGNEMENT CÔTE À CÔTE */}
         <section className="px-6 py-2 flex flex-col gap-3">
           <div className="flex items-center gap-2 mb-1">
             <Compass className="w-4 h-4 text-primary" />
@@ -195,15 +196,15 @@ export default function HomePage() {
           </div>
           
           <div className="flex flex-row gap-3 items-center w-full">
-            <div className="flex-1 min-w-0">
+            <div className="flex-[2] min-w-0">
               <Select value={activeLocation} onValueChange={setActiveLocation}>
                 <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold italic text-[10px] w-full">
                   <div className="flex items-center gap-2 overflow-hidden">
                     <MapPin className="w-3 h-3 text-primary shrink-0" />
-                    <SelectValue placeholder="Ville" />
+                    <SelectValue placeholder="Choisir une ville" />
                   </div>
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
+                <SelectContent className="max-h-[300px] z-50">
                   <SelectItem value="all">🇫🇷 Toute la France</SelectItem>
                   {MAIN_CITIES.map((city) => (
                     <SelectItem key={city} value={city}>{city}</SelectItem>
@@ -227,7 +228,7 @@ export default function HomePage() {
                     <SelectValue placeholder="Rayon" />
                   </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50">
                   <SelectItem value="25">25 km</SelectItem>
                   <SelectItem value="50">50 km</SelectItem>
                   <SelectItem value="100">100 km</SelectItem>
