@@ -84,7 +84,6 @@ export default function HomePage() {
   }, [conversations, user])
 
   const combinedOffers = useMemo(() => {
-    // On commence par les offres réelles du Firestore
     const fsOffers = firestoreOffers ? [...firestoreOffers]
       .filter(o => o.isActive !== false)
       .map(o => ({
@@ -93,7 +92,6 @@ export default function HomePage() {
         date: 'En ligne'
       })) : [];
 
-    // On ajoute les offres de démo pour repeupler le terrain
     const demoOffers = mockOffers.map(o => ({
       ...o,
       isDemo: true
@@ -155,6 +153,14 @@ export default function HomePage() {
       e.preventDefault()
       router.push('/login')
     }
+  }
+
+  if (!user && isUserLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
