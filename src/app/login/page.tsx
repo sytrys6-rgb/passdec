@@ -274,6 +274,18 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {mode === 'login' && (
+                <div className="flex justify-end">
+                  <button 
+                    type="button"
+                    onClick={() => setMode('forgot')}
+                    className="text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Mot de passe oublié ?
+                  </button>
+                </div>
+              )}
+
               <Button 
                 type="submit" 
                 disabled={isLoading}
