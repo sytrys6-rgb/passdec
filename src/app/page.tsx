@@ -23,13 +23,12 @@ export default function HomePage() {
   const db = useFirestore()
   const router = useRouter()
   
+  const [mounted, setMounted] = useState(false)
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<string>('all')
   const [activeRadius, setActiveRadius] = useState<number>(150)
   const [searchQuery, setSearchQuery] = useState('')
-  const [mounted, setMounted] = useState(false)
 
-  // Initialisation client-side uniquement
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
@@ -44,12 +43,11 @@ export default function HomePage() {
         setActiveFilter(savedFilter === 'null' ? null : savedFilter)
         setSearchQuery(savedSearch)
       } catch (e) {
-        // Silently fail on storage restriction
+        // Silencieusement ignoré
       }
     }
   }, [])
 
-  // Sauvegarde des préférences
   useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
       try {
@@ -58,12 +56,11 @@ export default function HomePage() {
         sessionStorage.setItem('last_filter', activeFilter || 'null')
         sessionStorage.setItem('last_search', searchQuery)
       } catch (e) {
-        // Silently fail
+        // Silencieusement ignoré
       }
     }
   }, [activeLocation, activeRadius, activeFilter, searchQuery, mounted])
 
-  // Données utilisateur
   const userRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, 'users', user.uid)
@@ -72,7 +69,7 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // RÉCUPÉRATION DES OFFRES RÉELLES (Visible par tous)
+  // Requête publique pour les offres : Pas de dépendance directe à 'user' pour la visibilité publique
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
     return collection(db, 'offres')
@@ -80,7 +77,6 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  // Notifications de messagerie
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, 'conversations'), where('participants', 'array-contains', user.uid))
@@ -99,7 +95,6 @@ export default function HomePage() {
     return count
   }, [conversations, user])
 
-  // FUSION DES OFFRES
   const combinedOffers = useMemo(() => {
     const fsOffers = firestoreOffers ? firestoreOffers.map(o => ({
       ...o,
@@ -114,7 +109,7 @@ export default function HomePage() {
       isReal: false
     }));
 
-    // On priorise les vraies annonces
+    // On fusionne et trie : Priorité aux offres réelles
     return [...fsOffers, ...demoOffers].sort((a, b) => {
       if (a.isReal && !b.isReal) return -1;
       if (!a.isReal && b.isReal) return 1;
@@ -124,7 +119,7 @@ export default function HomePage() {
     });
   }, [firestoreOffers])
 
-  const totalActiveOffersCount = combinedOffers.filter(o => o.isReal).length
+  const totalActiveOffersCount = useMemo(() => combinedOffers.filter(o => o.isReal).length, [combinedOffers])
 
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
@@ -178,13 +173,11 @@ export default function HomePage() {
     }
   }
 
+  // Pour éviter l'erreur d'hydratation, le rendu initial (SSR) doit être stable
+  // On utilise la même classe racine flex-col pour tout le monde
   if (!mounted) {
     return (
-      <div className="flex flex-col min-h-screen bg-background">
-        <div className="flex-grow flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </div>
+      <div className="flex flex-col min-h-screen bg-background" />
     )
   }
 
@@ -204,7 +197,7 @@ export default function HomePage() {
           {!user && !isUserLoading && (
             <div className="absolute top-4 right-4 animate-in fade-in zoom-in duration-700">
                <Link href="/login">
-                <Badge className="bg-primary text-black font-black uppercase italic tracking-tighter px-4 py-2 shadow-2xl hover:scale-105 transition-transform">
+                <Badge className="bg-primary text-black font-black uppercase italic tracking-tighter px-4 py-2 shadow-2xl hover:scale-105 transition-transform cursor-pointer">
                   Connexion
                 </Badge>
                </Link>
@@ -343,7 +336,7 @@ export default function HomePage() {
                       "text-[10px] uppercase font-black tracking-wider px-2 py-0.5",
                       offer.isReal ? "bg-primary text-black" : "bg-muted text-muted-foreground"
                     )}>
-                      {offer.typeOffre} {offer.isDemo && "(Démo)"}
+                      {offer.typeOffre}
                     </Badge>
                   </div>
                   <button 
