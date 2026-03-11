@@ -20,6 +20,9 @@ import { useState, Suspense, useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 
+// Export dynamique pour Vercel pour éviter les erreurs de static params
+export const dynamic = 'force-dynamic';
+
 const ADMIN_UID = "OvtBOwidg7dc4lHw5rR56yqLlIT2"
 
 const profileTypes = {
@@ -36,6 +39,13 @@ function OfferDetailContent() {
   const db = useFirestore()
   const { user, isUserLoading } = useUser()
   const { toast } = useToast()
+
+  // Redirection forcée si non connecté (sécurité supplémentaire côté client)
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isUserLoading, router])
 
   const offerRef = useMemoFirebase(() => {
     if (!db || !id) return null
@@ -88,7 +98,7 @@ function OfferDetailContent() {
     updateDocumentNonBlocking(userRef, { favoris: newFavorites })
   }
 
-  if (isFirestoreLoading || isUserLoading) {
+  if (isFirestoreLoading || isUserLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -114,12 +124,12 @@ function OfferDetailContent() {
       <div className="relative aspect-square w-full">
         <Image src={offer.image} alt={offer.titre} fill className="object-cover" priority unoptimized />
         <div className="absolute top-6 left-6 flex gap-2">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="glass-morphism rounded-full h-10 w-10 border-white/10">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="glass-morphism rounded-full h-10 w-10 border-white/10 shadow-lg">
             <ArrowLeft className="w-5 h-5" />
           </Button>
         </div>
         <div className="absolute top-6 right-6 flex gap-2">
-          <Button variant="ghost" size="icon" onClick={toggleFavorite} className={cn("glass-morphism rounded-full h-10 w-10 border-white/10", isFavorite ? "text-primary bg-primary/20 border-primary/30" : "text-white")}>
+          <Button variant="ghost" size="icon" onClick={toggleFavorite} className={cn("glass-morphism rounded-full h-10 w-10 border-white/10 shadow-lg", isFavorite ? "text-primary bg-primary/20 border-primary/30" : "text-white")}>
             <Trophy className={cn("w-5 h-5", isFavorite && "fill-primary")} />
           </Button>
         </div>
@@ -163,7 +173,7 @@ function OfferDetailContent() {
 
       {!isOwnOffer && (
         <div className="fixed bottom-24 left-6 right-6 z-40 flex flex-col gap-3 animate-in slide-in-from-bottom-8">
-          <Button onClick={handleContactPassDec} className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg bg-primary text-black">
+          <Button onClick={handleContactPassDec} className="w-full h-14 rounded-2xl font-black italic uppercase tracking-wider text-lg bg-primary text-black shadow-2xl">
             <MessageSquare className="w-5 h-5 mr-3" />
             Messagerie Pass' Déc'
           </Button>

@@ -1,8 +1,12 @@
+
 "use client"
 
 import { useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+
+// Configuration dynamique pour Vercel
+export const dynamic = 'force-dynamic';
 
 /**
  * @fileOverview Redirection des anciennes routes vers le nouveau système de détails.
