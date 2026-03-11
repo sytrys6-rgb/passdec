@@ -9,7 +9,7 @@ service cloud.firestore {
     }
     
     // Annonces : Lecture et Listing publics autorisés pour le "lèche-vitrine"
-    // Cette règle permet à n'importe qui (même non connecté) de voir la liste des annonces.
+    // Cette règle est CRITIQUE pour permettre aux visiteurs non connectés de voir les vraies annonces.
     match /offres/{offreId} {
       allow read, list: if true;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;

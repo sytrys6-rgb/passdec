@@ -29,6 +29,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [mounted, setMounted] = useState(false)
 
+  // Initialisation client-side uniquement pour éviter les erreurs d'hydratation
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
@@ -44,6 +45,7 @@ export default function HomePage() {
     }
   }, [])
 
+  // Sauvegarde des préférences de recherche
   useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
       sessionStorage.setItem('last_city', activeLocation)
@@ -53,6 +55,7 @@ export default function HomePage() {
     }
   }, [activeLocation, activeRadius, activeFilter, searchQuery, mounted])
 
+  // Données utilisateur
   const userRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, 'users', user.uid)
@@ -61,7 +64,7 @@ export default function HomePage() {
   const { data: profile } = useDoc(userRef)
   const favorites = profile?.favoris || []
 
-  // La requête des offres est maintenant indépendante de l'état utilisateur
+  // RÉCUPÉRATION DES OFFRES RÉELLES (Indépendante de l'authentification)
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
     return collection(db, 'offres')
@@ -69,6 +72,7 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
+  // Notifications de messagerie (Nécessite connexion)
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, 'conversations'), where('participants', 'array-contains', user.uid))
@@ -87,16 +91,15 @@ export default function HomePage() {
     return count
   }, [conversations, user])
 
+  // FUSION DES OFFRES (Réelles prioritaires + Démo)
   const combinedOffers = useMemo(() => {
-    // On récupère les annonces réelles
-    const fsOffers = firestoreOffers ? [...firestoreOffers]
-      .filter(o => o.isActive !== false) // On garde même si isActive n'est pas défini
-      .map(o => ({
-        ...o,
-        image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
-        date: 'En ligne',
-        isReal: true
-      })) : [];
+    // On transforme les annonces Firestore en format compatible
+    const fsOffers = firestoreOffers ? firestoreOffers.map(o => ({
+      ...o,
+      image: o.photos?.[0] || 'https://picsum.photos/seed/foot/600/400',
+      date: 'En ligne',
+      isReal: true
+    })) : [];
 
     // On prépare les annonces de démonstration
     const demoOffers = mockOffers.map(o => ({
@@ -105,10 +108,12 @@ export default function HomePage() {
       isReal: false
     }));
 
-    // Fusion avec priorité aux annonces réelles
+    // Fusion avec priorité absolue aux annonces réelles
+    // Si des annonces réelles existent, elles sont en haut du terrain
     return [...fsOffers, ...demoOffers].sort((a, b) => {
       if (a.isReal && !b.isReal) return -1;
       if (!a.isReal && b.isReal) return 1;
+      // Tri par date pour les annonces réelles entre elles
       const timeA = a.createdAt?.seconds || 0;
       const timeB = b.createdAt?.seconds || 0;
       return timeB - timeA;
@@ -117,12 +122,16 @@ export default function HomePage() {
 
   const totalActiveOffersCount = combinedOffers.filter(o => o.isReal).length
 
+  // Image héro par défaut
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
+  // FILTRAGE DU TERRAIN
   const filteredOffers = useMemo(() => {
     return combinedOffers.filter(offer => {
+      // 1. Filtre par catégorie
       const matchesCategory = !activeFilter || offer.typeOffre === activeFilter
       
+      // 2. Filtre par localisation (Ville ou Rayon)
       let matchesLocation = true;
       const searchCityMatch = MAIN_CITIES.find(c => c.toLowerCase() === searchQuery.trim().toLowerCase())
       const targetCityName = activeLocation !== 'all' ? activeLocation : (searchCityMatch || null)
@@ -132,10 +141,12 @@ export default function HomePage() {
         if (distance !== null) {
           matchesLocation = distance <= activeRadius;
         } else {
+          // Fallback : recherche textuelle si pas de coordonnées
           matchesLocation = offer.ville.toLowerCase().includes(targetCityName.toLowerCase())
         }
       }
 
+      // 3. Filtre par recherche textuelle globale
       const matchesSearch = !searchQuery || 
         offer.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
         offer.ville.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -145,6 +156,7 @@ export default function HomePage() {
     })
   }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery])
 
+  // Gestion des favoris (Redirige vers login si pas connecté)
   const toggleFavorite = (e: React.MouseEvent, offerId: string) => {
     e.preventDefault()
     if (!user) {
@@ -162,6 +174,7 @@ export default function HomePage() {
     }
   }
 
+  // Clic sur une annonce (Redirige vers login si pas connecté)
   const handleOfferClick = (e: React.MouseEvent, offerId: string) => {
     if (!user) {
       e.preventDefault()
@@ -169,6 +182,7 @@ export default function HomePage() {
     }
   }
 
+  // Empêcher l'affichage avant le montage pour éviter les erreurs d'hydratation
   if (!mounted) {
     return <div className="min-h-screen bg-background" />
   }
@@ -187,7 +201,7 @@ export default function HomePage() {
             data-ai-hint="football action"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
-          {!user && (
+          {!user && !isUserLoading && (
             <div className="absolute top-4 right-4 animate-in fade-in zoom-in duration-700">
                <Link href="/login">
                 <Badge className="bg-primary text-black font-black uppercase italic tracking-tighter px-4 py-2 shadow-2xl hover:scale-105 transition-transform">
@@ -214,7 +228,7 @@ export default function HomePage() {
               <span>Mercato : {totalActiveOffersCount} {totalActiveOffersCount > 1 ? 'offres réelles' : 'offre réelle'}</span>
             </Badge>
 
-            {!user && (
+            {!user && !isUserLoading && (
               <Badge variant="outline" className="border-white/20 text-muted-foreground font-black uppercase italic tracking-tighter px-4 py-1.5 bg-white/5">
                 Mode Public : Lèche-vitrine ⚽
               </Badge>
@@ -241,6 +255,7 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* FILTRES TACTIQUES */}
       <section className="px-6 py-2">
         <div className="grid grid-cols-4 gap-3">
           {[
@@ -273,6 +288,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* SÉLECTION DU STADE (Localisation) */}
       <div className="px-6 py-4 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-muted-foreground">
           <MapPin className={cn("w-3.5 h-3.5 flex-shrink-0 transition-colors", activeLocation !== 'all' ? "text-primary" : "text-muted-foreground")} />
@@ -308,6 +324,7 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* AFFICHAGE DES ANNONCES */}
       <section className="px-6 py-4 flex flex-col gap-6 pb-24">
         <div className="flex justify-between items-end">
           <h2 className="text-xl font-black italic uppercase tracking-tighter text-foreground">
