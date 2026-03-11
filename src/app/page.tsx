@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react'
@@ -192,15 +193,15 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* SECTION BUDGET DISCRETE */}
-        <section className="px-8 py-1 flex flex-col gap-1.5">
+        {/* SECTION BUDGET ULTRA DISCRETE */}
+        <section className="px-10 py-0.5 flex flex-col gap-0.5 opacity-60 hover:opacity-100 transition-opacity">
           <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-1.5 opacity-60">
-              <Banknote className="w-3 h-3 text-primary" />
-              <span className="text-[9px] font-black uppercase tracking-[0.2em] italic">Budget</span>
+            <div className="flex items-center gap-1">
+              <Banknote className="w-2.5 h-2.5 text-primary opacity-40" />
+              <span className="text-[7px] font-black uppercase tracking-[0.3em] italic text-muted-foreground">Budget Max</span>
             </div>
-            <span className="text-[10px] font-black italic text-primary">
-              {maxPrice === 0 ? "Gratuit" : maxPrice === 1500 ? "Max" : `${maxPrice}€`}
+            <span className="text-[8px] font-black italic text-primary">
+              {maxPrice === 0 ? "Gratuit" : maxPrice === 1500 ? "Illimité" : `${maxPrice}€`}
             </span>
           </div>
           <div className="px-1">
@@ -209,7 +210,7 @@ export default function HomePage() {
               max={1500}
               step={10}
               onValueChange={(val) => setMaxPrice(val[0])}
-              className="py-2"
+              className="py-1.5"
             />
           </div>
         </section>
