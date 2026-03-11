@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * @fileOverview Redirection des anciennes routes vers le nouveau système de détails.
+ * Suppression des balises HTML invalides pour éviter l'Internal Server Error.
  */
 
 export default function RedirectOfferPage() {

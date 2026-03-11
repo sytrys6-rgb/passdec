@@ -14,11 +14,10 @@ import { useUser, useFirestore, useMemoFirebase, useCollection } from '@/firebas
 import { collection, query, where } from 'firebase/firestore'
 import placeholderData from '@/app/lib/placeholder-images.json'
 import { getDistanceBetweenCities, MAIN_CITIES } from '@/app/lib/cities'
-import { allOffers } from '@/app/lib/offers'
 
 /**
  * @fileOverview Page d'accueil - La vitrine publique.
- * Les menus Ville et Distance sont alignés sur la même ligne avec les rayons demandés.
+ * Correction de l'alignement des filtres et stabilisation du rendu.
  */
 
 export default function HomePage() {
@@ -31,7 +30,7 @@ export default function HomePage() {
   const [activeRadius, setActiveRadius] = useState<number>(100)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Hydratation sécurisée
+  // Hydratation sécurisée pour éviter les erreurs d'hydratation Next.js 15
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined') {
@@ -47,7 +46,7 @@ export default function HomePage() {
     }
   }, [])
 
-  // Sauvegarde des préférences
+  // Sauvegarde des préférences tactiques
   useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
       sessionStorage.setItem('last_city', activeLocation)
@@ -57,7 +56,7 @@ export default function HomePage() {
     }
   }, [activeLocation, activeRadius, activeFilter, searchQuery, mounted])
 
-  // REQUÊTE PUBLIQUE
+  // REQUÊTE PUBLIQUE - Récupération du mercato réel
   const offersQuery = useMemoFirebase(() => {
     if (!db) return null
     return collection(db, 'offres')
@@ -65,7 +64,7 @@ export default function HomePage() {
 
   const { data: firestoreOffers, isLoading: isOffersLoading } = useCollection(offersQuery)
 
-  // Messages non lus (si connecté)
+  // Messages non lus (uniquement si l'utilisateur est connecté)
   const convsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, 'conversations'), where('participants', 'array-contains', user.uid))
@@ -92,7 +91,6 @@ export default function HomePage() {
       isReal: true
     })) : [];
 
-    // On n'affiche que les offres réelles sur la vitrine pour plus de clarté
     return fsOffers.sort((a, b) => {
       const timeA = a.createdAt?.seconds || 0;
       const timeB = b.createdAt?.seconds || 0;
@@ -100,7 +98,6 @@ export default function HomePage() {
     });
   }, [firestoreOffers])
 
-  const totalActiveRealCount = useMemo(() => combinedOffers.length, [combinedOffers])
   const heroImage = placeholderData.placeholderImages.find(img => img.id === 'football-hero')?.imageUrl || "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1200&auto=format&fit=crop"
 
   const filteredOffers = useMemo(() => {
@@ -128,6 +125,7 @@ export default function HomePage() {
     })
   }, [combinedOffers, activeFilter, activeLocation, activeRadius, searchQuery])
 
+  // Empêche le rendu serveur de différer du client au démarrage
   if (!mounted) {
     return (
       <div className="flex flex-col min-h-screen bg-background items-center justify-center">
@@ -174,7 +172,7 @@ export default function HomePage() {
               )}
               <Badge variant="outline" className="border-primary/50 text-primary font-black uppercase italic tracking-tighter px-4 py-1.5 bg-primary/5">
                 <Activity className="w-3 h-3 animate-pulse mr-2" />
-                Mercato : {totalActiveRealCount} annonces réelles
+                Mercato : {combinedOffers.length} annonces réelles
               </Badge>
             </div>
             <h1 className="text-4xl font-black italic uppercase tracking-tighter">
@@ -193,50 +191,55 @@ export default function HomePage() {
           </div>
         </header>
 
-        {/* Tactique de Zone - Filtres Géo Aligné sur une ligne */}
+        {/* Tactique de Zone - Alignement parfait Ville & Distance sur la même ligne */}
         <section className="px-6 py-2 flex flex-col gap-3">
           <div className="flex items-center gap-2 mb-1">
             <Compass className="w-4 h-4 text-primary" />
             <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Tactique de Zone</h3>
           </div>
-          <div className="grid grid-cols-2 gap-3 items-center">
-            <Select value={activeLocation} onValueChange={setActiveLocation}>
-              <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold italic text-xs">
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <MapPin className="w-3 h-3 text-primary shrink-0" />
-                  <SelectValue placeholder="Toute la France" />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                <SelectItem value="all">🇫🇷 Toute la France</SelectItem>
-                {MAIN_CITIES.map((city) => (
-                  <SelectItem key={city} value={city}>{city}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          
+          <div className="grid grid-cols-2 gap-3 items-center w-full">
+            <div className="w-full">
+              <Select value={activeLocation} onValueChange={setActiveLocation}>
+                <SelectTrigger className="bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold italic text-xs w-full">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <MapPin className="w-3 h-3 text-primary shrink-0" />
+                    <SelectValue placeholder="Toute la France" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="all">🇫🇷 Toute la France</SelectItem>
+                  {MAIN_CITIES.map((city) => (
+                    <SelectItem key={city} value={city}>{city}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select 
-              value={activeRadius.toString()} 
-              onValueChange={(v) => setActiveRadius(parseInt(v))}
-              disabled={activeLocation === 'all'}
-            >
-              <SelectTrigger className={cn(
-                "bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold italic text-xs",
-                activeLocation === 'all' && "opacity-40"
-              )}>
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <Activity className="w-3 h-3 text-primary shrink-0" />
-                  <SelectValue placeholder="Rayon" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="25">Rayon : 25 km</SelectItem>
-                <SelectItem value="50">Rayon : 50 km</SelectItem>
-                <SelectItem value="100">Rayon : 100 km</SelectItem>
-                <SelectItem value="150">Rayon : 150 km</SelectItem>
-                <SelectItem value="200">Rayon : 200 km</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="w-full">
+              <Select 
+                value={activeRadius.toString()} 
+                onValueChange={(v) => setActiveRadius(parseInt(v))}
+                disabled={activeLocation === 'all'}
+              >
+                <SelectTrigger className={cn(
+                  "bg-card border-none ring-1 ring-white/10 rounded-xl h-12 font-bold italic text-xs w-full",
+                  activeLocation === 'all' && "opacity-40"
+                )}>
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <Activity className="w-3 h-3 text-primary shrink-0" />
+                    <SelectValue placeholder="Rayon" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="25">Rayon : 25 km</SelectItem>
+                  <SelectItem value="50">Rayon : 50 km</SelectItem>
+                  <SelectItem value="100">Rayon : 100 km</SelectItem>
+                  <SelectItem value="150">Rayon : 150 km</SelectItem>
+                  <SelectItem value="200">Rayon : 200 km</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </section>
 
