@@ -28,6 +28,12 @@ export default function HomePage() {
   const [activeRadius, setActiveRadius] = useState<number>(150)
   const [searchQuery, setSearchQuery] = useState('')
   const [isInitialized, setIsInitialized] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Initialisation du montage pour éviter les erreurs d'hydratation
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Initialisation sécurisée des filtres depuis le stockage local (client-side only)
   useEffect(() => {
@@ -84,7 +90,6 @@ export default function HomePage() {
     let count = 0
     conversations.forEach(conv => {
       if (conv.deletedBy?.includes(user.uid)) return;
-      // Vérification robuste des compteurs de non lus
       const myUnread = conv.unreadCount?.[user.uid] ?? conv[`unreadCount.${user.uid}`] ?? 0;
       count += myUnread;
     })
@@ -163,8 +168,8 @@ export default function HomePage() {
     }
   }
 
-  // On affiche un loader uniquement pendant que l'arbitre vérifie l'identité initiale
-  if (isUserLoading && !user) {
+  // On n'affiche le loader qu'après le montage côté client pour éviter les erreurs d'hydratation
+  if (mounted && isUserLoading && !user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
