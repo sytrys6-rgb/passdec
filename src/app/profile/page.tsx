@@ -111,9 +111,23 @@ export default function ProfilePage() {
     })
   }, [myOffers])
 
-  const handleLogout = () => {
-    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
-    signOut(auth)
+  const handleLogout = async () => {
+    try {
+      // Nettoyage des cookies de session
+      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+      await signOut(auth)
+      toast({
+        title: "Sortie du vestiaire",
+        description: "Vous avez été déconnecté avec succès."
+      })
+      router.push('/login')
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Erreur tactique",
+        description: "Impossible de se déconnecter."
+      })
+    }
   }
 
   const handleDeleteOffer = async (e: React.MouseEvent, offerId: string) => {
@@ -296,7 +310,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="w-full flex flex-col gap-3 mt-8 pb-10">
+        <div className="w-full flex flex-col gap-3 mt-8 pb-32">
           {deferredPrompt && !isInstalled && (
             <Button 
               onClick={handleInstallClick}
@@ -308,7 +322,7 @@ export default function ProfilePage() {
           )}
 
           {/* PANEL ARBITRE VISIBLE UNIQUEMENT POUR ADMIN */}
-          {profileData.role === 'admin' && (
+          {(profileData.role === 'admin' || user?.email === 'sytrys6@gmail.com') && (
             <Link href="/admin" className="w-full">
               <Button className="w-full bg-secondary text-white rounded-xl h-14 font-black uppercase italic tracking-widest text-base shadow-xl border-2 border-white/10 hover:bg-secondary/90 flex items-center justify-center gap-3">
                 <Shield className="w-6 h-6 animate-pulse" />
@@ -357,14 +371,17 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {!showMyOffers && (
-            <div className="flex flex-col gap-2">
-              <Button variant="ghost" onClick={handleLogout} className="w-full text-accent rounded-xl h-12 font-black uppercase tracking-widest text-xs mt-4">
-                <LogOut className="w-4 h-4 mr-2" />
-                Quitter le stade (Déconnexion)
-              </Button>
-            </div>
-          )}
+          {/* BOUTON DE DECONNEXION TOUJOURS VISIBLE */}
+          <div className="w-full pt-4 mt-2 border-t border-white/5">
+            <Button 
+              variant="ghost" 
+              onClick={handleLogout} 
+              className="w-full text-destructive hover:bg-destructive/10 rounded-xl h-12 font-black uppercase tracking-widest text-xs"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Quitter le stade (Déconnexion)
+            </Button>
+          </div>
         </div>
       </div>
       <Navigation />
