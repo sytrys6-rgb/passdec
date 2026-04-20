@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils'
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase'
 import { collection, query, where } from 'firebase/firestore'
 import { useMemo } from 'react'
-import Image from 'next/image'
 
 /**
  * @fileOverview Barre de navigation principale avec détection robuste des messages non lus.
